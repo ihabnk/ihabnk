@@ -1,6 +1,4 @@
-document.getElementById('downloadPdf').addEventListener('click', function () {
-    window.print();
-});
+
 
 // Open the email overlay
 document.getElementById('emailLink').addEventListener('click', function (e) {
