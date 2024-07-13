@@ -1,0 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+@font-face {
+    font-family: 'DPCustomMono2';
+    src: url('fonts/DPCustomMono2-Regular.woff2') format('woff2'),
+         url('fonts/DPCustomMono2-Regular.woff') format('woff');
+}
+
+body {
+    background-color: #000;
+    color: #00FF00;
+    font-family: 'Press Start 2P', cursive;
+}
+
+h1, h2, h3 {
+    font-family: 'Press Start 2P', cursive;
+}
+
+a {
+    color: #00FF00;
+}
+
+.container {
+    margin-top: 50px;
+    position: relative;
+    z-index: 1;
+}
+
+button {
+    margin-top: 20px;
+}
+
+canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    opacity: 0.2;
+}
+
+.text-container {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+/* Overlay styles */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 2;
+}
+
+.overlay-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #000;
+    padding: 20px;
+    border: 1px solid #00FF00;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 400px;
+}
+
+
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 30px;
+    cursor: pointer;
+    color: #00FF00;
+}
+
+/* Form input fields */
+input, textarea {
+    background-color: #333;
+    color: #00FF00;
+    border: 1px solid #00FF00;
+}
+
+.arabic {
+    font-family: 'DPCustomMono2', monospace;
+}
