@@ -5,6 +5,15 @@
     src: url('fonts/DPCustomMono2-Regular.woff2') format('woff2'),
          url('fonts/DPCustomMono2-Regular.woff') format('woff');
 }
+@font-face {
+    font-family: 'Sub-Zero';
+    src: url('fonts/Sub-Zero.woff2') format('woff2'),
+         url('fonts/Sub-Zero.woff') format('woff'),
+         url('fonts/Sub-Zero.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 
 body {
     background-color: #000;
@@ -13,7 +22,9 @@ body {
 }
 
 h1, h2, h3 {
-    font-family: 'Press Start 2P', cursive;
+    font-family: 'Sub-Zero', sans-serif;
+    color: #00FF00;
+    background-color: #000;
 }
 
 a {
