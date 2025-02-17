@@ -1,60 +1,67 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-@font-face {
-    font-family: 'DPCustomMono2';
-    src: url('fonts/DPCustomMono2-Regular.woff2') format('woff2'),
-         url('fonts/DPCustomMono2-Regular.woff') format('woff');
-}
-@font-face {
-    font-family: 'Sub-Zero';
-    src: url('fonts/Sub-Zero.woff2') format('woff2'),
-         url('fonts/Sub-Zero.woff') format('woff'),
-         url('fonts/Sub-Zero.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-}
-
-
 body {
     background-color: #000;
     color: #00FF00;
     font-family: 'Press Start 2P', cursive;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    background-color: rgba(0, 0, 0, 0.9);
+    padding: 20px;
+    border: 2px solid #00FF00;
+    border-radius: 10px;
+    text-align: center;
+    width: 90%;
+    max-width: 350px;
+    box-shadow: 5px 5px 0 #00FF00;
+}
+
+.profile-pic {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid #00FF00;
+    box-shadow: 0px 0px 10px #00FF00;
+    display: block;
+    margin: 10px auto;
+    object-fit: cover;
+    transition: transform 0.3s ease-in-out;
+}
+
+.profile-pic:hover {
+    transform: scale(1.1);
 }
 
 h1, h2, h3 {
-    font-family: 'Sub-Zero', sans-serif;
+    font-family: 'Courier New', monospace;
     color: #00FF00;
-    background-color: #000;
-}
-pre {
-    
-    color: #00FF00;
-    background-color: #000;
-
+    background-color: transparent;
+    margin: 10px 0;
+    font-size: 1.2em;
 }
 
 a {
     color: #00FF00;
+    text-decoration: none;
+    display: block;
+    padding: 8px;
+    border: 1px solid #00FF00;
+    border-radius: 5px;
+    margin: 10px 0;
+    transition: all 0.3s ease;
+    font-size: 1em;
 }
 
-.container {
-    margin-top: 50px;
-    position: relative;
-    z-index: 1;
-}
-
-button {
-    margin-top: 20px;
-}
-
-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    opacity: 0.2;
+a:hover {
+    background-color: #00FF00;
+    color: #000;
 }
 
 .text-container {
@@ -63,49 +70,20 @@ canvas {
     border-radius: 10px;
 }
 
-/* Overlay styles */
-.overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    z-index: 2;
-}
-
-.overlay-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: #000;
-    padding: 20px;
-    border: 1px solid #00FF00;
-    border-radius: 10px;
-    width: 80%;
-    max-width: 400px;
-}
-
-
-
-.close {
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    font-size: 30px;
-    cursor: pointer;
-    color: #00FF00;
-}
-
-/* Form input fields */
-input, textarea {
-    background-color: #333;
-    color: #00FF00;
-    border: 1px solid #00FF00;
-}
-
-.arabic {
-    font-family: 'DPCustomMono2', monospace;
+/* Responsive Design */
+@media screen and (max-width: 480px) {
+    .container {
+        width: 100%;
+        padding: 15px;
+    }
+    .profile-pic {
+        width: 80px;
+        height: 80px;
+    }
+    h1, h2, h3 {
+        font-size: 1em;
+    }
+    a {
+        font-size: 0.9em;
+    }
 }
