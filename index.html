@@ -3,18 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile Links</title>
+    <title>Profile Links + Retro Wave</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+
+<!-- Retro Wave wrapper from CodePen -->
+<div class="wrapper">
+    <div class="inner-wrapper">
+        <!-- Creates the horizon lines -->
+        <div class="landscape"></div>
+    </div>
+
+
+<!-- End Retro Wave wrapper -->
+
+<!-- Your existing container with profile picture, links, etc. -->
+<div class="stars"></div>
 <div class="container">
     <header class="text-center">
+        <!-- Make sure your profile picture has a constrained size in CSS -->
         <img class="profile-pic" src="profile.png" alt="Profile Picture">
-        <h1>Ihab Khreishah | ihabnk</h1>
-        <h2><br>QA, SHAIHD</h2>
+        <h2>ihabnk</h2>
     </header>
 
-
+    <div class="tabs">
+    </div>
 
     <div class="links">
         <a href="#">Learn about <strong>JoJO</strong></a>
@@ -22,8 +36,14 @@
         <a href="https://hashnode.com/@ihabnk">Follow me on <strong>hashnode</strong></a>
         <a href="https://github.com/ihabnk">Visit my <strong>GitHub profile</strong></a>
         <a href="https://dev.to/ihabnk" target="_blank">Read my blog on <strong>DEVCommunity</strong></a>
-
     </div>
 </div>
+<!-- End your container -->
+
+<!-- JS script (optional) -->
+<script src="js/script.js"></script>
+
+<!-- Re-link your CSS at the very end if you want -->
+<link rel="stylesheet" href="css/styles.css">
 </body>
 </html>
