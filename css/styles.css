@@ -1,20 +1,9 @@
-/* File: styles.css */
 
-/*
-@author Jack Philippi
-@description @NewRetroWave - I don't own any rights to the NewRetroWave logo or name.
-Font (Outrun Future) by PressGang Studios
-https://comicfontsby.tehandeh.com/fonts/outrun-future/
-*/
+
 
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-/* Example @font-face if needed:
-@font-face {
-  font-family: 'OutRun';
-  src: url("https://jackphilippi.com.au/cdn/fonts/outrun_future.otf") format("opentype");
-}
-*/
+
 
 /* Basic Reset */
 * {
