@@ -1,0 +1,23 @@
+languageCode = "en"
+languageName = "English"
+weight = 2
+title = "My New Hugo Site"
+
+[params]
+  displayName = "English"
+  isoCode = "en"
+  rtl = false
+  dateFormat = "January 2, 2006"
+  description = "Demo site powered by the Blowfish theme."
+  defaultTheme = "light"
+  copyright = "© Site Team 2025"
+
+  [params.author]
+    name = "Site Team"
+    headline = "A sample blog in English"
+    bio = "Welcome to our first Hugo site built with the Blowfish theme."
+    image = "img/profile-avatar.svg"
+    links = [
+      { github = "https://github.com/ihabnk" },
+      { email = "mailto:hello@example.org" }
+    ]
