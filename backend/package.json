@@ -8,9 +8,23 @@
     "dev": "node --watch src/server.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.999.0",
+    "@prisma/client": "^7.4.2",
+    "bcrypt": "^6.0.0",
     "better-sqlite3": "^11.8.1",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.21.2"
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1",
+    "express-rate-limit": "^8.2.1",
+    "express-validator": "^7.3.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.10.1",
+    "multer": "^2.1.0",
+    "nodemailer": "^8.0.1",
+    "prisma": "^7.4.2",
+    "socket.io": "^4.8.3",
+    "stripe": "^20.4.0",
+    "twilio": "^5.12.2"
   }
 }
