@@ -39,6 +39,4 @@ export const env = Object.freeze({
   SUPABASE_STORAGE_BUCKET: process.env.SUPABASE_STORAGE_BUCKET,
 
   CLIENT_URL: process.env.CLIENT_URL,
-
-  GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY || "",
 });

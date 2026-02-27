@@ -1,13 +1,5 @@
 import Foundation
 
-struct ReverseGeocodeResult: Decodable {
-    let address: String
-    let city: String?
-    let placeId: String?
-    let latitude: Double
-    let longitude: Double
-}
-
 struct BackendBookingAddOn: Codable, Hashable {
     let name: String
     let priceJOD: Double
@@ -90,23 +82,6 @@ actor BackendClient {
         }
 
         return URL(string: "http://127.0.0.1:8080")!
-    }
-
-    func reverseGeocode(latitude: Double, longitude: Double, languageCode: String) async throws -> ReverseGeocodeResult {
-        var components = URLComponents(url: baseURL.appending(path: "/api/location/reverse-geocode"), resolvingAgainstBaseURL: false)
-        components?.queryItems = [
-            URLQueryItem(name: "lat", value: String(latitude)),
-            URLQueryItem(name: "lng", value: String(longitude)),
-            URLQueryItem(name: "language", value: languageCode)
-        ]
-
-        guard let url = components?.url else {
-            throw BackendClientError.invalidBaseURL
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        return try await send(request, as: ReverseGeocodeResult.self)
     }
 
     func createBooking(_ payload: CreateBookingRequest) async throws -> CreateBookingResponse {

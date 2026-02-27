@@ -6,6 +6,7 @@ struct HomeRootView: View {
     @Environment(\.layoutDirection) private var layoutDirection
     @Binding var selectedTab: AppTab
 
+    @StateObject private var locationManager = LocationManager()
     @State private var path: [HomeRoute] = []
     @State private var isShowingDateSheet = false
 
@@ -19,6 +20,7 @@ struct HomeRootView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.xl) {
                     offersSection
+                    nearbyProsSection
                     stepsSection
                     prosSection
                     exploreSection
@@ -46,6 +48,26 @@ struct HomeRootView: View {
                     session.updateSchedule(date: date, time: time)
                 }
             }
+        }
+    }
+
+    private var nearbyProsSection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+            if let coordinate = locationManager.userLocation {
+                MapSnapshotView(
+                    coordinate: coordinate,
+                    spanDelta: 0.04,
+                    width: UIScreen.main.bounds.width - AppTheme.Spacing.l * 2,
+                    height: 160
+                )
+                Text(String(localized: "Beauty pros available near you"))
+                    .font(.subheadline)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
+            }
+        }
+        .padding(.horizontal, AppTheme.Spacing.l)
+        .onAppear {
+            locationManager.requestPermission()
         }
     }
 
@@ -253,21 +275,27 @@ private struct AddressEditorView: View {
 
         do {
             let coordinate = try await locationService.requestCurrentLocation()
-            let languageCode = Locale.current.languageCode ?? "en"
-            let result = try await BackendClient.shared.reverseGeocode(
-                latitude: coordinate.latitude,
-                longitude: coordinate.longitude,
-                languageCode: languageCode
-            )
+            let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+            let placemarks = try await CLGeocoder().reverseGeocodeLocation(location)
+
+            guard let placemark = placemarks.first else {
+                locationError = String(localized: "Could not determine address for this location.")
+                return
+            }
+
+            let street = placemark.thoroughfare ?? ""
+            let city = placemark.locality ?? placemark.administrativeArea ?? ""
+            let parts = [street, city].filter { !$0.isEmpty }
+            let address = parts.joined(separator: ", ")
 
             session.updateAddress(
-                address: result.address,
-                city: result.city,
-                latitude: result.latitude,
-                longitude: result.longitude
+                address: address.isEmpty ? String(localized: "Current Location") : address,
+                city: city.isEmpty ? nil : city,
+                latitude: coordinate.latitude,
+                longitude: coordinate.longitude
             )
 
-            focusMap(on: CLLocationCoordinate2D(latitude: result.latitude, longitude: result.longitude))
+            focusMap(on: coordinate)
         } catch {
             locationError = error.localizedDescription
         }

@@ -1,8 +1,6 @@
 # BeautyOnCall Backend
 
-This backend provides:
-- Google Maps geolocation APIs (reverse geocode, autocomplete, place details)
-- Booking persistence (SQLite)
+Express + Prisma backend for BeautyOnCall beauty on-demand app.
 
 ## 1) Setup
 
@@ -10,11 +8,11 @@ This backend provides:
 cd backend
 cp .env.example .env
 npm install
+npx prisma db push
+npx prisma generate
 ```
 
-Set your `.env` values:
-- `GOOGLE_MAPS_API_KEY`: server-side Google Maps key with Geocoding API + Places API enabled
-- `PORT`: default `8080`
+Set your `.env` values (see `.env.example` for all keys).
 
 ## 2) Run
 
@@ -25,14 +23,23 @@ npm run dev
 ## 3) Endpoints
 
 - `GET /health`
-- `GET /api/location/reverse-geocode?lat=31.95&lng=35.91&language=ar`
-- `GET /api/location/autocomplete?input=amman&language=ar&country=jo`
-- `GET /api/location/place-details?placeId=...&language=ar`
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/otp/send`
+- `POST /api/auth/otp/verify`
+- `POST /api/auth/refresh`
+- `POST /api/auth/logout`
+- `POST /api/payments/checkout`
+- `POST /api/payments/confirm`
+- `POST /api/payments/refund`
+- `GET /api/wallet/me`
+- `POST /api/wallet/topup`
 - `POST /api/bookings`
 - `GET /api/bookings?clientId=...`
 - `PATCH /api/bookings/:id/reschedule`
 
 ## Notes
 
-- SQLite DB file is stored at `backend/data/beautyoncall.db`.
-- Keep your Google API key on the backend only.
+- Database: Supabase PostgreSQL
+- Storage: Supabase Storage
+- Geocoding: handled client-side with Apple MapKit (no backend geocoding needed)
