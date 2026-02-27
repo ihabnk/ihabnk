@@ -3,19 +3,55 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// ─── Enums (SQLite doesn't support native enums, so we use String + comments) ──
+// ─── Enums ──────────────────────────────────────────────────────────────────
 
-// Role:        CUSTOMER | PRO | ADMIN
-// Category:    HAIR | MAKEUP | NAILS | SKINCARE | BRIDAL | MASSAGE
-// BookingStatus: PENDING | CONFIRMED | ON_THE_WAY | IN_PROGRESS | COMPLETED | CANCELLED
-// PaymentStatus: UNPAID | PAID | REFUNDED
-// TransactionType: CREDIT | DEBIT
+enum Role {
+  CUSTOMER
+  PRO
+  ADMIN
+}
 
-// ─── User ──────────────────────────────────────────────────────────────────────
+enum Category {
+  HAIR
+  MAKEUP
+  NAILS
+  SKINCARE
+  BRIDAL
+  MASSAGE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  ON_THE_WAY
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+}
+
+enum TransactionStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+// ─── User ───────────────────────────────────────────────────────────────────
 
 model User {
   id           String   @id @default(uuid())
@@ -24,7 +60,7 @@ model User {
   phone        String?
   passwordHash String
   avatar       String?
-  role         String   @default("CUSTOMER") // CUSTOMER | PRO | ADMIN
+  role         Role     @default(CUSTOMER)
   deviceToken  String?
   isVerified   Boolean  @default(false)
   createdAt    DateTime @default(now())
@@ -39,7 +75,7 @@ model User {
   notifications       Notification[]
 }
 
-// ─── Pro ───────────────────────────────────────────────────────────────────────
+// ─── Pro ────────────────────────────────────────────────────────────────────
 
 model Pro {
   id              String   @id @default(uuid())
@@ -62,22 +98,22 @@ model Pro {
   reviews        Review[]       @relation("ProReviews")
 }
 
-// ─── Service ───────────────────────────────────────────────────────────────────
+// ─── Service ────────────────────────────────────────────────────────────────
 
 model Service {
-  id              String  @id @default(uuid())
+  id              String   @id @default(uuid())
   name            String
-  category        String  // HAIR | MAKEUP | NAILS | SKINCARE | BRIDAL | MASSAGE
+  category        Category
   description     String?
   durationMinutes Int
   basePrice       Float
   imageUrl        String?
-  isActive        Boolean @default(true)
+  isActive        Boolean  @default(true)
 
   bookingServices BookingService[]
 }
 
-// ─── Availability ──────────────────────────────────────────────────────────────
+// ─── Availability ───────────────────────────────────────────────────────────
 
 model Availability {
   id        String  @id @default(uuid())
@@ -90,34 +126,35 @@ model Availability {
   pro Pro @relation(fields: [proId], references: [id], onDelete: Cascade)
 }
 
-// ─── Booking ───────────────────────────────────────────────────────────────────
+// ─── Booking ────────────────────────────────────────────────────────────────
 
 model Booking {
-  id              String   @id @default(uuid())
+  id              String        @id @default(uuid())
   customerId      String
   proId           String
-  status          String   @default("PENDING") // PENDING | CONFIRMED | ON_THE_WAY | IN_PROGRESS | COMPLETED | CANCELLED
+  status          BookingStatus @default(PENDING)
   scheduledAt     DateTime
   fullAddress     String
   lat             Float?
   lng             Float?
-  totalAmount     Float    @default(0)
+  totalAmount     Float         @default(0)
   notes           String?
   promoCode       String?
-  discountAmount  Float    @default(0)
-  paymentStatus   String   @default("UNPAID") // UNPAID | PAID | REFUNDED
+  discountAmount  Float         @default(0)
+  paymentStatus   PaymentStatus @default(UNPAID)
   paymentIntentId String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   customer        User             @relation("CustomerBookings", fields: [customerId], references: [id])
   pro             Pro              @relation("ProBookings", fields: [proId], references: [id])
   bookingServices BookingService[]
   review          Review?
   messages        Message[]
+  transactions    Transaction[]
 }
 
-// ─── BookingService (junction) ─────────────────────────────────────────────────
+// ─── BookingService (junction) ──────────────────────────────────────────────
 
 model BookingService {
   bookingId      String
@@ -130,7 +167,7 @@ model BookingService {
   @@id([bookingId, serviceId])
 }
 
-// ─── Review ────────────────────────────────────────────────────────────────────
+// ─── Review ─────────────────────────────────────────────────────────────────
 
 model Review {
   id         String   @id @default(uuid())
@@ -139,7 +176,7 @@ model Review {
   proId      String
   rating     Int      // 1–5
   comment    String?
-  photoUrls  String   @default("[]") // JSON array stored as text (SQLite has no native String[])
+  photoUrls  String[] @default([])
   createdAt  DateTime @default(now())
 
   booking  Booking @relation(fields: [bookingId], references: [id])
@@ -147,7 +184,7 @@ model Review {
   pro      Pro     @relation("ProReviews", fields: [proId], references: [id])
 }
 
-// ─── Message ───────────────────────────────────────────────────────────────────
+// ─── Message ────────────────────────────────────────────────────────────────
 
 model Message {
   id        String   @id @default(uuid())
@@ -161,7 +198,7 @@ model Message {
   sender  User    @relation("SenderMessages", fields: [senderId], references: [id])
 }
 
-// ─── Wallet ────────────────────────────────────────────────────────────────────
+// ─── Wallet ─────────────────────────────────────────────────────────────────
 
 model Wallet {
   id        String   @id @default(uuid())
@@ -174,20 +211,24 @@ model Wallet {
   transactions Transaction[]
 }
 
-// ─── Transaction ───────────────────────────────────────────────────────────────
+// ─── Transaction ────────────────────────────────────────────────────────────
 
 model Transaction {
-  id          String   @id @default(uuid())
+  id          String            @id @default(uuid())
   walletId    String
   amount      Float
-  type        String   // CREDIT | DEBIT
+  type        TransactionType
+  status      TransactionStatus @default(PAID)
   description String?
-  createdAt   DateTime @default(now())
+  checkoutId  String?
+  bookingId   String?
+  createdAt   DateTime          @default(now())
 
-  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  wallet  Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  booking Booking? @relation(fields: [bookingId], references: [id])
 }
 
-// ─── Notification ──────────────────────────────────────────────────────────────
+// ─── Notification ───────────────────────────────────────────────────────────
 
 model Notification {
   id        String   @id @default(uuid())
@@ -196,13 +237,13 @@ model Notification {
   body      String
   type      String
   isRead    Boolean  @default(false)
-  data      String?  // JSON stored as text (SQLite has no native Json)
+  data      Json?
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// ─── Address ───────────────────────────────────────────────────────────────────
+// ─── Address ────────────────────────────────────────────────────────────────
 
 model Address {
   id          String   @id @default(uuid())
@@ -217,7 +258,7 @@ model Address {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// ─── PromoCode ─────────────────────────────────────────────────────────────────
+// ─── PromoCode ──────────────────────────────────────────────────────────────
 
 model PromoCode {
   id              String    @id @default(uuid())

@@ -7,6 +7,8 @@ import { env } from "./config/env.js";
 import { generalLimiter } from "./middleware/rateLimiter.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import authRoutes from "./routes/auth.routes.js";
+import paymentRoutes from "./routes/payment.routes.js";
+import walletRoutes from "./routes/wallet.routes.js";
 
 const app = express();
 
@@ -36,6 +38,8 @@ app.get("/health", (_req, res) => {
 
 // ── Routes ──────────────────────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/wallet", walletRoutes);
 
 // Global error handler — must be the last middleware
 app.use(errorHandler);
