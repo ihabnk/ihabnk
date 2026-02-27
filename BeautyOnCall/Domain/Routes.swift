@@ -7,6 +7,7 @@ enum HomeRoute: Hashable {
 
 enum ServicesRoute: Hashable {
     case serviceDetail(ServiceDetail)
+    case payment(Booking)
 }
 
 enum ProfileRoute: Hashable {

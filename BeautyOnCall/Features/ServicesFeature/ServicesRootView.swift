@@ -39,9 +39,11 @@ struct ServicesRootView: View {
             .navigationDestination(for: ServicesRoute.self) { route in
                 switch route {
                 case .serviceDetail(let detail):
-                    ServiceDetailView(detail: detail) {
+                    ServiceDetailView(detail: detail, path: $path) {
                         isShowingDateSheet = true
                     }
+                case .payment(let booking):
+                    PaymentView(booking: booking)
                 }
             }
             .sheet(isPresented: $isShowingDateSheet) {
@@ -57,6 +59,7 @@ private struct ServiceDetailView: View {
     @EnvironmentObject private var session: BookingSessionStore
 
     let detail: ServiceDetail
+    @Binding var path: [ServicesRoute]
     let onChooseDate: () -> Void
 
     @State private var isShowingBookingAlert = false
@@ -137,16 +140,18 @@ private struct ServiceDetailView: View {
                         .font(.title2.weight(.bold))
                 }
 
-                PrimaryCTAButton(title: isConfirmingBooking ? String(localized: "Syncing booking...") : String(localized: "Confirm Booking")) {
-                    guard !isConfirmingBooking else {
-                        return
-                    }
-
+                PrimaryCTAButton(title: isConfirmingBooking ? String(localized: "Preparing booking...") : String(localized: "Proceed to Payment")) {
+                    guard !isConfirmingBooking else { return }
                     isConfirmingBooking = true
                     Task {
-                        bookingAlertMessage = await session.confirmAndSyncCurrentBooking()
-                        isShowingBookingAlert = true
+                        let result = await session.confirmAndSyncCurrentBooking()
                         isConfirmingBooking = false
+                        if let booking = session.upcomingBookings.last {
+                            path.append(.payment(booking))
+                        } else {
+                            bookingAlertMessage = result
+                            isShowingBookingAlert = true
+                        }
                     }
                 }
                 .disabled(isConfirmingBooking)
