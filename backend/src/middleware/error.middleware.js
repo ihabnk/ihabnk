@@ -1,3 +1,5 @@
+import { env } from "../config/env.js";
+
 export class AppError extends Error {
   constructor(statusCode, message, isOperational = true) {
     super(message);
@@ -15,7 +17,7 @@ export function errorHandler(err, _req, res, _next) {
   }
 
   const statusCode = err.statusCode || 500;
-  const isProd = process.env.NODE_ENV === "production";
+  const isProd = env.NODE_ENV === "production";
 
   res.status(statusCode).json({
     status: "error",
