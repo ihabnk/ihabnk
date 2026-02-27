@@ -2,7 +2,7 @@ import twilio from "twilio";
 import { env } from "../config/env.js";
 
 let client;
-let verifyServiceSid;
+let verifyServiceSidPromise;
 
 function getClient() {
   if (!client) {
@@ -11,19 +11,25 @@ function getClient() {
   return client;
 }
 
-async function getVerifyServiceSid() {
-  if (verifyServiceSid) return verifyServiceSid;
+function getVerifyServiceSid() {
+  if (!verifyServiceSidPromise) {
+    verifyServiceSidPromise = resolveVerifyServiceSid().catch((err) => {
+      verifyServiceSidPromise = null;
+      throw err;
+    });
+  }
+  return verifyServiceSidPromise;
+}
 
+async function resolveVerifyServiceSid() {
   if (process.env.TWILIO_VERIFY_SID) {
-    verifyServiceSid = process.env.TWILIO_VERIFY_SID;
-    return verifyServiceSid;
+    return process.env.TWILIO_VERIFY_SID;
   }
 
   const service = await getClient().verify.v2.services.create({
     friendlyName: "BeautyOnCall OTP",
   });
-  verifyServiceSid = service.sid;
-  return verifyServiceSid;
+  return service.sid;
 }
 
 export async function sendOTP(phoneNumber) {

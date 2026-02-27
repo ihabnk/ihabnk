@@ -330,10 +330,8 @@ final class BookingSessionStore: ObservableObject {
         return String(localized: "Invalid promo code. Please try again.")
     }
 
-    func logOut() {
-        Task {
-            await AuthService.shared.logout()
-        }
+    func logOut() async {
+        await AuthService.shared.logout()
         userProfile = .empty
         selectedService = nil
         selectedAddOns = []

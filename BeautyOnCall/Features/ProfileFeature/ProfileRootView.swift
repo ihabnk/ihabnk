@@ -49,7 +49,7 @@ struct ProfileRootView: View {
             }
             .alert(String(localized: "Log Out"), isPresented: $isShowingLogOutAlert) {
                 Button(String(localized: "Log Out"), role: .destructive) {
-                    session.logOut()
+                    Task { await session.logOut() }
                 }
                 Button(String(localized: "Cancel"), role: .cancel) { }
             } message: {
@@ -249,7 +249,7 @@ private struct AccountDetailsView: View {
         }
         .alert(String(localized: "Delete Account"), isPresented: $isShowingDeleteAlert) {
             Button(String(localized: "Delete"), role: .destructive) {
-                session.logOut()
+                Task { await session.logOut() }
             }
             Button(String(localized: "Cancel"), role: .cancel) { }
         } message: {
