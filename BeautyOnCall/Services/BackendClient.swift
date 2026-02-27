@@ -138,4 +138,4 @@ actor BackendClient {
     }
 }
 
-private struct EmptyResponse: Decodable {}
+private struct EmptyResponse: Decodable, Sendable {}

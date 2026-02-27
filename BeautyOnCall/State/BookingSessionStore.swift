@@ -5,10 +5,10 @@ import CoreLocation
 
 @MainActor
 final class BookingSessionStore: ObservableObject {
-    static let addressPlaceholder = String(localized: "Add your address")
-    private static let clientIDDefaultsKey = "beautyoncall.client.id"
-    private static let profileDefaultsKey = "beautyoncall.user.profile"
-    private static let notificationsDefaultsKey = "beautyoncall.notifications.enabled"
+    static nonisolated(unsafe) let addressPlaceholder = String(localized: "Add your address")
+    private static nonisolated(unsafe) let clientIDDefaultsKey = "beautyoncall.client.id"
+    private static nonisolated(unsafe) let profileDefaultsKey = "beautyoncall.user.profile"
+    private static nonisolated(unsafe) let notificationsDefaultsKey = "beautyoncall.notifications.enabled"
 
     @Published var userProfile: UserProfile {
         didSet { persistProfile() }

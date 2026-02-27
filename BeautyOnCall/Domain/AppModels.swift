@@ -29,7 +29,7 @@ enum ServiceCategory: String, CaseIterable, Identifiable, Hashable {
     }
 }
 
-struct ServiceAddOn: Identifiable, Hashable {
+struct ServiceAddOn: Identifiable, Hashable, Sendable {
     let id: UUID
     let name: String
     let priceJOD: Double
@@ -41,7 +41,7 @@ struct ServiceAddOn: Identifiable, Hashable {
     }
 }
 
-struct OfferCard: Identifiable, Hashable {
+struct OfferCard: Identifiable, Hashable, Sendable {
     let id: UUID
     let title: String
     let subtitle: String
@@ -69,7 +69,7 @@ struct OfferCard: Identifiable, Hashable {
     }
 }
 
-struct ServiceCard: Identifiable, Hashable {
+struct ServiceCard: Identifiable, Hashable, Sendable {
     let id: UUID
     let category: ServiceCategory
     let title: String
@@ -97,14 +97,14 @@ struct ServiceCard: Identifiable, Hashable {
     }
 }
 
-struct ServiceDetail: Identifiable, Hashable {
+struct ServiceDetail: Identifiable, Hashable, Sendable {
     let id: UUID
     let serviceCard: ServiceCard
     let longDescription: String
     let addOns: [ServiceAddOn]
 }
 
-struct BundlePackage: Identifiable, Hashable {
+struct BundlePackage: Identifiable, Hashable, Sendable {
     let id: UUID
     let title: String
     let discountLabel: String
@@ -120,7 +120,7 @@ struct BundlePackage: Identifiable, Hashable {
     }
 }
 
-struct GiftOption: Identifiable, Hashable {
+struct GiftOption: Identifiable, Hashable, Sendable {
     let id: UUID
     let title: String
     let subtitle: String
@@ -132,7 +132,7 @@ struct GiftOption: Identifiable, Hashable {
     }
 }
 
-struct InviteSummary: Hashable {
+struct InviteSummary: Hashable, Sendable {
     let headline: String
     let inviteCodeLabel: String
     let inviteCode: String
@@ -140,14 +140,14 @@ struct InviteSummary: Hashable {
     let invitesDescription: String
 }
 
-struct CreditSummary: Hashable {
+struct CreditSummary: Hashable, Sendable {
     let headline: String
     let packageHint: String
     let inviteHint: String
     let redeemRowTitle: String
 }
 
-struct AccountItem: Identifiable, Hashable {
+struct AccountItem: Identifiable, Hashable, Sendable {
     enum Kind: Hashable {
         case name
         case email
@@ -167,7 +167,7 @@ struct AccountItem: Identifiable, Hashable {
     }
 }
 
-struct ExploreCategoryTile: Identifiable, Hashable {
+struct ExploreCategoryTile: Identifiable, Hashable, Sendable {
     let id: UUID
     let title: String
     let category: ServiceCategory?
@@ -181,7 +181,7 @@ struct ExploreCategoryTile: Identifiable, Hashable {
     }
 }
 
-struct UserProfile: Codable, Hashable {
+struct UserProfile: Codable, Hashable, Sendable {
     var name: String
     var email: String
     var phoneNumber: String
@@ -202,7 +202,7 @@ struct UserProfile: Codable, Hashable {
     }
 }
 
-struct Booking: Identifiable, Hashable {
+struct Booking: Identifiable, Hashable, Sendable {
     let id: UUID
     let backendBookingId: String?
     let service: ServiceCard

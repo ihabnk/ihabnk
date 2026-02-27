@@ -1,7 +1,7 @@
 import Foundation
 
 enum MockData {
-    static let defaultCity = String(localized: "Amman")
+    static nonisolated(unsafe) let defaultCity = String(localized: "Amman")
 
     static let offers: [OfferCard] = [
         OfferCard(
@@ -174,7 +174,7 @@ enum MockData {
         GiftOption(title: String(localized: "Packages"), subtitle: String(localized: "Gift our signature services at preferred prices"))
     ]
 
-    static let inviteSummary = InviteSummary(
+    static nonisolated(unsafe) let inviteSummary = InviteSummary(
         headline: String(localized: "Give a friend JOD 15 to try BeautyOnCall and get JOD 15 credit when they book."),
         inviteCodeLabel: String(localized: "Invite Code"),
         inviteCode: "beautyoncall2026",
