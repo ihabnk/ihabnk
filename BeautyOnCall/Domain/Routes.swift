@@ -15,4 +15,6 @@ enum ProfileRoute: Hashable {
     case inviteFriends
     case bundles
     case gifts
+    case bookingHistory
+    case settings
 }

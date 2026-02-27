@@ -14,6 +14,19 @@ enum ServiceCategory: String, CaseIterable, Identifiable, Hashable {
     case events = "Events"
 
     var id: String { rawValue }
+
+    var localizedTitle: String {
+        switch self {
+        case .hair:
+            return String(localized: "Hair")
+        case .makeup:
+            return String(localized: "Makeup")
+        case .weddings:
+            return String(localized: "Weddings")
+        case .events:
+            return String(localized: "Events")
+        }
+    }
 }
 
 struct ServiceAddOn: Identifiable, Hashable {
@@ -168,28 +181,61 @@ struct ExploreCategoryTile: Identifiable, Hashable {
     }
 }
 
+struct UserProfile: Codable, Hashable {
+    var name: String
+    var email: String
+    var phoneNumber: String
+
+    static let empty = UserProfile(name: "", email: "", phoneNumber: "")
+
+    var initials: String {
+        let parts = name.split(separator: " ")
+        let first = parts.first?.prefix(1) ?? ""
+        let last = parts.count > 1 ? parts.last!.prefix(1) : ""
+        let result = "\(first)\(last)".uppercased()
+        return result.isEmpty ? "?" : result
+    }
+
+    var isComplete: Bool {
+        !name.trimmingCharacters(in: .whitespaces).isEmpty &&
+        !email.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+}
+
 struct Booking: Identifiable, Hashable {
     let id: UUID
+    let backendBookingId: String?
     let service: ServiceCard
     let dateTime: Date
     let address: String
+    let city: String?
+    let latitude: Double?
+    let longitude: Double?
     let addOns: [ServiceAddOn]
     let totalPriceJOD: Double
     let createdAt: Date
 
     init(
         id: UUID = UUID(),
+        backendBookingId: String? = nil,
         service: ServiceCard,
         dateTime: Date,
         address: String,
+        city: String? = nil,
+        latitude: Double? = nil,
+        longitude: Double? = nil,
         addOns: [ServiceAddOn],
         totalPriceJOD: Double,
         createdAt: Date = Date()
     ) {
         self.id = id
+        self.backendBookingId = backendBookingId
         self.service = service
         self.dateTime = dateTime
         self.address = address
+        self.city = city
+        self.latitude = latitude
+        self.longitude = longitude
         self.addOns = addOns
         self.totalPriceJOD = totalPriceJOD
         self.createdAt = createdAt
