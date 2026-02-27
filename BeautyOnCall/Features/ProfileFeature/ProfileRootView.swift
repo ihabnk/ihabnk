@@ -160,6 +160,8 @@ private struct AccountDetailsView: View {
     @State private var editingEmail: String = ""
     @State private var editingPhone: String = ""
     @State private var isSaved = false
+    @State private var isSaving = false
+    @State private var networkErrorMessage: String?
     @State private var isShowingDeleteAlert = false
     @State private var isShowingPasswordSheet = false
 
@@ -196,13 +198,20 @@ private struct AccountDetailsView: View {
             }
 
             Section {
-                Button(String(localized: "Save Changes")) {
-                    session.updateProfile(name: editingName, email: editingEmail, phoneNumber: editingPhone)
-                    isSaved = true
+                Button {
+                    Task { await saveProfile() }
+                } label: {
+                    HStack {
+                        Text(String(localized: "Save Changes"))
+                            .font(.body.weight(.semibold))
+                        if isSaving {
+                            Spacer()
+                            ProgressView()
+                        }
+                    }
                 }
-                .font(.body.weight(.semibold))
-                .foregroundStyle(hasChanges ? AppTheme.Colors.brandBlue : AppTheme.Colors.textSecondary)
-                .disabled(!hasChanges)
+                .foregroundStyle(hasChanges && !isSaving ? AppTheme.Colors.brandBlue : AppTheme.Colors.textSecondary)
+                .disabled(!hasChanges || isSaving)
             }
 
             Section {
@@ -230,6 +239,14 @@ private struct AccountDetailsView: View {
         } message: {
             Text(String(localized: "Your profile has been updated."))
         }
+        .alert(String(localized: "Error"), isPresented: .init(
+            get: { networkErrorMessage != nil },
+            set: { if !$0 { networkErrorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(networkErrorMessage ?? "")
+        }
         .alert(String(localized: "Delete Account"), isPresented: $isShowingDeleteAlert) {
             Button(String(localized: "Delete"), role: .destructive) {
                 session.logOut()
@@ -243,10 +260,50 @@ private struct AccountDetailsView: View {
         }
     }
 
+    private func saveProfile() async {
+        isSaving = true
+        defer { isSaving = false }
+
+        let body = UpdateProfileBody(
+            fullName: editingName,
+            email: editingEmail,
+            phone: editingPhone
+        )
+
+        do {
+            let _: UpdateProfileResponse = try await APIClient.shared.request(
+                path: "/users/me",
+                method: "PATCH",
+                body: body
+            )
+            session.updateProfile(name: editingName, email: editingEmail, phoneNumber: editingPhone)
+            isSaved = true
+        } catch {
+            networkErrorMessage = error.localizedDescription
+        }
+    }
+
     private var hasChanges: Bool {
         editingName != session.userProfile.name ||
         editingEmail != session.userProfile.email ||
         editingPhone != session.userProfile.phoneNumber
+    }
+}
+
+private struct UpdateProfileBody: Encodable {
+    let fullName: String
+    let email: String
+    let phone: String
+}
+
+private struct UpdateProfileResponse: Decodable {
+    let user: UpdatedUser
+
+    struct UpdatedUser: Decodable {
+        let id: String?
+        let fullName: String?
+        let email: String?
+        let phone: String?
     }
 }
 

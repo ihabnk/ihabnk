@@ -16,7 +16,7 @@ final class BookingSessionStore: ObservableObject {
     @Published var notificationsEnabled: Bool {
         didSet { UserDefaults.standard.set(notificationsEnabled, forKey: Self.notificationsDefaultsKey) }
     }
-    @Published var isLoggedIn: Bool = true
+    @Published var isLoggedIn: Bool = KeychainHelper.hasToken
 
     @Published var selectedCity: String
     @Published var address: String
@@ -331,6 +331,9 @@ final class BookingSessionStore: ObservableObject {
     }
 
     func logOut() {
+        Task {
+            await AuthService.shared.logout()
+        }
         userProfile = .empty
         selectedService = nil
         selectedAddOns = []
