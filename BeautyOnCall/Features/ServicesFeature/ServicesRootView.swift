@@ -61,6 +61,7 @@ private struct ServiceDetailView: View {
 
     @State private var isShowingBookingAlert = false
     @State private var bookingAlertMessage: String = ""
+    @State private var isConfirmingBooking = false
 
     var body: some View {
         ScrollView {
@@ -80,12 +81,12 @@ private struct ServiceDetailView: View {
                         .foregroundStyle(AppTheme.Colors.textSecondary)
 
                     if let duration = detail.serviceCard.durationMinutes {
-                        Text("Duration: \(duration) mins")
+                        Text(String(format: String(localized: "Duration: %d mins"), duration))
                             .font(.title3)
                             .foregroundStyle(AppTheme.Colors.textSecondary)
                     }
 
-                    Text("Starting at \(formatJOD(detail.serviceCard.startingPriceJOD))")
+                    Text(String(format: String(localized: "Starting at %@"), formatJOD(detail.serviceCard.startingPriceJOD)))
                         .font(.title2.weight(.semibold))
                 }
 
@@ -103,7 +104,7 @@ private struct ServiceDetailView: View {
                                     Text(addOn.name)
                                         .font(.title3)
                                     Spacer()
-                                    Text("+\(formatJOD(addOn.priceJOD))")
+                                    Text(String(format: String(localized: "+%@"), formatJOD(addOn.priceJOD)))
                                         .font(.title3)
                                         .foregroundStyle(AppTheme.Colors.textSecondary)
                                 }
@@ -124,7 +125,7 @@ private struct ServiceDetailView: View {
                         .font(.title2.weight(.semibold))
                 }
 
-                PrimaryCTAButton(title: "Choose Date & Time") {
+                PrimaryCTAButton(title: String(localized: "Choose Date & Time")) {
                     onChooseDate()
                 }
 
@@ -136,19 +137,24 @@ private struct ServiceDetailView: View {
                         .font(.title2.weight(.bold))
                 }
 
-                PrimaryCTAButton(title: "Confirm Booking") {
-                    if let error = session.confirmCurrentBooking() {
-                        bookingAlertMessage = error
-                    } else {
-                        bookingAlertMessage = "Your appointment has been added. You can view it in the Appointments tab."
+                PrimaryCTAButton(title: isConfirmingBooking ? String(localized: "Syncing booking...") : String(localized: "Confirm Booking")) {
+                    guard !isConfirmingBooking else {
+                        return
                     }
-                    isShowingBookingAlert = true
+
+                    isConfirmingBooking = true
+                    Task {
+                        bookingAlertMessage = await session.confirmAndSyncCurrentBooking()
+                        isShowingBookingAlert = true
+                        isConfirmingBooking = false
+                    }
                 }
+                .disabled(isConfirmingBooking)
             }
             .padding(AppTheme.Spacing.l)
         }
         .background(AppTheme.Colors.pageBackground)
-        .navigationTitle(detail.serviceCard.category.rawValue)
+        .navigationTitle(detail.serviceCard.category.localizedTitle)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             session.setSelectedService(detail.serviceCard)

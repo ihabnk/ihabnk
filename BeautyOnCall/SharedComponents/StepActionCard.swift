@@ -29,7 +29,7 @@ struct StepActionCard: View {
                 }
 
                 Spacer()
-                Image(systemName: "chevron.right")
+                Image(systemName: "chevron.forward")
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(AppTheme.Colors.brandBlue)
             }

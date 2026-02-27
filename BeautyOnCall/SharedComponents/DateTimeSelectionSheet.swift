@@ -39,7 +39,7 @@ struct DateTimeSelectionSheet: View {
         let start = selectedTime.formatted(date: .omitted, time: .shortened)
         let endDate = Calendar.current.date(byAdding: .minute, value: 15, to: selectedTime) ?? selectedTime
         let end = endDate.formatted(date: .omitted, time: .shortened)
-        return "Your beauty pro will arrive between \(start) and \(end)."
+        return String(format: String(localized: "Your beauty pro will arrive between %@ and %@."), start, end)
     }
 
     var body: some View {
@@ -67,12 +67,12 @@ struct DateTimeSelectionSheet: View {
                             weekOffset -= 1
                         }
                     } label: {
-                        Image(systemName: "chevron.left")
+                        Image(systemName: "chevron.backward")
                             .font(.title3.weight(.semibold))
                     }
 
                     Spacer()
-                    Text("Week \(min(max(weekOffset, 0), maxWeekOffset) + 1)")
+                    Text(String(format: String(localized: "Week %d"), min(max(weekOffset, 0), maxWeekOffset) + 1))
                         .font(.title3.weight(.medium))
                     Spacer()
 
@@ -81,7 +81,7 @@ struct DateTimeSelectionSheet: View {
                             weekOffset += 1
                         }
                     } label: {
-                        Image(systemName: "chevron.right")
+                        Image(systemName: "chevron.forward")
                             .font(.title3.weight(.semibold))
                     }
                 }
@@ -139,7 +139,7 @@ struct DateTimeSelectionSheet: View {
 
             Spacer()
 
-            PrimaryCTAButton(title: "Confirm Date & Time") {
+            PrimaryCTAButton(title: String(localized: "Confirm Date & Time")) {
                 onConfirm(selectedDate, selectedTime)
                 dismiss()
             }

@@ -32,5 +32,8 @@ struct AppShellView: View {
         }
         .tint(AppTheme.Colors.brandBlue)
         .environmentObject(session)
+        .task {
+            await session.refreshUpcomingBookingsFromBackend()
+        }
     }
 }

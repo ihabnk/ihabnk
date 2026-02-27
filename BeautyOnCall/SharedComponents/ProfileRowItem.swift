@@ -15,7 +15,7 @@ struct ProfileRowItem: View {
                 .font(.title2.weight(.medium))
                 .foregroundStyle(tint)
             Spacer()
-            Image(systemName: "chevron.right")
+            Image(systemName: "chevron.forward")
                 .foregroundStyle(AppTheme.Colors.textPrimary)
                 .font(.title3.weight(.semibold))
         }

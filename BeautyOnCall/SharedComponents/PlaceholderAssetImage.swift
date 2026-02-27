@@ -21,8 +21,8 @@ struct PlaceholderAssetImage: View {
                     endPoint: .bottomTrailing
                 )
                 Image(systemName: fallbackSystemName)
-                    .font(.system(size: 42, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.85))
+                    .font(.system(size: 34, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.72))
             }
         }
     }

@@ -37,7 +37,7 @@ struct OfferCarouselCard: View {
                         .padding(.vertical, AppTheme.Spacing.xs)
                         .background(AppTheme.Colors.accentCoral)
 
-                    Text("Starting at \(formatJOD(offer.startingPriceJOD))")
+                    Text(String(format: String(localized: "Starting at %@"), formatJOD(offer.startingPriceJOD)))
                         .font(.title3.weight(.medium))
                 }
             }

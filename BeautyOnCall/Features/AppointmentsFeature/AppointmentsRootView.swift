@@ -28,13 +28,13 @@ struct AppointmentsRootView: View {
                                 .font(.title.weight(.bold))
 
                             appointmentRow(
-                                title: "When",
+                                title: String(localized: "When"),
                                 value: booking.dateTime.formatted(date: .abbreviated, time: .shortened)
                             )
-                            appointmentRow(title: "Address", value: booking.address)
-                            appointmentRow(title: "Total", value: formatJOD(booking.totalPriceJOD))
+                            appointmentRow(title: String(localized: "Address"), value: booking.address)
+                            appointmentRow(title: String(localized: "Total"), value: formatJOD(booking.totalPriceJOD))
 
-                            PrimaryCTAButton(title: "Reschedule") {
+                            PrimaryCTAButton(title: String(localized: "Reschedule")) {
                                 bookingBeingRescheduled = booking
                                 session.updateSchedule(date: booking.dateTime, time: booking.dateTime)
                                 isShowingDateSheet = true
@@ -51,7 +51,7 @@ struct AppointmentsRootView: View {
                                 .font(.title3)
                                 .foregroundStyle(AppTheme.Colors.textSecondary)
 
-                            PrimaryCTAButton(title: "Explore Services") {
+                            PrimaryCTAButton(title: String(localized: "Explore Services")) {
                                 selectedTab = .services
                             }
                         }

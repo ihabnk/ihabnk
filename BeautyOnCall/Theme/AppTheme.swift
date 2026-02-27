@@ -32,9 +32,9 @@ enum AppTheme {
 func formatJOD(_ value: Double) -> String {
     let formatter = NumberFormatter()
     formatter.numberStyle = .currency
+    formatter.locale = .autoupdatingCurrent
     formatter.currencyCode = "JOD"
-    formatter.currencySymbol = "JOD "
     formatter.maximumFractionDigits = 0
     formatter.minimumFractionDigits = 0
-    return formatter.string(from: NSNumber(value: value)) ?? "JOD \(Int(value))"
+    return formatter.string(from: NSNumber(value: value)) ?? String(format: String(localized: "JOD %d"), Int(value))
 }

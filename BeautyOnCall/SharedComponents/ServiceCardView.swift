@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ServiceCardView: View {
+    @Environment(\.layoutDirection) private var layoutDirection
     let service: ServiceCard
 
     var body: some View {
@@ -13,19 +14,24 @@ struct ServiceCardView: View {
             }
 
             Text(service.title)
-                .font(.system(size: 42, weight: .bold, design: .rounded))
+                .font(.system(size: 36, weight: .bold))
                 .minimumScaleFactor(0.85)
                 .lineLimit(2)
+                .multilineTextAlignment(layoutDirection == .rightToLeft ? .trailing : .leading)
+                .frame(maxWidth: .infinity, alignment: layoutDirection == .rightToLeft ? .trailing : .leading)
 
             Text(service.description)
                 .font(.title3)
                 .foregroundStyle(AppTheme.Colors.textSecondary)
+                .lineLimit(2)
+                .multilineTextAlignment(layoutDirection == .rightToLeft ? .trailing : .leading)
+                .frame(maxWidth: .infinity, alignment: layoutDirection == .rightToLeft ? .trailing : .leading)
 
             HStack(spacing: AppTheme.Spacing.s) {
                 if let duration = service.durationMinutes {
                     HStack(spacing: 6) {
                         Image(systemName: "clock")
-                        Text("\(duration) min")
+                        Text(String(format: String(localized: "%d min"), duration))
                     }
                     .font(.title3.weight(.medium))
                     .padding(.horizontal, AppTheme.Spacing.s)
@@ -35,8 +41,10 @@ struct ServiceCardView: View {
                 }
 
                 if service.startingPriceJOD > 0 {
-                    Text("Starting at \(formatJOD(service.startingPriceJOD))")
+                    Text(String(format: String(localized: "Starting at %@"), formatJOD(service.startingPriceJOD)))
                         .font(.title3.weight(.medium))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                 } else {
                     Text("Learn more")
                         .font(.title3.weight(.semibold))
