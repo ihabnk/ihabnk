@@ -13,7 +13,7 @@ const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: env.NODE_ENV === "production",
   sameSite: "strict",
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  maxAge: 7 * 24 * 60 * 60 * 1000,
   path: "/",
 };
 
@@ -36,25 +36,38 @@ function signRefreshToken(user) {
 // POST /api/auth/register
 export async function register(req, res, next) {
   try {
-    const { fullName, email, password, phone } = req.body;
+    const { fullName, password, phone } = req.body;
+    const email = req.body.email.toLowerCase().trim();
+
+    // Hash first so the expensive work is done before the DB round-trips,
+    // minimising the race window between the uniqueness check and the insert.
+    const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       throw new AppError(409, "Email is already registered");
     }
 
-    const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
-
-    const user = await prisma.user.create({
-      data: {
-        fullName,
-        email: email.toLowerCase().trim(),
-        phone: phone || null,
-        passwordHash,
-        wallet: { create: {} },
-      },
-      include: { wallet: true },
-    });
+    let user;
+    try {
+      user = await prisma.user.create({
+        data: {
+          fullName,
+          email,
+          phone: phone || null,
+          passwordHash,
+          wallet: { create: {} },
+        },
+        include: { wallet: true },
+      });
+    } catch (err) {
+      // If a concurrent request won the race, Prisma throws P2002.
+      // Convert it to a proper 409 instead of an unhandled 500.
+      if (err.code === "P2002") {
+        throw new AppError(409, "Email is already registered");
+      }
+      throw err;
+    }
 
     const accessToken = signAccessToken(user);
     const refreshToken = signRefreshToken(user);
