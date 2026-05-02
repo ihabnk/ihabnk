@@ -35,9 +35,10 @@ export const handler = async (event) => {
     return { statusCode: 400, body: 'missing-text' };
   }
 
-  // Deep male voices: ar-SA-HamedNeural (Arabic), en-US-DavisNeural (English)
-  const voice   = lang === 'ar' ? 'ar-SA-HamedNeural' : 'en-US-DavisNeural';
-  const xmlLang = lang === 'ar' ? 'ar-SA' : 'en-US';
+  // Warm male voices: AndrewNeural (EN, narration-relaxed style), HamedNeural (AR)
+  const isAr    = lang === 'ar';
+  const voice   = isAr ? 'ar-SA-HamedNeural' : 'en-US-AndrewNeural';
+  const xmlLang = isAr ? 'ar-SA' : 'en-US';
 
   // Escape XML special characters before embedding in SSML
   const safeText = text
@@ -47,8 +48,13 @@ export const handler = async (event) => {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
 
-  // prosody: slightly lower pitch for deeper feel, slight slow-down for gravitas
-  const ssml = `<speak version='1.0' xml:lang='${xmlLang}'><voice name='${voice}'><prosody pitch='-8%' rate='-5%'>${safeText}</prosody></voice></speak>`;
+  // mstts:express-as gives Andrew a warm, relaxed narration style
+  // Arabic: HamedNeural doesn't support express-as, use soft prosody only
+  const inner = isAr
+    ? `<prosody pitch='-4%' rate='-3%'>${safeText}</prosody>`
+    : `<mstts:express-as style="narration-relaxed" styledegree="1.2"><prosody pitch='-4%' rate='-3%'>${safeText}</prosody></mstts:express-as>`;
+
+  const ssml = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xmlns:mstts='https://www.w3.org/2001/mstts' xml:lang='${xmlLang}'><voice name='${voice}'>${inner}</voice></speak>`;
   const endpoint = `https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`;
 
   try {
