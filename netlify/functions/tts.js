@@ -35,8 +35,8 @@ export const handler = async (event) => {
     return { statusCode: 400, body: 'missing-text' };
   }
 
-  // Neural voices: ar-SA-ZariyahNeural (Arabic), en-US-JennyNeural (English)
-  const voice   = lang === 'ar' ? 'ar-SA-ZariyahNeural' : 'en-US-JennyNeural';
+  // Deep male voices: ar-SA-HamedNeural (Arabic), en-US-DavisNeural (English)
+  const voice   = lang === 'ar' ? 'ar-SA-HamedNeural' : 'en-US-DavisNeural';
   const xmlLang = lang === 'ar' ? 'ar-SA' : 'en-US';
 
   // Escape XML special characters before embedding in SSML
@@ -47,7 +47,8 @@ export const handler = async (event) => {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
 
-  const ssml = `<speak version='1.0' xml:lang='${xmlLang}'><voice name='${voice}'>${safeText}</voice></speak>`;
+  // prosody: slightly lower pitch for deeper feel, slight slow-down for gravitas
+  const ssml = `<speak version='1.0' xml:lang='${xmlLang}'><voice name='${voice}'><prosody pitch='-8%' rate='-5%'>${safeText}</prosody></voice></speak>`;
   const endpoint = `https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`;
 
   try {
