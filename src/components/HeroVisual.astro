@@ -1,0 +1,122 @@
+---
+// Decorative atmospheric composition — amber blobs + floating skill chips.
+---
+
+<div class="hv-root" aria-hidden="true">
+
+  <!-- Amber ellipse blobs -->
+  <div class="hv-blob hv-blob-a"></div>
+  <div class="hv-blob hv-blob-b"></div>
+  <div class="hv-blob hv-blob-c"></div>
+
+  <!-- Left-side fade for text readability -->
+  <div class="hv-fade"></div>
+
+  <!-- Floating skill chips -->
+  <div class="hv-chip-wrap hv-c1"><span class="hv-chip">QA → AI</span></div>
+  <div class="hv-chip-wrap hv-c2"><span class="hv-chip">AI Testing</span></div>
+  <div class="hv-chip-wrap hv-c3"><span class="hv-chip">Product Quality</span></div>
+  <div class="hv-chip-wrap hv-c4"><span class="hv-chip">Scrum</span></div>
+  <div class="hv-chip-wrap hv-c5"><span class="hv-chip">Zero-Bug Mindset</span></div>
+  <div class="hv-chip-wrap hv-c6"><span class="hv-chip">AI Agent</span></div>
+
+</div>
+
+<style>
+.hv-root {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Blobs ── */
+.hv-blob {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--accent-glow);
+  will-change: transform;
+}
+
+.hv-blob-a {
+  width: 560px; height: 560px;
+  right: -60px; top: -80px;
+  animation: orb-drift-a 16s ease-in-out infinite;
+}
+.hv-blob-b {
+  width: 460px; height: 460px;
+  right: 260px; top: 60px;
+  animation: orb-drift-b 12s ease-in-out infinite;
+  animation-delay: -4s;
+}
+.hv-blob-c {
+  width: 400px; height: 400px;
+  right: 120px; top: 190px;
+  animation: orb-drift-c 20s ease-in-out infinite;
+  animation-delay: -9s;
+}
+
+/* ── Fade gradient (physical left → transparent) ── */
+.hv-fade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    var(--bg-page) 0%,
+    var(--bg-page) 28%,
+    color-mix(in srgb, var(--bg-page) 55%, transparent) 52%,
+    transparent 100%
+  );
+}
+
+/* ── Chip positioning ── */
+.hv-chip-wrap { position: absolute; }
+
+.hv-c1 { top: 12%; right: 34%; }
+.hv-c2 { top: 22%; right: 8%;  }
+.hv-c3 { top: 42%; right: 28%; }
+.hv-c4 { top: 58%; right: 8%;  }
+.hv-c5 { top: 70%; right: 34%; }
+.hv-c6 { top: 30%; right: 52%; }
+
+/* ── Chip base ── */
+.hv-chip {
+  display: inline-block;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--accent-text);
+  background: color-mix(in srgb, var(--bg-card) 80%, transparent);
+  border: 1px solid var(--accent-chip);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 7px 13px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+/* ── Per-chip float animations ── */
+.hv-c1 .hv-chip { animation: tile-float-1 7s ease-in-out infinite; }
+.hv-c2 .hv-chip { animation: tile-float-2 6s ease-in-out infinite; animation-delay: -1.5s; }
+.hv-c3 .hv-chip { animation: tile-float-3 8s ease-in-out infinite; animation-delay: -3s; }
+.hv-c4 .hv-chip { animation: tile-float-4 6.5s ease-in-out infinite; animation-delay: -0.8s; }
+.hv-c5 .hv-chip { animation: tile-float-5 7.5s ease-in-out infinite; animation-delay: -4.5s; }
+.hv-c6 .hv-chip { animation: tile-float-6 9s ease-in-out infinite; animation-delay: -2s; }
+
+/* ── Hide chips on small screens ── */
+@media (max-width: 1023px) {
+  .hv-chip-wrap { display: none; }
+  .hv-blob-a { width: 320px; height: 320px; right: -60px; top: 0; }
+  .hv-blob-b { display: none; }
+  .hv-blob-c { display: none; }
+  .hv-fade {
+    background: linear-gradient(
+      to right,
+      var(--bg-page) 0%,
+      color-mix(in srgb, var(--bg-page) 85%, transparent) 60%,
+      color-mix(in srgb, var(--bg-page) 55%, transparent) 100%
+    );
+  }
+}
+</style>

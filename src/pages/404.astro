@@ -1,0 +1,38 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="404" lang="ar">
+  <div class="min-h-[70vh] flex flex-col items-center justify-center px-4 text-center">
+
+    <!-- Decorative background number -->
+    <div class="relative mb-8">
+      <span class="font-mono text-[160px] sm:text-[200px] font-bold text-stone-800/40 leading-none select-none">
+        404
+      </span>
+      <div class="absolute inset-0 flex items-center justify-center">
+        <div class="w-32 h-32 rounded-full bg-amber-500/5 border border-amber-500/10 flex items-center justify-center">
+          <span class="font-mono text-amber-400/60 text-4xl">?</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message -->
+    <p class="font-mono text-xs text-amber-400/60 tracking-widest uppercase mb-3">// not found</p>
+    <h1 class="text-2xl font-bold text-stone-100 mb-3">الصفحة غير موجودة</h1>
+    <p class="text-stone-500 text-sm mb-10 max-w-xs">
+      يبدو أن هذه الصفحة انتقلت أو لم تُنشأ بعد.
+    </p>
+
+    <!-- CTA -->
+    <a
+      href="/"
+      class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-stone-950
+             px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors duration-200 group"
+    >
+      <span class="transition-transform duration-200 group-hover:-translate-x-0.5">←</span>
+      العودة للرئيسية
+    </a>
+
+  </div>
+</Base>

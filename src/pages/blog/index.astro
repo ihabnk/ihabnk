@@ -1,0 +1,65 @@
+---
+import Base from '../../layouts/Base.astro';
+import BlogCard from '../../components/BlogCard.astro';
+import { getCollection } from 'astro:content';
+import { useTranslations } from '../../i18n/ui';
+
+const lang = 'ar' as const;
+const t = useTranslations(lang);
+
+const posts = (await getCollection('blog-ar', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const allTags = [...new Set(posts.flatMap(p => p.data.tags ?? []))].sort();
+---
+
+<Base title={t('nav.blog')} description="مقالات تقنية توعوية" lang={lang}>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+
+    <div class="glow-sep mb-10"></div>
+
+    <div class="mb-10">
+      <span class="section-label mb-2">// المقالات</span>
+      <h1 class="text-[30px] font-bold" style="color:var(--fg)">{t('nav.blog')}</h1>
+    </div>
+
+    {allTags.length > 0 && (
+      <div class="flex flex-wrap gap-2 mb-10" id="tag-filter">
+        <button data-filter="all" class="active font-mono text-[11px] px-3 py-1.5 rounded-full cursor-pointer">
+          {t('blog.filter.all')}
+        </button>
+        {allTags.map(tag => (
+          <button data-filter={tag} class="font-mono text-[11px] px-3 py-1.5 rounded-full cursor-pointer">
+            {tag}
+          </button>
+        ))}
+      </div>
+    )}
+
+    {posts.length === 0 ? (
+      <p class="font-mono text-sm" style="color:var(--fg-muted)">{t('blog.noPosts')}</p>
+    ) : (
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" id="posts-grid">
+        {posts.map(post => <BlogCard {post} {lang} animate />)}
+      </div>
+    )}
+
+  </div>
+</Base>
+
+<script>
+  const filterBtns = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+  const cards = document.querySelectorAll<HTMLElement>('[data-tags]');
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tag = btn.dataset.filter!;
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      cards.forEach(card => {
+        const tags = card.dataset.tags ? card.dataset.tags.split(',') : [];
+        (card as HTMLElement).style.display = tag === 'all' || tags.includes(tag) ? '' : 'none';
+      });
+    });
+  });
+</script>

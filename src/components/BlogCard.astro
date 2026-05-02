@@ -1,0 +1,61 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { localePrefix } from '../i18n/ui';
+import type { Language } from '../i18n/ui';
+
+type BlogEntry = CollectionEntry<'blog-ar'> | CollectionEntry<'blog-en'>;
+
+interface Props {
+  post: BlogEntry;
+  lang: Language;
+  animate?: boolean;
+  stagger?: number;
+}
+
+const { post, lang, animate = false, stagger } = Astro.props;
+const href = `${localePrefix(lang)}/blog/${post.slug}`;
+const dateStr = post.data.date.toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US', {
+  year: 'numeric', month: 'short', day: 'numeric',
+});
+const tags: string[] = post.data.tags ?? [];
+const staggerClass = stagger ? `stagger-${stagger}` : '';
+---
+
+<article
+  class:list={[
+    'card-brutal card-shine group relative p-5 flex flex-col gap-3 cursor-pointer',
+    animate && 'fade-up',
+    staggerClass,
+  ]}
+  style="background:var(--bg-card)"
+  data-tags={tags.join(',')}
+>
+  <!-- Tag + date row -->
+  <div class="flex items-center gap-2.5 flex-wrap">
+    {tags.length > 0 && tags.map(tag => (
+      <span
+        class="font-mono text-[10px] px-[10px] py-[3px] rounded-[11px]"
+        style="border:1px solid var(--border-mid);color:var(--fg-muted);letter-spacing:0.03em"
+      >{tag}</span>
+    ))}
+    <time class="font-mono text-[10px]" style="color:var(--fg-muted)">{dateStr}</time>
+  </div>
+
+  <!-- Title — stretched-link makes the entire card clickable -->
+  <h3 class="text-[15px] font-bold leading-snug" style="color:var(--fg)">
+    <a href={href} class="stretched-link">{post.data.title}</a>
+  </h3>
+
+  <!-- Description -->
+  {post.data.description && (
+    <p class="text-sm leading-relaxed line-clamp-2" style="color:var(--fg-mid)">{post.data.description}</p>
+  )}
+
+  <!-- Footer -->
+  <div class="mt-auto pt-3 flex justify-between items-center" style="border-top:1px solid var(--border)">
+    <span class="font-mono text-[10px]" style="color:var(--fg-muted)"></span>
+    <span class="font-mono text-[10px]" style="color:var(--accent-text)">
+      {lang === 'ar' ? 'اقرأ →' : 'Read →'}
+    </span>
+  </div>
+</article>

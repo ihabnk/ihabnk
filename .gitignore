@@ -1,2 +1,6 @@
-public/
-.hugo_build.lock
+dist/
+.astro/
+node_modules/
+.env
+.env.production
+.DS_Store

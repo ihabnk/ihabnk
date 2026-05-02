@@ -1,0 +1,62 @@
+---
+import Base from '../layouts/Base.astro';
+import { useTranslations } from '../i18n/ui';
+
+const lang = 'ar' as const;
+const t = useTranslations(lang);
+---
+
+<Base title={t('about.title')} description="رسالتي ورؤية الموقع التقني التوعوي الخاص بي" lang={lang}>
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 py-16">
+
+    <span class="section-label mb-3 tracking-[0.08em]">whoami</span>
+    <h1 class="text-[36px] font-bold mb-6" style="color:var(--fg)">عن الموقع</h1>
+    <div style="height:1px;background:var(--border)" class="mb-10"></div>
+
+    <div class="flex flex-col gap-5 mb-10">
+      <p class="text-[16px] leading-[1.8]" style="color:var(--fg-mid)">
+        بدأت مسيرتي في هندسة الجودة (QA Engineering)، حيث اكتشفت أن فهم كيفية فشل الأنظمة هو
+        أقوى أداة يمكن لمهندس البرمجيات أن يمتلكها. قضيت سنوات أبني أطر اختبار، وأدير جودة
+        المنتجات، وأقود فرق Scrum لشحن برمجيات يمكن الاعتماد عليها.
+      </p>
+      <p class="text-[16px] leading-[1.8]" style="color:var(--fg-mid)">
+        ثم جاء الذكاء الاصطناعي وغيّر قواعد اللعبة. بدلاً من مقاومة التحول، رأيت فرصة: خلفيتي
+        في الجودة تجعلني مؤهلاً لبناء الجيل القادم من الأدوات.
+      </p>
+    </div>
+
+    <h3 class="text-[20px] font-bold mb-5" style="color:var(--fg)">لماذا هذا الموقع؟</h3>
+    <div class="flex flex-col gap-4 mb-12">
+      {[
+        'مهندسو QA الذين يريدون فهم تأثير AI على دورهم',
+        'Scrum Masters ومديرو المنتج الذين يقودون فرقاً تتبنى الأدوات الجديدة',
+        'أي شخص يريد فهم التكنولوجيا — لا مجرد استخدامها',
+      ].map(bullet => (
+        <div class="flex items-start gap-3.5">
+          <div
+            class="mt-[7px] flex-shrink-0 rounded-full"
+            style="width:6px;height:6px;background:var(--accent);box-shadow:0 0 6px var(--accent-glow)"
+          ></div>
+          <span class="text-[15px] leading-[1.7]" style="color:var(--fg-mid)">{bullet}</span>
+        </div>
+      ))}
+    </div>
+
+    <div class="flex flex-wrap gap-3 pt-10" style="border-top:1px solid var(--border)">
+      <span class="section-label w-full mb-2 tracking-[0.05em]">// connect</span>
+      {[
+        { href: 'https://github.com/ihabnk',           label: 'GitHub →' },
+        { href: 'https://linkedin.com/in/ihabnk',      label: 'LinkedIn →' },
+        { href: 'https://www.buymeacoffee.com/ihabnk', label: '☕ اشترِ لي قهوة' },
+      ].map(link => (
+        <a
+          href={link.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="ghost-btn font-mono text-[13px] px-4 h-10 inline-flex items-center rounded-lg"
+        >{link.label}</a>
+      ))}
+    </div>
+
+  </div>
+</Base>
