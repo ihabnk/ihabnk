@@ -1,149 +1,79 @@
 ---
 import Base from './Base.astro';
-import type { Language } from '../i18n/ui';
-import { localePrefix } from '../i18n/ui';
+import ArticleHero from '../components/ArticleHero.astro';
+import TTSBar from '../components/TTSBar.astro';
 
 interface Props {
   title: string;
   description?: string;
   date: Date;
   tags?: string[];
-  lang: Language;
 }
 
-const { title, description, date, tags, lang } = Astro.props;
-const dir = lang === 'ar' ? 'rtl' : 'ltr';
-const blogPath = `${localePrefix(lang)}/blog`;
-const dateStr = date.toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US', {
-  year: 'numeric', month: 'long', day: 'numeric',
-});
-const articleUrl = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
+const { title, description, date, tags } = Astro.props;
+const articleUrl    = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
 const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(articleUrl)}`;
 const twitterShare  = `https://twitter.com/intent/tweet?url=${encodeURIComponent(articleUrl)}&text=${encodeURIComponent(title)}`;
-const backArrow  = lang === 'ar' ? '→' : '←';
-const backLabel  = lang === 'ar' ? 'المقالات' : 'Articles';
-const backFull   = lang === 'ar' ? 'العودة للمقالات' : 'Back to articles';
-const listenLabel = lang === 'ar' ? 'استمع' : 'Listen';
-const stopLabel   = lang === 'ar' ? 'إيقاف' : 'Stop';
-const pauseLabel  = lang === 'ar' ? 'توقف' : 'Pause';
-const resumeLabel = lang === 'ar' ? 'استمر' : 'Resume';
 ---
 
-<Base {title} {description} {lang}>
+<Base {title} {description}>
 
   <!-- Reading progress bar -->
   <div
     id="reading-progress"
-    class="fixed top-[72px] left-0 right-0 h-[3px] z-40 scale-x-0 transition-none"
+    class="fixed top-[64px] left-0 right-0 h-[3px] z-40 scale-x-0 transition-none"
     style="transform-origin:left;background:var(--accent)"
     aria-hidden="true"
   ></div>
 
-  <div class="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+  <div class="article-col">
 
-    <!-- Back link -->
-    <a
-      href={blogPath}
-      class="group inline-flex items-center gap-2 font-mono text-[11px] transition-colors duration-200 mb-10"
-      style="color:var(--fg-muted)"
-    >
-      <span class:list={['transition-transform duration-200', lang === 'ar' ? 'group-hover:translate-x-0.5' : 'group-hover:-translate-x-0.5']}>
-        {backArrow}
-      </span>
-      {backLabel}
-    </a>
-
-    <!-- Article header -->
-    <header class="mb-10">
-
-      <!-- Tags -->
-      {(tags ?? []).length > 0 && (
-        <div class="flex flex-wrap gap-2 mb-5">
-          {(tags ?? []).map(tag => (
-            <span
-              class="font-mono text-[10px] px-[10px] py-[3px] rounded-[11px]"
-              style="border:1px solid var(--border-mid);color:var(--fg-muted);letter-spacing:0.03em"
-            >{tag}</span>
-          ))}
-        </div>
-      )}
-
-      <!-- Title -->
-      <h1
-        class="font-bold mb-4 leading-tight"
-        style="font-size:clamp(1.8rem,4vw,2.6rem);color:var(--fg)"
-        dir={dir}
-      >{title}</h1>
-
-      {description && (
-        <p class="text-[16px] leading-relaxed mb-5" style="color:var(--fg-mid)" dir={dir}>{description}</p>
-      )}
-
-      <!-- Meta row -->
-      <div
-        class="flex items-center justify-between flex-wrap gap-4 pt-5"
-        style="border-top:1px solid var(--border)"
+    <!-- Top row: Back link + Listen button (matches standalone PostScreen) -->
+    <div class="flex items-center justify-between flex-wrap gap-3 mb-6">
+      <a
+        href="/blog"
+        class="ghost-btn group inline-flex items-center gap-2 font-mono text-[12px] px-4 h-10 rounded-[4px]"
       >
-        <!-- Author -->
-        <div class="flex items-center gap-3">
-          <div
-            class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-            style="background:var(--accent-glow);border:2px solid var(--fg)"
-          >
-            <span class="font-mono font-bold text-[10px]" style="color:var(--accent-text)">ik</span>
-          </div>
-          <div>
-            <p class="text-xs font-semibold" style="color:var(--fg-mid)">ihabnk</p>
-            <time class="font-mono text-[10px]" style="color:var(--fg-muted)">{dateStr}</time>
-          </div>
-        </div>
+        <span class="transition-transform duration-200 group-hover:-translate-x-0.5">←</span>
+        Articles
+      </a>
 
-        <!-- Actions: Listen + Share -->
-        <div class="flex items-center gap-2">
-          <button
-            id="tts-trigger"
-            class="ghost-btn font-mono text-[10px] px-3 py-1.5 rounded-[4px] inline-flex items-center gap-1.5"
-            aria-label={listenLabel}
-          >
-            <svg id="tts-trigger-icon" class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653Z"/>
-            </svg>
-            <span id="tts-trigger-label">{listenLabel}</span>
-          </button>
-          <a href={twitterShare} target="_blank" rel="noopener noreferrer"
-             class="ghost-btn font-mono text-[10px] px-3 py-1.5 rounded-[4px]">
-            {lang === 'ar' ? 'شارك ↗' : 'Tweet ↗'}
-          </a>
-          <a href={linkedInShare} target="_blank" rel="noopener noreferrer"
-             class="ghost-btn font-mono text-[10px] px-3 py-1.5 rounded-[4px]">
-            LinkedIn ↗
-          </a>
-        </div>
-      </div>
-    </header>
+      <button
+        id="tts-trigger"
+        class="listen-btn"
+        aria-label="Listen to article"
+      >
+        <span class="listen-dot"></span>
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+        </svg>
+        <span id="tts-trigger-label">Listen to article</span>
+      </button>
+    </div>
+
+    <ArticleHero {title} {description} {tags} {date} {articleUrl} />
 
     <!-- Article body -->
-    <div id="article-body" class="prose max-w-none" dir={dir}>
+    <div id="article-body" class="article-body prose max-w-none">
       <slot />
     </div>
 
     <!-- Article footer -->
-    <footer class="mt-16 pt-8" style="border-top:1px solid var(--border)">
+    <footer class="mt-16 pt-8" style="border-top:2px solid var(--fg)">
       <div class="flex items-center justify-between flex-wrap gap-4">
         <a
-          href={blogPath}
-          class="group inline-flex items-center gap-2 text-sm transition-colors duration-200"
+          href="/blog"
+          class="group inline-flex items-center gap-2 font-mono text-sm transition-colors duration-200"
           style="color:var(--fg-muted)"
         >
-          <span class:list={['transition-transform duration-200', lang === 'ar' ? 'group-hover:translate-x-0.5' : 'group-hover:-translate-x-0.5']}>
-            {backArrow}
-          </span>
-          {backFull}
+          <span class="transition-transform duration-200 group-hover:-translate-x-0.5">←</span>
+          Back to articles
         </a>
         <div class="flex gap-3">
           <a href={twitterShare} target="_blank" rel="noopener noreferrer"
              class="font-mono text-xs transition-colors duration-200" style="color:var(--fg-muted)">
-            {lang === 'ar' ? 'شارك' : 'Share'} ↗
+            Share ↗
           </a>
           <a href={linkedInShare} target="_blank" rel="noopener noreferrer"
              class="font-mono text-xs transition-colors duration-200" style="color:var(--fg-muted)">
@@ -155,32 +85,7 @@ const resumeLabel = lang === 'ar' ? 'استمر' : 'Resume';
 
   </div>
 
-  <!-- Fixed TTS bottom bar — slides up from bottom while audio plays -->
-  <div id="tts-bar" class="tts-bar" data-lang={lang} aria-live="polite">
-    <!-- Play / Pause -->
-    <button id="tts-bar-toggle" class="tts-bar-btn" aria-label={pauseLabel}>
-      <svg id="tts-bar-play" class="w-4 h-4 flex-shrink-0 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653Z"/>
-      </svg>
-      <svg id="tts-bar-pause" class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5"/>
-      </svg>
-    </button>
-    <!-- Progress -->
-    <div class="tts-track flex-1">
-      <div id="tts-bar-fill" class="tts-fill"></div>
-    </div>
-    <!-- State label -->
-    <span id="tts-bar-label" class="font-mono text-[10px] flex-shrink-0" style="color:var(--fg-muted)">
-      {listenLabel}
-    </span>
-    <!-- Stop -->
-    <button id="tts-bar-stop" class="tts-bar-stop" aria-label="Stop">
-      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
-      </svg>
-    </button>
-  </div>
+  <TTSBar />
 
 </Base>
 
@@ -194,182 +99,6 @@ const resumeLabel = lang === 'ar' ? 'استمر' : 'Resume';
       bar.style.transform = `scaleX(${total > 0 ? window.scrollY / total : 0})`;
     }, { passive: true });
   }
-
-  // ── TTS ──
-  const TTS_API      = '/.netlify/functions/tts';
-  const ttsBar       = document.getElementById('tts-bar') as HTMLElement | null;
-  const barToggle    = document.getElementById('tts-bar-toggle');
-  const barStop      = document.getElementById('tts-bar-stop');
-  const barPlayIcon  = document.getElementById('tts-bar-play');
-  const barPauseIcon = document.getElementById('tts-bar-pause');
-  const barLabel     = document.getElementById('tts-bar-label');
-  const barFill      = document.getElementById('tts-bar-fill') as HTMLElement | null;
-  const trigger      = document.getElementById('tts-trigger');
-  const triggerLabel = document.getElementById('tts-trigger-label');
-  const article      = document.getElementById('article-body');
-  const lang         = ttsBar?.dataset.lang ?? 'en';
-
-  const i18n = {
-    listen:  lang === 'ar' ? 'استمع'  : 'Listen',
-    stop:    lang === 'ar' ? 'إيقاف'  : 'Stop',
-    pause:   lang === 'ar' ? 'توقف'   : 'Pause',
-    resume:  lang === 'ar' ? 'استمر'  : 'Resume',
-  };
-
-  type TtsState = 'idle' | 'playing' | 'paused';
-  let ttsState: TtsState = 'idle';
-  let stopped = false;
-  let currentAudio: HTMLAudioElement | null = null;
-  let progressTimer: number | undefined;
-
-  function cleanText(raw: string): string {
-    return raw
-      .replace(/```[\s\S]*?```/g, '')
-      .replace(/`[^`]+`/g, '')
-      .replace(/https?:\/\/\S+/g, '')
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-      .replace(/#+\s/g, '')
-      .replace(/[*_]{1,2}([^*_]+)[*_]{1,2}/g, '$1')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
-
-  function chunkText(text: string, max = 4000): string[] {
-    const chunks: string[] = [];
-    let rest = text;
-    while (rest.length > max) {
-      let cut = rest.lastIndexOf('. ', max);
-      if (cut < 0) cut = max;
-      chunks.push(rest.slice(0, cut + 1).trim());
-      rest = rest.slice(cut + 1).trim();
-    }
-    if (rest) chunks.push(rest);
-    return chunks;
-  }
-
-  function updateUI(state: TtsState) {
-    ttsState = state;
-    const isPlaying = state === 'playing';
-    const isIdle    = state === 'idle';
-
-    // Bar icons
-    barPlayIcon?.classList.toggle('hidden', isPlaying);
-    barPauseIcon?.classList.toggle('hidden', !isPlaying);
-    if (barLabel) barLabel.textContent = isPlaying ? i18n.pause : state === 'paused' ? i18n.resume : i18n.listen;
-
-    // Trigger button
-    if (triggerLabel) triggerLabel.textContent = isIdle ? i18n.listen : i18n.stop;
-
-    // Bar visibility
-    ttsBar?.classList.toggle('active', !isIdle);
-    document.body.style.paddingBottom = isIdle ? '' : '56px';
-  }
-
-  function stopAll() {
-    stopped = true;
-    clearInterval(progressTimer);
-    speechSynthesis.cancel();
-    if (currentAudio) { currentAudio.pause(); currentAudio.src = ''; currentAudio = null; }
-    if (barFill) barFill.style.width = '0%';
-    updateUI('idle');
-  }
-
-  async function playWithAzure(text: string) {
-    const chunks   = chunkText(text);
-    const totalLen = chunks.reduce((s, c) => s + c.length, 0);
-    let doneLen    = 0;
-
-    for (const chunk of chunks) {
-      if (stopped) return;
-
-      const res = await fetch(TTS_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: chunk, lang }),
-      });
-      if (!res.ok || stopped) throw new Error(`api-${res.status}`);
-
-      const blob = await res.blob();
-      if (stopped) return;
-
-      const url   = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      currentAudio = audio;
-
-      // Use timeupdate for accurate progress tracking
-      const startPct = (doneLen / totalLen) * 100;
-      const endPct   = ((doneLen + chunk.length) / totalLen) * 100;
-      audio.addEventListener('timeupdate', () => {
-        if (!barFill || !audio.duration) return;
-        const pct = startPct + (audio.currentTime / audio.duration) * (endPct - startPct);
-        barFill.style.width = `${pct}%`;
-      });
-
-      await new Promise<void>(resolve => {
-        audio.onended = () => { URL.revokeObjectURL(url); doneLen += chunk.length; resolve(); };
-        audio.onerror = () => { URL.revokeObjectURL(url); resolve(); };
-        audio.play().catch(resolve);
-      });
-      if (stopped) return;
-    }
-
-    if (!stopped) {
-      if (barFill) { barFill.style.width = '100%'; setTimeout(() => { if (barFill) barFill.style.width = '0%'; }, 800); }
-      updateUI('idle');
-    }
-  }
-
-  function playWithWebSpeech(text: string) {
-    if (!('speechSynthesis' in window)) { updateUI('idle'); return; }
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.lang  = lang === 'ar' ? 'ar-SA' : 'en-US';
-    utt.rate  = 0.92;
-    const estMs = text.length * (lang === 'ar' ? 75 : 60);
-    const t0    = Date.now();
-    progressTimer = window.setInterval(() => {
-      if (!barFill || ttsState === 'paused') return;
-      barFill.style.width = `${Math.min(((Date.now() - t0) / estMs) * 100, 98)}%`;
-    }, 300);
-    utt.onend = () => {
-      clearInterval(progressTimer);
-      if (!stopped) {
-        if (barFill) { barFill.style.width = '100%'; setTimeout(() => { if (barFill) barFill.style.width = '0%'; }, 800); }
-        updateUI('idle');
-      }
-    };
-    speechSynthesis.speak(utt);
-  }
-
-  // "Listen / Stop" trigger in article header
-  trigger?.addEventListener('click', async () => {
-    if (ttsState !== 'idle') { stopAll(); return; }
-    if (!article) return;
-    stopped = false;
-    updateUI('playing');
-    const text = cleanText(article.textContent?.trim() ?? '');
-    try {
-      await playWithAzure(text);
-    } catch {
-      if (!stopped) playWithWebSpeech(text);
-      else updateUI('idle');
-    }
-  });
-
-  // Bar: play / pause toggle
-  barToggle?.addEventListener('click', () => {
-    if (ttsState === 'playing') {
-      if (currentAudio) currentAudio.pause();
-      else speechSynthesis.pause();
-      updateUI('paused');
-    } else if (ttsState === 'paused') {
-      if (currentAudio) currentAudio.play().catch(() => {});
-      else speechSynthesis.resume();
-      updateUI('playing');
-    }
-  });
-
-  // Bar: stop
-  barStop?.addEventListener('click', () => stopAll());
 
   // Scroll reveal
   const io = new IntersectionObserver(

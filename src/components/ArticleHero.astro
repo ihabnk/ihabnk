@@ -1,0 +1,49 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+  tags?: string[];
+  date: Date;
+  articleUrl: string;
+}
+
+const { title, description, tags = [], date, articleUrl } = Astro.props;
+
+const dateStr    = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+const kickerDate = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase();
+const firstTag   = tags[0] ?? 'Article';
+
+const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(articleUrl)}`;
+const twitterShare  = `https://twitter.com/intent/tweet?url=${encodeURIComponent(articleUrl)}&text=${encodeURIComponent(title)}`;
+---
+
+<header class="mb-12">
+
+  <!-- Article kicker: — TAG · DATE -->
+  <div class="article-kicker">{firstTag} · {kickerDate}</div>
+
+  <!-- Headline -->
+  <h1 class="article-headline">{title}</h1>
+
+  <!-- Dek / description -->
+  {description && (
+    <p class="article-dek">{description}</p>
+  )}
+
+  <!-- Meta strip -->
+  <div class="article-meta">
+    <span class="author">Ihab NK</span>
+    <span class="dot"></span>
+    <span>QA Engineer → AI Builder</span>
+    <span class="dot"></span>
+    <time datetime={date.toISOString()}>{dateStr}</time>
+    <span class="dot"></span>
+    <div style="margin-left:auto;display:flex;gap:12px;align-items:center">
+      <a href={twitterShare} target="_blank" rel="noopener noreferrer"
+         class="transition-colors duration-150 hover:underline" style="color:var(--fg-muted)">Tweet ↗</a>
+      <a href={linkedInShare} target="_blank" rel="noopener noreferrer"
+         class="transition-colors duration-150 hover:underline" style="color:var(--fg-muted)">LinkedIn ↗</a>
+    </div>
+  </div>
+
+</header>

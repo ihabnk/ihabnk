@@ -1,20 +1,17 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import { localePrefix } from '../i18n/ui';
-import type { Language } from '../i18n/ui';
 
-type BlogEntry = CollectionEntry<'blog-ar'> | CollectionEntry<'blog-en'>;
+type BlogEntry = CollectionEntry<'blog-en'>;
 
 interface Props {
   post: BlogEntry;
-  lang: Language;
   animate?: boolean;
   stagger?: number;
 }
 
-const { post, lang, animate = false, stagger } = Astro.props;
-const href = `${localePrefix(lang)}/blog/${post.slug}`;
-const dateStr = post.data.date.toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US', {
+const { post, animate = false, stagger } = Astro.props;
+const href = `/blog/${post.slug}`;
+const dateStr = post.data.date.toLocaleDateString('en-US', {
   year: 'numeric', month: 'short', day: 'numeric',
 });
 const tags: string[] = post.data.tags ?? [];
@@ -34,15 +31,15 @@ const staggerClass = stagger ? `stagger-${stagger}` : '';
   <div class="flex items-center gap-2.5 flex-wrap">
     {tags.length > 0 && tags.map(tag => (
       <span
-        class="font-mono text-[10px] px-[10px] py-[3px] rounded-[11px]"
-        style="border:1px solid var(--border-mid);color:var(--fg-muted);letter-spacing:0.03em"
+        class="font-mono text-[10px] px-[10px] py-[3px] rounded-[4px]"
+        style="border:1.5px solid var(--fg);color:var(--fg);letter-spacing:0.04em;background:var(--bg-page)"
       >{tag}</span>
     ))}
     <time class="font-mono text-[10px]" style="color:var(--fg-muted)">{dateStr}</time>
   </div>
 
   <!-- Title — stretched-link makes the entire card clickable -->
-  <h3 class="text-[15px] font-bold leading-snug" style="color:var(--fg)">
+  <h3 class="text-[22px] font-bold leading-[1.2]" style="color:var(--fg);font-family:var(--font-display)">
     <a href={href} class="stretched-link">{post.data.title}</a>
   </h3>
 
@@ -52,10 +49,8 @@ const staggerClass = stagger ? `stagger-${stagger}` : '';
   )}
 
   <!-- Footer -->
-  <div class="mt-auto pt-3 flex justify-between items-center" style="border-top:1px solid var(--border)">
+  <div class="mt-auto pt-3 flex justify-between items-center">
     <span class="font-mono text-[10px]" style="color:var(--fg-muted)"></span>
-    <span class="font-mono text-[10px]" style="color:var(--accent-text)">
-      {lang === 'ar' ? 'اقرأ →' : 'Read →'}
-    </span>
+    <span class="font-mono text-[10px]" style="color:var(--accent-text)">Read →</span>
   </div>
 </article>

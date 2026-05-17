@@ -2,37 +2,47 @@
 import Base from '../layouts/Base.astro';
 ---
 
-<Base title="404" lang="ar">
-  <div class="min-h-[70vh] flex flex-col items-center justify-center px-4 text-center">
+<Base title="404 — Not Found" description="Page not found">
+  <div class="relative min-h-[82vh] flex flex-col items-center justify-center px-4 text-center overflow-hidden">
 
-    <!-- Decorative background number -->
-    <div class="relative mb-8">
-      <span class="font-mono text-[160px] sm:text-[200px] font-bold text-stone-800/40 leading-none select-none">
-        404
-      </span>
-      <div class="absolute inset-0 flex items-center justify-center">
-        <div class="w-32 h-32 rounded-full bg-amber-500/5 border border-amber-500/10 flex items-center justify-center">
-          <span class="font-mono text-amber-400/60 text-4xl">?</span>
-        </div>
-      </div>
+    <!-- Amber orb glow behind 404 -->
+    <div
+      class="absolute pointer-events-none"
+      style="width:600px;height:600px;border-radius:50%;background:var(--accent-glow);filter:blur(80px);top:50%;left:50%;transform:translate(-50%,-55%);z-index:0"
+      aria-hidden="true"
+    ></div>
+
+    <!-- Giant 404 -->
+    <div class="relative z-10 select-none" style="transform:rotate(-3deg)">
+      <span
+        class="font-bold leading-none block"
+        style="font-family:var(--font-display);font-size:clamp(120px,18vw,240px);color:var(--accent-text);line-height:1"
+      >404</span>
     </div>
 
-    <!-- Message -->
-    <p class="font-mono text-xs text-amber-400/60 tracking-widest uppercase mb-3">// not found</p>
-    <h1 class="text-2xl font-bold text-stone-100 mb-3">الصفحة غير موجودة</h1>
-    <p class="text-stone-500 text-sm mb-10 max-w-xs">
-      يبدو أن هذه الصفحة انتقلت أو لم تُنشأ بعد.
+    <!-- Section label -->
+    <span class="section-label mt-6 mb-4 relative z-10">// not found</span>
+
+    <!-- Headline -->
+    <h1
+      class="font-bold mb-4 relative z-10"
+      style="font-family:var(--font-display);font-size:clamp(24px,4vw,40px);color:var(--fg)"
+    >Page not found</h1>
+
+    <!-- Body copy -->
+    <p class="text-[15px] leading-relaxed mb-10 max-w-sm relative z-10" style="color:var(--fg-mid)">
+      Either the article moved or the URL is haunted.
     </p>
 
-    <!-- CTA -->
-    <a
-      href="/"
-      class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-stone-950
-             px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors duration-200 group"
-    >
-      <span class="transition-transform duration-200 group-hover:-translate-x-0.5">←</span>
-      العودة للرئيسية
-    </a>
+    <!-- CTAs -->
+    <div class="flex flex-wrap gap-3 justify-center relative z-10">
+      <a href="/" class="btn-primary inline-flex items-center gap-2 font-bold text-sm px-6 h-11 rounded-[4px]">
+        ← Back home
+      </a>
+      <a href="/blog" class="ghost-btn inline-flex items-center gap-2 text-sm px-6 h-11 rounded-[4px]">
+        All articles
+      </a>
+    </div>
 
   </div>
 </Base>

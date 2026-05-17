@@ -13,7 +13,7 @@ const color = langColor(repo.language);
 >
   <!-- Name + GitHub link -->
   <div class="flex items-start justify-between gap-3 mb-2">
-    <h3 class="font-mono font-bold text-sm truncate leading-snug" style="color:var(--fg)">
+    <h3 class="font-mono font-bold text-[15px] truncate leading-snug" style="color:var(--accent-text)">
       <a
         href={repo.html_url}
         target="_blank"
@@ -56,11 +56,11 @@ const color = langColor(repo.language);
   <!-- Footer: lang + stars -->
   <div
     class="flex items-center gap-3 mt-auto pt-3"
-    style="border-top:1px solid var(--border)"
+    style="border-top:1px dashed var(--border)"
   >
     {repo.language && (
       <span class="flex items-center gap-1.5 font-mono text-[10px]" style="color:var(--fg-muted)">
-        <span class="w-[9px] h-[9px] rounded-full flex-shrink-0" style={`background:${color}`}></span>
+        <span class="w-[9px] h-[9px] rounded-full flex-shrink-0 pulse-dot" style={`background:${color}`}></span>
         {repo.language}
       </span>
     )}

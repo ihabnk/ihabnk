@@ -1,24 +1,58 @@
 ---
-// Decorative atmospheric composition — amber blobs + floating skill chips.
+// Animated terminal card: QA → AI pipeline log. Brutalist + on-brand.
 ---
 
 <div class="hv-root" aria-hidden="true">
 
-  <!-- Amber ellipse blobs -->
-  <div class="hv-blob hv-blob-a"></div>
-  <div class="hv-blob hv-blob-b"></div>
-  <div class="hv-blob hv-blob-c"></div>
+  <!-- Soft ambient glow behind the terminal -->
+  <div class="hv-aura"></div>
 
-  <!-- Left-side fade for text readability -->
+  <!-- Grid backdrop for technical feel -->
+  <div class="hv-grid"></div>
+
+  <!-- Left-side fade for hero text readability -->
   <div class="hv-fade"></div>
 
-  <!-- Floating skill chips -->
-  <div class="hv-chip-wrap hv-c1"><span class="hv-chip">QA → AI</span></div>
-  <div class="hv-chip-wrap hv-c2"><span class="hv-chip">AI Testing</span></div>
-  <div class="hv-chip-wrap hv-c3"><span class="hv-chip">Product Quality</span></div>
-  <div class="hv-chip-wrap hv-c4"><span class="hv-chip">Scrum</span></div>
-  <div class="hv-chip-wrap hv-c5"><span class="hv-chip">Zero-Bug Mindset</span></div>
-  <div class="hv-chip-wrap hv-c6"><span class="hv-chip">AI Agent</span></div>
+  <!-- Terminal card -->
+  <div class="hv-term">
+    <div class="hv-term-bar">
+      <span class="hv-bdot hv-bdot-r"></span>
+      <span class="hv-bdot hv-bdot-y"></span>
+      <span class="hv-bdot hv-bdot-g"></span>
+      <span class="hv-term-title">~/ihabnk — pipeline</span>
+      <span class="hv-status">
+        <span class="hv-status-dot"></span>live
+      </span>
+    </div>
+
+    <div class="hv-term-body">
+      <div class="hv-line"><span class="hv-prompt">$</span> qa run <span class="hv-flag">--mode=manual</span></div>
+      <div class="hv-line hv-fail">  ✗ 142 tests · 38 flaky · 6h release cycle</div>
+
+      <div class="hv-line"><span class="hv-prompt">$</span> ai-agent learn <span class="hv-flag">--from=tests/</span></div>
+      <div class="hv-line hv-info">  ◌ extracting patterns…</div>
+      <div class="hv-line hv-info">  ◌ generating evals…</div>
+
+      <div class="hv-line"><span class="hv-prompt">$</span> qa run <span class="hv-flag">--mode=ai-augmented</span></div>
+      <div class="hv-line hv-pass">  ✓ 142/142 · 0 flaky · 12min release</div>
+      <div class="hv-line hv-pass">  ✓ ship rate: <span class="hv-bold">+30×</span></div>
+
+      <div class="hv-line hv-caret-row"><span class="hv-prompt">$</span><span class="hv-caret"></span></div>
+    </div>
+  </div>
+
+  <!-- Tiny floating spec card (depth + brand cue) -->
+  <div class="hv-spec">
+    <div class="hv-spec-row">
+      <span class="hv-spec-k">eval</span><span class="hv-spec-v">0.94</span>
+    </div>
+    <div class="hv-spec-row">
+      <span class="hv-spec-k">trace</span><span class="hv-spec-v hv-mono">↑↑↑</span>
+    </div>
+    <div class="hv-spec-row">
+      <span class="hv-spec-k">cost</span><span class="hv-spec-v">$0.003</span>
+    </div>
+  </div>
 
 </div>
 
@@ -31,90 +65,213 @@
   z-index: 0;
 }
 
-/* ── Blobs ── */
-.hv-blob {
+/* ── Ambient amber glow ── */
+.hv-aura {
   position: absolute;
+  width: 620px; height: 620px;
+  right: -120px; top: -120px;
   border-radius: 50%;
-  background: var(--accent-glow);
-  will-change: transform;
+  background: radial-gradient(
+    circle at center,
+    var(--accent-glow) 0%,
+    transparent 65%
+  );
+  filter: blur(2px);
+  animation: hv-aura-drift 18s ease-in-out infinite;
+}
+@keyframes hv-aura-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(-30px, 20px) scale(1.08); }
 }
 
-.hv-blob-a {
-  width: 560px; height: 560px;
-  right: -60px; top: -80px;
-  animation: orb-drift-a 16s ease-in-out infinite;
-}
-.hv-blob-b {
-  width: 460px; height: 460px;
-  right: 260px; top: 60px;
-  animation: orb-drift-b 12s ease-in-out infinite;
-  animation-delay: -4s;
-}
-.hv-blob-c {
-  width: 400px; height: 400px;
-  right: 120px; top: 190px;
-  animation: orb-drift-c 20s ease-in-out infinite;
-  animation-delay: -9s;
+/* ── Subtle grid ── */
+.hv-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--fg) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--fg) 6%, transparent) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse at right center, black 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at right center, black 30%, transparent 75%);
+  opacity: 0.5;
 }
 
-/* ── Fade gradient (physical left → transparent) ── */
+/* ── Left fade for text readability ── */
 .hv-fade {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to right,
     var(--bg-page) 0%,
-    var(--bg-page) 28%,
-    color-mix(in srgb, var(--bg-page) 55%, transparent) 52%,
+    var(--bg-page) 32%,
+    color-mix(in srgb, var(--bg-page) 55%, transparent) 55%,
     transparent 100%
   );
 }
 
-/* ── Chip positioning ── */
-.hv-chip-wrap { position: absolute; }
-
-.hv-c1 { top: 12%; right: 34%; }
-.hv-c2 { top: 22%; right: 8%;  }
-.hv-c3 { top: 42%; right: 28%; }
-.hv-c4 { top: 58%; right: 8%;  }
-.hv-c5 { top: 70%; right: 34%; }
-.hv-c6 { top: 30%; right: 52%; }
-
-/* ── Chip base ── */
-.hv-chip {
-  display: inline-block;
-  font-family: var(--font-mono, monospace);
-  font-size: 11px;
-  letter-spacing: 0.05em;
-  color: var(--accent-text);
-  background: color-mix(in srgb, var(--bg-card) 80%, transparent);
-  border: 1px solid var(--accent-chip);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  padding: 7px 13px;
+/* ── Terminal card ── */
+.hv-term {
+  position: absolute;
+  right: 4%;
+  top: 50%;
+  transform: translateY(-50%) rotate(-1deg);
+  width: min(440px, 42vw);
+  background: var(--bg-card);
+  border: 2px solid var(--fg);
   border-radius: 8px;
-  white-space: nowrap;
+  box-shadow: 6px 6px 0 var(--fg);
+  overflow: hidden;
+  font-family: var(--font-mono);
+  animation: hv-term-float 9s ease-in-out infinite;
+}
+@keyframes hv-term-float {
+  0%, 100% { transform: translateY(-50%) rotate(-1deg); }
+  50%      { transform: translateY(calc(-50% - 8px)) rotate(-1deg); }
 }
 
-/* ── Per-chip float animations ── */
-.hv-c1 .hv-chip { animation: tile-float-1 7s ease-in-out infinite; }
-.hv-c2 .hv-chip { animation: tile-float-2 6s ease-in-out infinite; animation-delay: -1.5s; }
-.hv-c3 .hv-chip { animation: tile-float-3 8s ease-in-out infinite; animation-delay: -3s; }
-.hv-c4 .hv-chip { animation: tile-float-4 6.5s ease-in-out infinite; animation-delay: -0.8s; }
-.hv-c5 .hv-chip { animation: tile-float-5 7.5s ease-in-out infinite; animation-delay: -4.5s; }
-.hv-c6 .hv-chip { animation: tile-float-6 9s ease-in-out infinite; animation-delay: -2s; }
+.hv-term-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: color-mix(in srgb, var(--fg) 8%, var(--bg-card));
+  border-bottom: 1.5px solid var(--fg);
+}
+.hv-bdot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.hv-bdot-r { background: #ff5f56; }
+.hv-bdot-y { background: #ffbd2e; }
+.hv-bdot-g { background: #27c93f; }
+.hv-term-title {
+  margin-left: 8px;
+  font-size: 11px;
+  color: var(--fg-muted);
+  letter-spacing: 0.02em;
+}
+.hv-status {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--accent-text);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.hv-status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: hv-pulse 1.4s ease-in-out infinite;
+}
+@keyframes hv-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(0.85); }
+}
 
-/* ── Hide chips on small screens ── */
-@media (max-width: 1023px) {
-  .hv-chip-wrap { display: none; }
-  .hv-blob-a { width: 320px; height: 320px; right: -60px; top: 0; }
-  .hv-blob-b { display: none; }
-  .hv-blob-c { display: none; }
+.hv-term-body {
+  padding: 16px 18px 18px;
+  font-size: 12px;
+  line-height: 1.85;
+  color: var(--fg);
+}
+
+.hv-line {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  animation: hv-line-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.hv-line:nth-child(1) { animation-delay: 0.30s; }
+.hv-line:nth-child(2) { animation-delay: 0.70s; }
+.hv-line:nth-child(3) { animation-delay: 1.20s; }
+.hv-line:nth-child(4) { animation-delay: 1.55s; }
+.hv-line:nth-child(5) { animation-delay: 1.85s; }
+.hv-line:nth-child(6) { animation-delay: 2.25s; }
+.hv-line:nth-child(7) { animation-delay: 2.65s; }
+.hv-line:nth-child(8) { animation-delay: 2.95s; }
+.hv-line:nth-child(9) { animation-delay: 3.30s; }
+
+@keyframes hv-line-in {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.hv-prompt { color: var(--accent-text); margin-right: 6px; }
+.hv-flag   { color: var(--fg-muted); }
+.hv-fail   { color: var(--pop-red); }
+.hv-info   { color: var(--fg-muted); }
+.hv-pass   { color: var(--accent-text); }
+.hv-bold   { font-weight: 700; color: var(--fg); }
+
+.hv-caret-row { display: inline-flex; align-items: center; }
+.hv-caret {
+  display: inline-block;
+  width: 8px; height: 14px;
+  background: var(--accent);
+  vertical-align: middle;
+  animation: hv-blink 1s steps(2, start) infinite;
+  animation-delay: 3.5s;
+}
+@keyframes hv-blink {
+  0%, 50%       { opacity: 1; }
+  50.01%, 100%  { opacity: 0; }
+}
+
+/* ── Floating spec / eval card ── */
+.hv-spec {
+  position: absolute;
+  right: calc(4% + min(440px, 42vw) - 70px);
+  top: calc(50% + 100px);
+  transform: rotate(3deg);
+  background: var(--bg-page);
+  border: 2px solid var(--fg);
+  border-radius: 6px;
+  box-shadow: 4px 4px 0 var(--fg);
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  min-width: 130px;
+  animation: hv-spec-float 8s ease-in-out infinite;
+  animation-delay: -3s;
+}
+@keyframes hv-spec-float {
+  0%, 100% { transform: rotate(3deg) translateY(0); }
+  50%      { transform: rotate(3deg) translateY(-10px); }
+}
+.hv-spec-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 10px;
+  line-height: 1.8;
+}
+.hv-spec-k { color: var(--fg-muted); }
+.hv-spec-v { color: var(--accent-text); font-weight: 600; }
+.hv-mono { letter-spacing: 0.15em; }
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .hv-aura, .hv-term, .hv-spec, .hv-line, .hv-caret, .hv-status-dot {
+    animation: none;
+  }
+  .hv-line { opacity: 1; }
+}
+
+/* ── Small screens: hide spec card, scale terminal ── */
+@media (max-width: 1024px) {
+  .hv-spec { display: none; }
+  .hv-term { right: -8%; width: min(380px, 50vw); }
+}
+@media (max-width: 899px) {
+  .hv-term { display: none; }
+  .hv-aura { width: 360px; height: 360px; right: -100px; top: 0; }
+  .hv-grid { display: none; }
   .hv-fade {
     background: linear-gradient(
       to right,
       var(--bg-page) 0%,
-      color-mix(in srgb, var(--bg-page) 85%, transparent) 60%,
+      color-mix(in srgb, var(--bg-page) 80%, transparent) 60%,
       color-mix(in srgb, var(--bg-page) 55%, transparent) 100%
     );
   }

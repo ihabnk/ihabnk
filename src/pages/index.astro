@@ -4,60 +4,49 @@ import HeroVisual from '../components/HeroVisual.astro';
 import BlogCard from '../components/BlogCard.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import { getCollection } from 'astro:content';
-import { useTranslations } from '../i18n/ui';
 import { fetchRepos } from '../lib/github';
 
-const lang = 'ar' as const;
-const t = useTranslations(lang);
-
-const posts = (await getCollection('blog-ar', ({ data }) => !data.draft))
+const posts = (await getCollection('blog-en', ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 3);
 
 const repos = await fetchRepos('ihabnk');
 ---
 
-<Base title="ihabnk" description="مهندس QA يتحول إلى بناء منتجات AI" lang={lang}>
+<Base title="ihabnk" description="QA Engineer turned AI Product builder">
 
   <!-- ═══════════════════════════════════════════
        HERO
        ═══════════════════════════════════════════ -->
-  <section class="relative min-h-[680px] flex items-center overflow-hidden" style="background:var(--bg-page)">
+  <section class="relative min-h-[780px] flex items-center overflow-hidden" style="background:var(--bg-page)">
 
     <HeroVisual />
 
     <div class="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 py-20">
-      <div class="max-w-[520px]">
+      <div class="max-w-[600px]">
 
-        <!-- Eyebrow -->
-        <span class="section-label mb-5 block tracking-[0.08em]">whoami</span>
+        <span class="section-label mb-5 block tracking-[0.08em]">// software engineer</span>
 
-        <!-- Headline -->
-        <h1 class="font-bold leading-[1.0] mb-5" style="font-size:clamp(3.2rem,8vw,5.5rem);color:var(--fg)">
-          من الجودة<br />إلى مستقبل<br />الذكاء
+        <h1 class="font-bold leading-[1.0] mb-5" style="font-size:clamp(40px,9vw,72px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em">
+          QA Engineering → AI Product
         </h1>
 
-        <!-- Sub -->
-        <p class="text-base leading-[1.75] mb-8 max-w-[420px]" style="color:var(--fg-mid)">
-          مهندس QA تحوّل إلى بناء منتجات AI.<br />
-          أكتب عن الجودة، الأتمتة، والأدوات التي تغير قواعد اللعبة.
+        <p class="text-[17px] leading-[1.7] mb-6 max-w-[480px]" style="color:var(--fg-mid)">
+          I build AI-augmented quality systems and ship digital products that actually work.
         </p>
 
-        <!-- CTAs -->
+        <!-- Code snippet card -->
+        <div class="card-brutal mb-8 inline-block px-5 py-4" style="background:var(--bg-card)">
+          <div class="font-mono text-[13px] line-through" style="color:var(--pop-red)"># before: manual QA → delayed releases</div>
+          <div class="font-mono text-[13px] mt-1" style="color:var(--accent-text)"># after:  AI-augmented quality systems that ship</div>
+        </div>
+
         <div class="flex flex-wrap gap-3">
-          <a
-            href="/blog"
-            class="inline-flex items-center gap-2 font-bold text-sm px-6 h-12 rounded-[10px] transition-opacity duration-200 hover:opacity-[0.88]"
-            style="background:var(--accent);color:var(--on-accent);box-shadow:0 2px 14px var(--accent-glow)"
-          >
-            {t('hero.cta.articles')}
+          <a href="/blog" class="btn-primary inline-flex items-center gap-2 font-bold text-sm px-6 h-11 rounded-[4px]">
+            Read articles
           </a>
-          <a
-            href="#projects"
-            class="inline-flex items-center gap-2 text-sm px-6 h-12 rounded-[10px] transition-colors duration-200"
-            style="background:transparent;border:1px solid var(--border-mid);color:var(--fg-mid)"
-          >
-            {t('hero.cta.projects')}
+          <a href="#projects" class="ghost-btn inline-flex items-center gap-2 text-sm px-6 h-11 rounded-[4px]">
+            Projects
           </a>
         </div>
 
@@ -73,23 +62,19 @@ const repos = await fetchRepos('ihabnk');
 
     <div class="flex items-end justify-between mb-10">
       <div>
-        <span class="section-label mb-2">// المقالات</span>
-        <h2 class="text-[30px] font-bold" style="color:var(--fg)">{t('blog.recent')}</h2>
+        <span class="section-label mb-2">// articles</span>
+        <h2 class="font-bold" style="font-size:clamp(32px,4vw,44px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1">Recent Articles</h2>
       </div>
-      <a
-        href="/blog"
-        class="font-mono text-[11px] transition-opacity duration-200 hover:opacity-70"
-        style="color:var(--accent-text)"
-      >
-        {t('blog.all')} →
+      <a href="/blog" class="font-mono text-[11px] transition-opacity duration-200 hover:opacity-70" style="color:var(--accent-text)">
+        All articles →
       </a>
     </div>
 
     {posts.length === 0 ? (
-      <p class="font-mono text-sm" style="color:var(--fg-muted)">{t('blog.noPosts')}</p>
+      <p class="font-mono text-sm" style="color:var(--fg-muted)">No posts yet.</p>
     ) : (
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {posts.map((post, i) => <BlogCard {post} {lang} animate stagger={Math.min(i + 1, 4) as 1|2|3|4} />)}
+        {posts.map((post, i) => <BlogCard {post} animate stagger={Math.min(i + 1, 4) as 1|2|3|4} />)}
       </div>
     )}
   </section>
@@ -102,8 +87,8 @@ const repos = await fetchRepos('ihabnk');
 
     <div class="flex items-end justify-between mb-10">
       <div>
-        <span class="section-label mb-2">// المشاريع</span>
-        <h2 class="text-[30px] font-bold" style="color:var(--fg)">{t('projects.heading')}</h2>
+        <span class="section-label mb-2">// projects</span>
+        <h2 class="font-bold" style="font-size:clamp(32px,4vw,44px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1">Projects</h2>
       </div>
       <a
         href="https://github.com/ihabnk"
@@ -111,13 +96,11 @@ const repos = await fetchRepos('ihabnk');
         rel="noopener noreferrer"
         class="font-mono text-[11px] transition-opacity duration-200 hover:opacity-70"
         style="color:var(--accent-text)"
-      >
-        GitHub →
-      </a>
+      >GitHub →</a>
     </div>
 
     {repos.length === 0 ? (
-      <p class="font-mono text-sm" style="color:var(--fg-muted)">// لا توجد مستودعات — تفضل بزيارة GitHub مباشرة</p>
+      <p class="font-mono text-sm" style="color:var(--fg-muted)">// no repos loaded — visit GitHub directly</p>
     ) : (
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {repos.map(repo => <ProjectCard {repo} />)}
@@ -126,25 +109,23 @@ const repos = await fetchRepos('ihabnk');
   </section>
 
   <!-- ═══════════════════════════════════════════
-       SUPPORT CTA — full-bleed surface-alt
+       SUPPORT CTA (compact)
        ═══════════════════════════════════════════ -->
   <section
     id="support"
-    class="py-20 flex flex-col items-center gap-4 text-center"
-    style="background:var(--bg-surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)"
+    class="py-10 px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-center gap-4 text-center"
+    style="background:var(--bg-surface);border-top:2px solid var(--fg);border-bottom:2px solid var(--fg)"
   >
-    <h3 class="text-[26px] font-bold" style="color:var(--fg)">☕ أعجبك ما تقرأ؟</h3>
-    <p class="text-[15px] leading-relaxed max-w-sm" style="color:var(--fg-mid)">
-      ادعم الموقع — كل دعم يساعد على الاستمرار
+    <p class="text-[14px] font-mono" style="color:var(--fg-mid)">
+      If my work helped you →
     </p>
     <a
       href="https://www.buymeacoffee.com/ihabnk"
       target="_blank"
       rel="noopener noreferrer"
-      class="inline-flex items-center gap-2 font-bold text-sm px-8 h-12 rounded-[10px] mt-2 transition-opacity duration-200 hover:opacity-[0.88]"
-      style="background:var(--accent);color:var(--on-accent);box-shadow:0 2px 16px var(--accent-glow)"
+      class="ghost-btn inline-flex items-center gap-2 font-mono text-[12px] px-5 h-9 rounded-[4px]"
     >
-      ☕ {t('support.bmc')}
+      Buy me a coffee
     </a>
   </section>
 
@@ -153,10 +134,7 @@ const repos = await fetchRepos('ihabnk');
 <script>
   const io = new IntersectionObserver(
     entries => entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('fade-up');
-        io.unobserve(e.target);
-      }
+      if (e.isIntersecting) { e.target.classList.add('fade-up'); io.unobserve(e.target); }
     }),
     { threshold: 0.06 }
   );

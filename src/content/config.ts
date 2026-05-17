@@ -9,6 +9,5 @@ const postSchema = z.object({
 });
 
 export const collections = {
-  'blog-ar': defineCollection({ type: 'content', schema: postSchema }),
   'blog-en': defineCollection({ type: 'content', schema: postSchema }),
 };
