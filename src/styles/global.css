@@ -92,6 +92,8 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
@@ -523,9 +525,13 @@ body::after {
 
 /* ── TTS fixed bottom bar ── */
 /* Track the bar's intrinsic height in a CSS var so the page can
-   reserve exactly enough room. Updated by the script when state
-   changes between idle and active. */
-:root { --tts-bar-offset: 96px; }
+   reserve exactly enough room. Includes env(safe-area-inset-bottom)
+   so iOS home-indicator and iOS 26 floating Safari URL bar don't
+   eat into the reserved gutter. */
+:root { --tts-bar-offset: calc(96px + env(safe-area-inset-bottom, 0px)); }
+@media (max-width: 639px) {
+  :root { --tts-bar-offset: calc(112px + env(safe-area-inset-bottom, 0px)); }
+}
 
 .tts-bar {
   position: fixed;
