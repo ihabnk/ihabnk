@@ -19,7 +19,7 @@ function isActive(href: string) {
 
 <header
   id="site-header"
-  class="sticky top-0 z-50"
+  class="sticky top-0 z-50 site-header"
   style="background:var(--nav-bg);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:2px solid var(--fg)"
 >
   <nav class="max-w-5xl mx-auto px-4 sm:px-6 flex items-center justify-between h-[64px]">
@@ -91,39 +91,99 @@ function isActive(href: string) {
 <style>
   .mobile-drawer { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
   .mobile-drawer.open { max-height: 400px; }
+
+  /* Respect mobile status-bar / notch via safe-area inset */
+  .site-header {
+    padding-top: env(safe-area-inset-top, 0px);
+    will-change: transform;
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                background-color 0.2s ease,
+                box-shadow 0.2s ease;
+  }
+
+  /* Scroll-aware: only translate on mobile so desktop never hides */
+  @media (max-width: 639px) {
+    .site-header.is-hidden { transform: translateY(-100%); }
+  }
+  /* If the mobile drawer is open, never hide the header even if scrolling */
+  .site-header:has(#mobile-menu.open) { transform: none !important; }
 </style>
 
 <script>
-  const btn    = document.getElementById('mobile-menu-btn')!;
-  const menu   = document.getElementById('mobile-menu')!;
-  const iconO  = document.getElementById('icon-open')!;
-  const iconC  = document.getElementById('icon-close')!;
-  const header = document.getElementById('site-header')!;
+  // Everything below is delegated on the document so handlers survive
+  // ClientRouter view transitions (which swap the header DOM in-place).
+  const w = window as Window & { __navInited?: boolean };
+  if (!w.__navInited) {
+    w.__navInited = true;
 
-  btn?.addEventListener('click', () => {
-    const open = menu.classList.toggle('open');
-    btn.setAttribute('aria-expanded', String(open));
-    iconO.classList.toggle('hidden', open);
-    iconC.classList.toggle('hidden', !open);
-  });
+    // Mobile menu toggle
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement | null;
+      const btn    = target?.closest('#mobile-menu-btn');
+      if (!btn) return;
+      const menu  = document.getElementById('mobile-menu');
+      const iconO = document.getElementById('icon-open');
+      const iconC = document.getElementById('icon-close');
+      if (!menu) return;
+      const open = menu.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(open));
+      iconO?.classList.toggle('hidden', open);
+      iconC?.classList.toggle('hidden', !open);
+    });
 
-  window.addEventListener('scroll', () => {
-    header.classList.toggle('is-scrolled', window.scrollY > 200);
-  }, { passive: true });
-
-  document.querySelectorAll<HTMLButtonElement>('.theme-toggle').forEach(toggle => {
-    toggle.addEventListener('click', () => {
-      const current = document.documentElement.getAttribute('data-theme')
-        ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    // Theme toggle
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement | null;
+      const toggle = target?.closest<HTMLButtonElement>('.theme-toggle');
+      if (!toggle) return;
+      const current = document.documentElement.getAttribute('data-theme') ?? 'light';
       const next = current === 'dark' ? 'light' : 'dark';
       document.documentElement.setAttribute('data-theme', next);
       localStorage.setItem('theme', next);
-      // 180° spin per spec §14.1
       toggle.classList.add('spin');
       setTimeout(() => toggle.classList.remove('spin'), 250);
       document.querySelectorAll<HTMLButtonElement>('.theme-toggle').forEach(b =>
         b.setAttribute('aria-pressed', String(next === 'dark'))
       );
     });
-  });
+
+    // Scroll-aware navbar: hide on scroll down, reveal on scroll up.
+    const SCROLL_THRESHOLD = 10;   // ignore jitter under 10px
+    const REVEAL_AT_TOP    = 80;   // always show near the top
+    let lastY = window.scrollY;
+    let ticking = false;
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const header = document.getElementById('site-header');
+        const y      = window.scrollY;
+        const dy     = y - lastY;
+
+        if (header) {
+          header.classList.toggle('is-scrolled', y > 200);
+
+          if (Math.abs(dy) >= SCROLL_THRESHOLD) {
+            if (y < REVEAL_AT_TOP) {
+              header.classList.remove('is-hidden');
+            } else if (dy > 0) {
+              header.classList.add('is-hidden');
+            } else {
+              header.classList.remove('is-hidden');
+            }
+            lastY = y;
+          }
+        }
+        ticking = false;
+      });
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    // After a view transition, the new page starts at the top — reset state.
+    document.addEventListener('astro:after-swap', () => {
+      lastY = window.scrollY;
+      document.getElementById('site-header')?.classList.remove('is-hidden');
+    });
+  }
 </script>

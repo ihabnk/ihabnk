@@ -1,8 +1,11 @@
 ---
-// Fixed-bottom TTS audio player — triggered by #tts-trigger button in ArticleHero
+// Persistent fixed-bottom TTS player.
+// Rendered once at the layout level with transition:persist so it survives
+// view transitions; the inline script is idempotent and uses event delegation
+// to bind to per-page #tts-trigger buttons.
 ---
 
-<div id="tts-bar" class="tts-bar" aria-live="polite">
+<div id="tts-bar" class="tts-bar" aria-live="polite" transition:persist="tts-bar">
 
   <!-- Decorative headphones icon -->
   <svg class="w-4 h-4 flex-shrink-0 hidden sm:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:var(--accent-text)" aria-hidden="true">
@@ -19,13 +22,10 @@
 
   <!-- Play / Pause (circular) -->
   <button id="tts-bar-toggle" class="tts-bar-play" aria-label="Play">
-    <!-- EQ bars: shown while buffering -->
     <span id="tts-eq-bars" class="tts-eq hidden"><span></span><span></span><span></span></span>
-    <!-- Play icon: shown while paused/idle -->
     <svg id="tts-icon-play" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
       <path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653Z"/>
     </svg>
-    <!-- Pause icon: shown while playing -->
     <svg id="tts-icon-pause" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24">
       <path fill-rule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25zm7.5 0A.75.75 0 0 1 15 4.5h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H15a.75.75 0 0 1-.75-.75V5.25z" clip-rule="evenodd"/>
     </svg>
@@ -62,325 +62,378 @@
 </div>
 
 <script>
-  const TTS_API   = '/.netlify/functions/tts';
-  const RATES     = [1, 1.25, 1.5, 2, 0.75];
-  let   rateIdx   = 0;
+  (() => {
+    type W = Window & { __ttsInited?: boolean };
+    const w = window as W;
+    if (w.__ttsInited) return;
+    w.__ttsInited = true;
 
-  const ttsBar      = document.getElementById('tts-bar')     as HTMLElement | null;
-  const barToggle   = document.getElementById('tts-bar-toggle');
-  const barStop     = document.getElementById('tts-bar-stop');
-  const backBtn     = document.getElementById('tts-back');
-  const fwdBtn      = document.getElementById('tts-forward');
-  const rateBtn     = document.getElementById('tts-rate-btn');
-  const barTitle    = document.getElementById('tts-bar-title');
-  const barTimer    = document.getElementById('tts-bar-timer');
-  const barFill     = document.getElementById('tts-bar-fill') as HTMLElement | null;
-  const trackEl     = document.getElementById('tts-track')   as HTMLElement | null;
-  const iconPlay    = document.getElementById('tts-icon-play');
-  const iconPause   = document.getElementById('tts-icon-pause');
-  const eqBars      = document.getElementById('tts-eq-bars');
-  const trigger     = document.getElementById('tts-trigger');
-  const triggerLabel = document.getElementById('tts-trigger-label');
-  const triggerBtn  = document.getElementById('tts-trigger') as HTMLElement | null;
+    const TTS_API = '/.netlify/functions/tts';
+    const RATES   = [1, 1.25, 1.5, 2, 0.75];
+    let rateIdx   = 0;
 
-  type VisualState = 'idle' | 'buffering' | 'playing' | 'paused' | 'ended';
-  let state: VisualState = 'idle';
-  let stopped        = false;
-  let currentAudio: HTMLAudioElement | null = null;
-  let timerInterval: number | undefined;
-  let totalDuration  = 0;
-  let elapsed        = 0;
+    /* ── Static (persistent) UI handles ────────────────────── */
+    const ttsBar    = document.getElementById('tts-bar')        as HTMLElement | null;
+    const barToggle = document.getElementById('tts-bar-toggle');
+    const barStop   = document.getElementById('tts-bar-stop');
+    const backBtn   = document.getElementById('tts-back');
+    const fwdBtn    = document.getElementById('tts-forward');
+    const rateBtn   = document.getElementById('tts-rate-btn');
+    const barTitle  = document.getElementById('tts-bar-title');
+    const barTimer  = document.getElementById('tts-bar-timer');
+    const barFill   = document.getElementById('tts-bar-fill')   as HTMLElement | null;
+    const trackEl   = document.getElementById('tts-track')      as HTMLElement | null;
+    const iconPlay  = document.getElementById('tts-icon-play');
+    const iconPause = document.getElementById('tts-icon-pause');
+    const eqBars    = document.getElementById('tts-eq-bars');
 
-  /* ── Paragraph-highlight tracking ─────────────────────── */
-  let paragraphs: HTMLParagraphElement[] = [];
-  let paragraphOffsets: number[] = [];     // cumulative cleaned-char offset where each <p> starts
-  let totalChars         = 0;
-  let activeParaIdx      = -1;
+    type VisualState = 'idle' | 'buffering' | 'playing' | 'paused' | 'ended';
+    let state: VisualState = 'idle';
+    let stopped       = false;
+    let currentAudio: HTMLAudioElement | null = null;
+    let timerInterval: number | undefined;
+    let totalDuration = 0;
+    let elapsed       = 0;
+    let currentPath: string | null = null;   // pathname of the article whose audio is loaded
 
-  function setActiveParagraph(idx: number) {
-    if (idx === activeParaIdx) return;
-    activeParaIdx = idx;
-    paragraphs.forEach((p, i) => p.classList.toggle('reading-now', i === idx));
-    const el = paragraphs[idx];
-    if (el) {
-      const rect = el.getBoundingClientRect();
-      const inView = rect.top > 80 && rect.bottom < window.innerHeight - 100;
-      if (!inView) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }
+    /* ── Paragraph-highlight tracking ──────────────────────── */
+    let paragraphs: HTMLParagraphElement[] = [];
+    let paragraphOffsets: number[] = [];
+    let totalChars     = 0;
+    let activeParaIdx  = -1;
 
-  function clearActiveParagraph() {
-    if (activeParaIdx === -1) return;
-    paragraphs.forEach(p => p.classList.remove('reading-now'));
-    activeParaIdx = -1;
-  }
-
-  function indexParagraphs(article: HTMLElement) {
-    paragraphs = Array.from(article.querySelectorAll<HTMLParagraphElement>('p'));
-    paragraphOffsets = [];
-    let acc = 0;
-    for (const p of paragraphs) {
-      paragraphOffsets.push(acc);
-      acc += cleanText(p.textContent ?? '').length + 1; // +1 for paragraph break
-    }
-    totalChars = acc;
-  }
-
-  function updateActiveFromChar(currentChar: number) {
-    if (!paragraphs.length) return;
-    let idx = 0;
-    for (let i = paragraphs.length - 1; i >= 0; i--) {
-      if (paragraphOffsets[i] <= currentChar) { idx = i; break; }
-    }
-    setActiveParagraph(idx);
-  }
-
-  /* ── Helpers ─────────────────────────────────────────── */
-  function fmt(s: number): string {
-    const m = Math.floor(s / 60);
-    const sec = Math.floor(s % 60);
-    return `${m}:${sec.toString().padStart(2, '0')}`;
-  }
-
-  function setVisual(next: VisualState) {
-    state = next;
-    if (!ttsBar) return;
-    ttsBar.classList.toggle('active',        next !== 'idle');
-    ttsBar.classList.toggle('state-playing',  next === 'playing');
-    ttsBar.classList.toggle('state-buffering',next === 'buffering');
-    ttsBar.classList.toggle('state-ended',    next === 'ended');
-
-    const isPlaying = next === 'playing';
-    const isBuffering = next === 'buffering';
-
-    iconPlay?.classList.toggle('hidden',   isPlaying || isBuffering);
-    iconPause?.classList.toggle('hidden',  !isPlaying);
-    eqBars?.classList.toggle('hidden',     !isBuffering);
-
-    if (triggerLabel) triggerLabel.textContent = next === 'idle' ? 'Listen to article' : 'Listening';
-    triggerBtn?.classList.toggle('active', next !== 'idle');
-
-    document.body.style.paddingBottom = next === 'idle' ? '' : '72px';
-
-    if (next === 'idle' || next === 'ended') {
-      barToggle?.setAttribute('aria-label', 'Play');
-    } else if (isPlaying) {
-      barToggle?.setAttribute('aria-label', 'Pause');
-    }
-  }
-
-  function updateTimer() {
-    if (!barTimer || !barFill) return;
-    const total = totalDuration || 1;
-    const pct   = Math.min((elapsed / total) * 100, 100);
-    barFill.style.width = `${pct}%`;
-    barTimer.textContent = `${fmt(elapsed)} / ${fmt(total)}`;
-  }
-
-  function startTimer() {
-    clearInterval(timerInterval);
-    timerInterval = window.setInterval(() => {
-      if (state !== 'playing') return;
-      elapsed = Math.min(elapsed + 0.25, totalDuration || elapsed + 0.25);
-      updateTimer();
-    }, 250);
-  }
-
-  function cleanText(raw: string): string {
-    return raw
-      .replace(/```[\s\S]*?```/g, '')
-      .replace(/`[^`]+`/g, '')
-      .replace(/https?:\/\/\S+/g, '')
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-      .replace(/#+\s/g, '')
-      .replace(/[*_]{1,2}([^*_]+)[*_]{1,2}/g, '$1')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
-
-  function chunkText(text: string, max = 4000): string[] {
-    const chunks: string[] = [];
-    let rest = text;
-    while (rest.length > max) {
-      let cut = rest.lastIndexOf('. ', max);
-      if (cut < 0) cut = max;
-      chunks.push(rest.slice(0, cut + 1).trim());
-      rest = rest.slice(cut + 1).trim();
-    }
-    if (rest) chunks.push(rest);
-    return chunks;
-  }
-
-  function stopAll() {
-    stopped = true;
-    clearInterval(timerInterval);
-    speechSynthesis.cancel();
-    if (currentAudio) { currentAudio.pause(); currentAudio.src = ''; currentAudio = null; }
-    elapsed = 0; totalDuration = 0;
-    if (barFill) barFill.style.width = '0%';
-    if (barTimer) barTimer.textContent = '0:00 / 0:00';
-    clearActiveParagraph();
-    setVisual('idle');
-  }
-
-  async function playWithAzure(text: string) {
-    const chunks   = chunkText(text);
-    const totalLen = chunks.reduce((s, c) => s + c.length, 0);
-    let doneLen    = 0;
-    let pace       = 0;   // seconds per character (refined as chunks load)
-
-    for (const chunk of chunks) {
-      if (stopped) return;
-      const res = await fetch(TTS_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: chunk, lang: 'en' }),
-      });
-      if (!res.ok || stopped) throw new Error(`api-${res.status}`);
-      const blob = await res.blob();
-      if (stopped) return;
-      const url   = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audio.playbackRate = RATES[rateIdx];
-      currentAudio = audio;
-
-      audio.addEventListener('loadedmetadata', () => {
-        const chunkDur = audio.duration / audio.playbackRate;
-        // Pace = sec per char. Use this chunk to extrapolate the rest.
-        pace = chunkDur / Math.max(chunk.length, 1);
-        totalDuration = pace * totalLen;
-        if (state === 'buffering') setVisual('playing');
-        startTimer();
-      });
-
-      audio.addEventListener('timeupdate', () => {
-        if (!audio.duration) return;
-        const chunkPct    = audio.currentTime / audio.duration;
-        const currentChar = doneLen + chunk.length * chunkPct;
-        // Drive elapsed off real audio time (accurate) instead of the timer's tick
-        const chunkElapsedReal = audio.currentTime / audio.playbackRate;
-        elapsed = (doneLen * pace) + chunkElapsedReal;
-        updateTimer();
-        updateActiveFromChar(currentChar);
-      });
-
-      await new Promise<void>(resolve => {
-        audio.onended = () => { URL.revokeObjectURL(url); doneLen += chunk.length; resolve(); };
-        audio.onerror = () => { URL.revokeObjectURL(url); resolve(); };
-        audio.play().catch(resolve);
-      });
-      if (stopped) return;
-    }
-
-    if (!stopped) {
-      clearInterval(timerInterval);
-      if (barFill) barFill.style.width = '100%';
-      setTimeout(() => { if (barFill) barFill.style.width = '0%'; }, 800);
-      clearActiveParagraph();
-      setVisual('ended');
-    }
-  }
-
-  function playWithWebSpeech(text: string) {
-    if (!('speechSynthesis' in window)) { setVisual('idle'); return; }
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.lang  = 'en-US';
-    utt.rate  = RATES[rateIdx] * 0.92;
-    totalDuration = text.length * 0.06;
-    setVisual('playing');
-    startTimer();
-    utt.onboundary = (event) => {
-      // Word/sentence boundary events give us the exact char position
-      if (typeof event.charIndex === 'number') {
-        updateActiveFromChar(event.charIndex);
-        elapsed = (event.charIndex / Math.max(text.length, 1)) * totalDuration;
-        updateTimer();
+    function setActiveParagraph(idx: number) {
+      if (idx === activeParaIdx) return;
+      activeParaIdx = idx;
+      paragraphs.forEach((p, i) => p.classList.toggle('reading-now', i === idx));
+      const el = paragraphs[idx];
+      if (el && el.isConnected) {
+        const rect = el.getBoundingClientRect();
+        const inView = rect.top > 80 && rect.bottom < window.innerHeight - 100;
+        if (!inView) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-    };
-    utt.onend = () => {
+    }
+
+    function clearActiveParagraph() {
+      if (activeParaIdx === -1) return;
+      paragraphs.forEach(p => p.classList.remove('reading-now'));
+      activeParaIdx = -1;
+    }
+
+    function indexParagraphs(article: HTMLElement) {
+      paragraphs = Array.from(article.querySelectorAll<HTMLParagraphElement>('p'));
+      paragraphOffsets = [];
+      let acc = 0;
+      for (const p of paragraphs) {
+        paragraphOffsets.push(acc);
+        acc += cleanText(p.textContent ?? '').length + 1;
+      }
+      totalChars = acc;
+      activeParaIdx = -1;
+    }
+
+    function updateActiveFromChar(currentChar: number) {
+      if (!paragraphs.length) return;
+      let idx = 0;
+      for (let i = paragraphs.length - 1; i >= 0; i--) {
+        if (paragraphOffsets[i] <= currentChar) { idx = i; break; }
+      }
+      setActiveParagraph(idx);
+    }
+
+    /* ── Helpers ───────────────────────────────────────────── */
+    function fmt(s: number): string {
+      const m = Math.floor(s / 60);
+      const sec = Math.floor(s % 60);
+      return `${m}:${sec.toString().padStart(2, '0')}`;
+    }
+
+    function updateTriggerUI() {
+      // Trigger lives on per-page article layout; query fresh every time.
+      const triggerBtn   = document.getElementById('tts-trigger');
+      const triggerLabel = document.getElementById('tts-trigger-label');
+      if (!triggerBtn || !triggerLabel) return;
+
+      const onPlayingPage = currentPath !== null && location.pathname === currentPath;
+      const active        = state !== 'idle' && onPlayingPage;
+      triggerBtn.classList.toggle('active', active);
+      triggerLabel.textContent = active ? 'Listening' : 'Listen to article';
+    }
+
+    function setVisual(next: VisualState) {
+      state = next;
+      if (!ttsBar) return;
+      ttsBar.classList.toggle('active',         next !== 'idle');
+      ttsBar.classList.toggle('state-playing',  next === 'playing');
+      ttsBar.classList.toggle('state-buffering',next === 'buffering');
+      ttsBar.classList.toggle('state-ended',    next === 'ended');
+
+      const isPlaying   = next === 'playing';
+      const isBuffering = next === 'buffering';
+
+      iconPlay ?.classList.toggle('hidden',  isPlaying || isBuffering);
+      iconPause?.classList.toggle('hidden', !isPlaying);
+      eqBars   ?.classList.toggle('hidden', !isBuffering);
+
+      document.body.style.paddingBottom = next === 'idle' ? '' : '72px';
+
+      if (next === 'idle' || next === 'ended') {
+        barToggle?.setAttribute('aria-label', 'Play');
+      } else if (isPlaying) {
+        barToggle?.setAttribute('aria-label', 'Pause');
+      }
+
+      updateTriggerUI();
+    }
+
+    function updateTimer() {
+      if (!barTimer || !barFill) return;
+      const total = totalDuration || 1;
+      const pct   = Math.min((elapsed / total) * 100, 100);
+      barFill.style.width = `${pct}%`;
+      barTimer.textContent = `${fmt(elapsed)} / ${fmt(total)}`;
+    }
+
+    function startTimer() {
       clearInterval(timerInterval);
+      timerInterval = window.setInterval(() => {
+        if (state !== 'playing') return;
+        elapsed = Math.min(elapsed + 0.25, totalDuration || elapsed + 0.25);
+        updateTimer();
+      }, 250);
+    }
+
+    function cleanText(raw: string): string {
+      return raw
+        .replace(/```[\s\S]*?```/g, '')
+        .replace(/`[^`]+`/g, '')
+        .replace(/https?:\/\/\S+/g, '')
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+        .replace(/#+\s/g, '')
+        .replace(/[*_]{1,2}([^*_]+)[*_]{1,2}/g, '$1')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function chunkText(text: string, max = 4000): string[] {
+      const chunks: string[] = [];
+      let rest = text;
+      while (rest.length > max) {
+        let cut = rest.lastIndexOf('. ', max);
+        if (cut < 0) cut = max;
+        chunks.push(rest.slice(0, cut + 1).trim());
+        rest = rest.slice(cut + 1).trim();
+      }
+      if (rest) chunks.push(rest);
+      return chunks;
+    }
+
+    function stopAll() {
+      stopped = true;
+      clearInterval(timerInterval);
+      try { speechSynthesis.cancel(); } catch {}
+      if (currentAudio) { currentAudio.pause(); currentAudio.src = ''; currentAudio = null; }
+      elapsed = 0; totalDuration = 0;
+      if (barFill) barFill.style.width = '0%';
+      if (barTimer) barTimer.textContent = '0:00 / 0:00';
       clearActiveParagraph();
-      if (!stopped) setVisual('ended');
-    };
-    speechSynthesis.speak(utt);
-  }
-
-  /* ── Trigger ──────────────────────────────────────────── */
-  trigger?.addEventListener('click', async () => {
-    if (state !== 'idle') { stopAll(); return; }
-    const article = document.getElementById('article-body');
-    if (!article) return;
-
-    // Set title from h1
-    const h1 = document.querySelector<HTMLElement>('.article-headline');
-    if (barTitle) barTitle.textContent = h1?.textContent?.trim() ?? document.title.split(' | ')[0];
-
-    indexParagraphs(article);
-
-    stopped = false;
-    elapsed = 0;
-    setVisual('buffering');
-
-    const text = cleanText(article.textContent?.trim() ?? '');
-    try {
-      await playWithAzure(text);
-    } catch {
-      if (!stopped) playWithWebSpeech(text);
-      else setVisual('idle');
+      paragraphs = [];
+      paragraphOffsets = [];
+      currentPath = null;
+      setVisual('idle');
     }
-  });
 
-  /* ── Play / Pause toggle ──────────────────────────────── */
-  barToggle?.addEventListener('click', () => {
-    if (state === 'playing') {
-      if (currentAudio) currentAudio.pause();
-      else speechSynthesis.pause();
-      clearInterval(timerInterval);
-      setVisual('paused');
-    } else if (state === 'paused') {
-      if (currentAudio) currentAudio.play().catch(() => {});
-      else speechSynthesis.resume();
-      startTimer();
+    async function playWithAzure(text: string) {
+      const chunks   = chunkText(text);
+      const totalLen = chunks.reduce((s, c) => s + c.length, 0);
+      let doneLen    = 0;
+      let pace       = 0;
+
+      for (const chunk of chunks) {
+        if (stopped) return;
+        const res = await fetch(TTS_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: chunk, lang: 'en' }),
+        });
+        if (!res.ok || stopped) throw new Error(`api-${res.status}`);
+        const blob = await res.blob();
+        if (stopped) return;
+        const url   = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.playbackRate = RATES[rateIdx];
+        currentAudio = audio;
+
+        audio.addEventListener('loadedmetadata', () => {
+          const chunkDur = audio.duration / audio.playbackRate;
+          pace = chunkDur / Math.max(chunk.length, 1);
+          totalDuration = pace * totalLen;
+          if (state === 'buffering') setVisual('playing');
+          startTimer();
+        });
+
+        audio.addEventListener('timeupdate', () => {
+          if (!audio.duration) return;
+          const chunkPct    = audio.currentTime / audio.duration;
+          const currentChar = doneLen + chunk.length * chunkPct;
+          const chunkElapsedReal = audio.currentTime / audio.playbackRate;
+          elapsed = (doneLen * pace) + chunkElapsedReal;
+          updateTimer();
+          updateActiveFromChar(currentChar);
+        });
+
+        await new Promise<void>(resolve => {
+          audio.onended = () => { URL.revokeObjectURL(url); doneLen += chunk.length; resolve(); };
+          audio.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+          audio.play().catch(resolve);
+        });
+        if (stopped) return;
+      }
+
+      if (!stopped) {
+        clearInterval(timerInterval);
+        if (barFill) barFill.style.width = '100%';
+        setTimeout(() => { if (barFill) barFill.style.width = '0%'; }, 800);
+        clearActiveParagraph();
+        setVisual('ended');
+      }
+    }
+
+    function playWithWebSpeech(text: string) {
+      if (!('speechSynthesis' in window)) { setVisual('idle'); return; }
+      const utt = new SpeechSynthesisUtterance(text);
+      utt.lang  = 'en-US';
+      utt.rate  = RATES[rateIdx] * 0.92;
+      totalDuration = text.length * 0.06;
       setVisual('playing');
-    } else if (state === 'ended') {
-      // Restart
-      stopAll();
-      trigger?.click();
+      startTimer();
+      utt.onboundary = (event) => {
+        if (typeof event.charIndex === 'number') {
+          updateActiveFromChar(event.charIndex);
+          elapsed = (event.charIndex / Math.max(text.length, 1)) * totalDuration;
+          updateTimer();
+        }
+      };
+      utt.onend = () => {
+        clearInterval(timerInterval);
+        clearActiveParagraph();
+        if (!stopped) setVisual('ended');
+      };
+      speechSynthesis.speak(utt);
     }
-  });
 
-  /* ── Skip buttons ─────────────────────────────────────── */
-  backBtn?.addEventListener('click', () => {
-    if (currentAudio) currentAudio.currentTime = Math.max(0, currentAudio.currentTime - 15);
-    elapsed = Math.max(0, elapsed - 15);
-    updateTimer();
-  });
-  fwdBtn?.addEventListener('click', () => {
-    if (currentAudio) currentAudio.currentTime = Math.min(currentAudio.duration, currentAudio.currentTime + 15);
-    elapsed = Math.min(totalDuration, elapsed + 15);
-    updateTimer();
-  });
+    async function startForCurrentArticle() {
+      const article = document.getElementById('article-body');
+      if (!article) return;
 
-  /* ── Rate toggle ──────────────────────────────────────── */
-  rateBtn?.addEventListener('click', () => {
-    rateIdx = (rateIdx + 1) % RATES.length;
-    const rate = RATES[rateIdx];
-    if (rateBtn) rateBtn.textContent = `${rate}×`;
-    rateBtn?.classList.toggle('boosted', rate !== 1);
-    if (currentAudio) currentAudio.playbackRate = rate;
-  });
+      const h1 = document.querySelector<HTMLElement>('.article-headline');
+      if (barTitle) barTitle.textContent = h1?.textContent?.trim() ?? document.title.split(' | ')[0];
 
-  /* ── Track seek ───────────────────────────────────────── */
-  trackEl?.addEventListener('click', (e) => {
-    const rect = trackEl.getBoundingClientRect();
-    const pct  = (e.clientX - rect.left) / rect.width;
-    elapsed    = pct * totalDuration;
-    if (currentAudio && currentAudio.duration) {
-      currentAudio.currentTime = pct * currentAudio.duration;
+      indexParagraphs(article);
+      currentPath = location.pathname;
+
+      stopped = false;
+      elapsed = 0;
+      setVisual('buffering');
+
+      const text = cleanText(article.textContent?.trim() ?? '');
+      try {
+        await playWithAzure(text);
+      } catch {
+        if (!stopped) playWithWebSpeech(text);
+        else setVisual('idle');
+      }
     }
-    updateTimer();
-  });
 
-  /* ── Stop ─────────────────────────────────────────────── */
-  barStop?.addEventListener('click', () => stopAll());
+    /* ── Trigger (event delegation: works across view transitions) ── */
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement | null;
+      if (!target?.closest('#tts-trigger')) return;
+
+      // Same article that's currently active → toggle off.
+      if (state !== 'idle' && currentPath === location.pathname) {
+        stopAll();
+        return;
+      }
+      // Different article or nothing playing → stop any current and start this one.
+      if (state !== 'idle') stopAll();
+      startForCurrentArticle();
+    });
+
+    /* ── Play / Pause toggle (persistent bar button) ───────── */
+    barToggle?.addEventListener('click', () => {
+      if (state === 'playing') {
+        if (currentAudio) currentAudio.pause();
+        else { try { speechSynthesis.pause(); } catch {} }
+        clearInterval(timerInterval);
+        setVisual('paused');
+      } else if (state === 'paused') {
+        if (currentAudio) currentAudio.play().catch(() => {});
+        else { try { speechSynthesis.resume(); } catch {} }
+        startTimer();
+        setVisual('playing');
+      } else if (state === 'ended') {
+        stopAll();
+        // If we're on the article that just ended, restart it; otherwise stay idle.
+        if (document.getElementById('article-body')) startForCurrentArticle();
+      }
+    });
+
+    /* ── Skip buttons ──────────────────────────────────────── */
+    backBtn?.addEventListener('click', () => {
+      if (currentAudio) currentAudio.currentTime = Math.max(0, currentAudio.currentTime - 15);
+      elapsed = Math.max(0, elapsed - 15);
+      updateTimer();
+    });
+    fwdBtn?.addEventListener('click', () => {
+      if (currentAudio) currentAudio.currentTime = Math.min(currentAudio.duration, currentAudio.currentTime + 15);
+      elapsed = Math.min(totalDuration, elapsed + 15);
+      updateTimer();
+    });
+
+    /* ── Rate toggle ───────────────────────────────────────── */
+    rateBtn?.addEventListener('click', () => {
+      rateIdx = (rateIdx + 1) % RATES.length;
+      const rate = RATES[rateIdx];
+      if (rateBtn) rateBtn.textContent = `${rate}×`;
+      rateBtn?.classList.toggle('boosted', rate !== 1);
+      if (currentAudio) currentAudio.playbackRate = rate;
+    });
+
+    /* ── Track seek ────────────────────────────────────────── */
+    trackEl?.addEventListener('click', (e) => {
+      const rect = trackEl.getBoundingClientRect();
+      const pct  = (e.clientX - rect.left) / rect.width;
+      elapsed    = pct * totalDuration;
+      if (currentAudio && currentAudio.duration) {
+        currentAudio.currentTime = pct * currentAudio.duration;
+      }
+      updateTimer();
+    });
+
+    /* ── Close / Stop ──────────────────────────────────────── */
+    barStop?.addEventListener('click', () => stopAll());
+
+    /* ── View-transition lifecycle ─────────────────────────── */
+    // After each navigation, re-sync the per-page trigger button label
+    // and re-attach paragraph highlights if the user came back to the
+    // article currently being read.
+    document.addEventListener('astro:after-swap', () => {
+      // Re-apply body bottom padding so the persistent bar never overlaps
+      // page content after a transition.
+      document.body.style.paddingBottom = state === 'idle' ? '' : '72px';
+      updateTriggerUI();
+
+      if (currentPath && location.pathname === currentPath) {
+        const article = document.getElementById('article-body');
+        if (article) {
+          // Re-index against fresh DOM so the highlight follows along.
+          indexParagraphs(article);
+        }
+      } else {
+        // Highlighting only applies to the article whose audio is loaded.
+        clearActiveParagraph();
+      }
+    });
+  })();
 </script>

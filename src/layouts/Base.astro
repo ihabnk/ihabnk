@@ -1,6 +1,8 @@
 ---
+import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import TTSBar from '../components/TTSBar.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -18,12 +20,22 @@ const canonical = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
 <html lang="en" class="h-full">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Apply saved theme before paint to avoid flash -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- Apply saved theme before paint. Default to light unless user opted into dark. -->
     <script is:inline>
-      const t = localStorage.getItem('theme');
-      if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+      (() => {
+        const apply = () => {
+          const t = localStorage.getItem('theme');
+          document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+        };
+        apply();
+        if (!window.__themeListenerBound) {
+          window.__themeListenerBound = true;
+          document.addEventListener('astro:after-swap', apply);
+        }
+      })();
     </script>
+    <ClientRouter />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
@@ -46,5 +58,6 @@ const canonical = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
       <slot />
     </main>
     <Footer />
+    <TTSBar />
   </body>
 </html>

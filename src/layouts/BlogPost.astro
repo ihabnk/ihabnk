@@ -1,7 +1,6 @@
 ---
 import Base from './Base.astro';
 import ArticleHero from '../components/ArticleHero.astro';
-import TTSBar from '../components/TTSBar.astro';
 
 interface Props {
   title: string;
@@ -18,11 +17,11 @@ const twitterShare  = `https://twitter.com/intent/tweet?url=${encodeURIComponent
 
 <Base {title} {description}>
 
-  <!-- Reading progress bar -->
+  <!-- Reading progress bar (sits flush below the header, including notch inset) -->
   <div
     id="reading-progress"
-    class="fixed top-[64px] left-0 right-0 h-[3px] z-40 scale-x-0 transition-none"
-    style="transform-origin:left;background:var(--accent)"
+    class="fixed left-0 right-0 h-[3px] z-40 scale-x-0 transition-none"
+    style="top:calc(64px + env(safe-area-inset-top, 0px));transform-origin:left;background:var(--accent)"
     aria-hidden="true"
   ></div>
 
@@ -85,27 +84,33 @@ const twitterShare  = `https://twitter.com/intent/tweet?url=${encodeURIComponent
 
   </div>
 
-  <TTSBar />
-
 </Base>
 
 <script>
-  // Reading progress
-  const bar = document.getElementById('reading-progress');
-  if (bar) {
+  (() => {
+    type W = Window & { __blogPostInited?: boolean };
+    const w = window as W;
+
+    // Always re-observe reveal targets for the current page.
+    const io = new IntersectionObserver(
+      entries => entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('in-view'); io.unobserve(e.target); }
+      }),
+      { threshold: 0.08 }
+    );
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+    // Reading-progress listener: install once on the window so navigations
+    // don't stack up duplicate scroll handlers.
+    if (w.__blogPostInited) return;
+    w.__blogPostInited = true;
+
     window.addEventListener('scroll', () => {
+      const bar = document.getElementById('reading-progress');
+      if (!bar) return;
       const doc   = document.documentElement;
       const total = doc.scrollHeight - doc.clientHeight;
       bar.style.transform = `scaleX(${total > 0 ? window.scrollY / total : 0})`;
     }, { passive: true });
-  }
-
-  // Scroll reveal
-  const io = new IntersectionObserver(
-    entries => entries.forEach(e => {
-      if (e.isIntersecting) { e.target.classList.add('in-view'); io.unobserve(e.target); }
-    }),
-    { threshold: 0.08 }
-  );
-  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  })();
 </script>
