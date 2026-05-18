@@ -21,6 +21,10 @@ const canonical = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- iOS standalone / PWA: ensure status-bar insets reach CSS via env() -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <!-- Apply saved theme before paint. Default to light unless user opted into dark. -->
     <script is:inline>
       (() => {

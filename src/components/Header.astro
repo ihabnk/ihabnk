@@ -92,18 +92,20 @@ function isActive(href: string) {
   .mobile-drawer { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
   .mobile-drawer.open { max-height: 400px; }
 
-  /* Respect mobile status-bar / notch via safe-area inset */
   .site-header {
-    padding-top: env(safe-area-inset-top, 0px);
     will-change: transform;
     transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
                 background-color 0.2s ease,
                 box-shadow 0.2s ease;
   }
 
-  /* Scroll-aware: only translate on mobile so desktop never hides */
+  /* Scroll-aware: only translate on mobile so desktop never hides.
+     Keep the safe-area-inset portion visible so the iOS status bar always
+     has a colored backing and page content never bleeds behind it. */
   @media (max-width: 639px) {
-    .site-header.is-hidden { transform: translateY(-100%); }
+    .site-header.is-hidden {
+      transform: translateY(calc(-100% + env(safe-area-inset-top, 0px)));
+    }
   }
   /* If the mobile drawer is open, never hide the header even if scrolling */
   .site-header:has(#mobile-menu.open) { transform: none !important; }

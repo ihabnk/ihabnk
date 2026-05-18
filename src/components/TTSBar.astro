@@ -326,8 +326,15 @@
       const article = document.getElementById('article-body');
       if (!article) return;
 
+      // Re-query each call: the persistent bar's title node should survive
+      // view transitions, but a fresh lookup guards against any DOM swap.
+      const titleEl = document.getElementById('tts-bar-title') ?? barTitle;
       const h1 = document.querySelector<HTMLElement>('.article-headline');
-      if (barTitle) barTitle.textContent = h1?.textContent?.trim() ?? document.title.split(' | ')[0];
+      const resolvedTitle =
+        h1?.textContent?.trim() ||
+        document.title.split(' | ')[0] ||
+        'Article';
+      if (titleEl) titleEl.textContent = resolvedTitle;
 
       indexParagraphs(article);
       currentPath = location.pathname;

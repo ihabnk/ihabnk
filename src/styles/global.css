@@ -225,6 +225,17 @@ p { text-wrap: pretty; }
   display: block;
 }
 
+/* ─────────────────────────────────────────────────────────── */
+/* Safe-area inset for iOS Safari + PWA standalone              */
+/* (declared globally so Astro scoping never weakens it)        */
+/* ─────────────────────────────────────────────────────────── */
+#site-header {
+  padding-top: constant(safe-area-inset-top); /* iOS 11.0–11.2 */
+  padding-top: env(safe-area-inset-top, 0px); /* iOS 11.2+ / modern */
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
 /* ── Sticky-nav scrolled state (opacity bump + extra bottom shadow per spec §14.1) ── */
 #site-header { transition: background-color 0.2s ease, box-shadow 0.2s ease; }
 #site-header.is-scrolled {
@@ -362,24 +373,24 @@ body::after {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .fade-up { opacity: 0; animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-  .reveal.in-view { animation: reveal-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .fade-up  { opacity: 0; animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .reveal   { opacity: 0; }
+  .reveal.in-view { opacity: 1; animation: reveal-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
   .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
 }
+/* Reduced-motion: render content immediately at full opacity, no animation. */
 @media (prefers-reduced-motion: reduce) {
-  .fade-up  { opacity: 1; }
-  .reveal   { opacity: 1; }
+  .fade-up,
+  .reveal,
+  .reveal.in-view { opacity: 1; }
   .pulse-dot { animation: none; }
   .card-brutal, .btn-primary, .ghost-btn { transition-duration: 0ms; }
 }
 
-.fade-up { opacity: 0; }
 .stagger-1 { animation-delay: 0.05s; }
 .stagger-2 { animation-delay: 0.12s; }
 .stagger-3 { animation-delay: 0.19s; }
 .stagger-4 { animation-delay: 0.26s; }
-
-.reveal { opacity: 0; }
 
 /* ── Stretched link ── */
 .stretched-link::after {
@@ -511,9 +522,22 @@ body::after {
   border-top: 3px solid var(--fg);
   box-shadow: 0 -4px 0 var(--accent);
   transform: translateY(110%);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.2s ease,
+              visibility 0s linear 0.3s;
 }
-.tts-bar.active { transform: translateY(0); }
+.tts-bar.active {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.2s ease,
+              visibility 0s linear 0s;
+}
 
 /* TTS state-aware classes */
 .tts-bar.state-playing { box-shadow: 0 -4px 0 var(--accent), 0 -12px 24px -8px var(--accent-glow); }
