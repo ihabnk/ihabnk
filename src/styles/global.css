@@ -236,6 +236,25 @@ p { text-wrap: pretty; }
   padding-right: env(safe-area-inset-right, 0px);
 }
 
+/* iOS Safari quirk: position:sticky + padding-top:env() does not
+   reliably extend the header's background up into the safe-area
+   strip — page content can scroll up and bleed behind the status
+   bar. This fixed cap guarantees the strip is always opaque,
+   independent of the header's scroll/transform state. */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top, 0px);
+  background: var(--nav-bg);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  z-index: 49; /* one below the sticky header (z-50) */
+  pointer-events: none;
+}
+
 /* ── Sticky-nav scrolled state (opacity bump + extra bottom shadow per spec §14.1) ── */
 #site-header { transition: background-color 0.2s ease, box-shadow 0.2s ease; }
 #site-header.is-scrolled {
