@@ -20,7 +20,7 @@ function isActive(href: string) {
 <header
   id="site-header"
   class="sticky top-0 z-50 site-header"
-  style="background:var(--nav-bg);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:2px solid var(--fg)"
+  style="background:var(--nav-bg);border-bottom:2px solid var(--fg);padding-top:constant(safe-area-inset-top);padding-top:env(safe-area-inset-top,0px)"
 >
   <nav class="max-w-5xl mx-auto px-4 sm:px-6 flex items-center justify-between h-[64px]">
 
@@ -100,12 +100,10 @@ function isActive(href: string) {
   }
 
   /* Scroll-aware: only translate on mobile so desktop never hides.
-     Keep the safe-area-inset portion visible so the iOS status bar always
-     has a colored backing and page content never bleeds behind it. */
+     Hide fully via -100%; the body::before cap (z=51) keeps the iOS
+     status-bar strip opaque regardless of header position. */
   @media (max-width: 639px) {
-    .site-header.is-hidden {
-      transform: translateY(calc(-100% + env(safe-area-inset-top, 0px)));
-    }
+    .site-header.is-hidden { transform: translateY(-100%); }
   }
   /* If the mobile drawer is open, never hide the header even if scrolling */
   .site-header:has(#mobile-menu.open) { transform: none !important; }

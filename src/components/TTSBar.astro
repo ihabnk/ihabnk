@@ -5,60 +5,70 @@
 // to bind to per-page #tts-trigger buttons.
 ---
 
-<div id="tts-bar" class="tts-bar" aria-live="polite" transition:persist="tts-bar">
+<div id="tts-bar" class="tts-bar" aria-live="polite" role="region" aria-label="Article audio player" transition:persist="tts-bar">
+  <div class="tts-bar-inner">
 
-  <!-- Decorative headphones icon -->
-  <svg class="w-4 h-4 flex-shrink-0 hidden sm:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:var(--accent-text)" aria-hidden="true">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M3 18v-6a9 9 0 0 1 18 0v6"/>
-    <path stroke-linecap="round" stroke-linejoin="round" d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
-  </svg>
+    <!-- Thumbnail / icon badge (left) -->
+    <div class="tts-thumb" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+      </svg>
+    </div>
 
-  <!-- Back 15s -->
-  <button id="tts-back" class="tts-bar-btn" aria-label="Back 15 seconds" title="Back 15s">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M12.066 11.2a1 1 0 0 0 0 1.6l5.334 4A1 1 0 0 0 19 16V8a1 1 0 0 0-1.6-.8l-5.333 4ZM4.066 11.2a1 1 0 0 0 0 1.6l5.334 4A1 1 0 0 0 11 16V8a1 1 0 0 0-1.6-.8l-5.334 4Z"/>
-    </svg>
-  </button>
+    <!-- Meta: title + subtitle -->
+    <div class="tts-meta">
+      <span id="tts-bar-title" class="tts-title">Untitled</span>
+      <span id="tts-bar-subtitle" class="tts-subtitle">Listen</span>
+    </div>
 
-  <!-- Play / Pause (circular) -->
-  <button id="tts-bar-toggle" class="tts-bar-play" aria-label="Play">
-    <span id="tts-eq-bars" class="tts-eq hidden"><span></span><span></span><span></span></span>
-    <svg id="tts-icon-play" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-      <path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653Z"/>
-    </svg>
-    <svg id="tts-icon-pause" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24">
-      <path fill-rule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25zm7.5 0A.75.75 0 0 1 15 4.5h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H15a.75.75 0 0 1-.75-.75V5.25z" clip-rule="evenodd"/>
-    </svg>
-  </button>
+    <!-- Transport controls -->
+    <div class="tts-controls">
+      <button id="tts-back" class="tts-bar-btn tts-skip" aria-label="Back 10 seconds" title="Back 10s">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/>
+        </svg>
+        <span class="tts-skip-num">10</span>
+      </button>
 
-  <!-- Forward 15s -->
-  <button id="tts-forward" class="tts-bar-btn" aria-label="Forward 15 seconds" title="Forward 15s">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M11.933 12.8a1 1 0 0 0 0-1.6L6.6 7.2A1 1 0 0 0 5 8v8a1 1 0 0 0 1.6.8l5.333-4ZM19.933 12.8a1 1 0 0 0 0-1.6l-5.333-4A1 1 0 0 0 13 8v8a1 1 0 0 0 1.6.8l5.333-4Z"/>
-    </svg>
-  </button>
+      <button id="tts-bar-toggle" class="tts-bar-play" aria-label="Play">
+        <span id="tts-eq-bars" class="tts-eq hidden"><span></span><span></span><span></span></span>
+        <svg id="tts-icon-play" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653Z"/>
+        </svg>
+        <svg id="tts-icon-pause" class="hidden" viewBox="0 0 24 24" fill="currentColor">
+          <path fill-rule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25zm7.5 0A.75.75 0 0 1 15 4.5h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H15a.75.75 0 0 1-.75-.75V5.25z" clip-rule="evenodd"/>
+        </svg>
+      </button>
 
-  <!-- Meta column: title + timer -->
-  <div class="tts-meta">
-    <span id="tts-bar-title" class="tts-title">Loading…</span>
-    <span id="tts-bar-timer" class="tts-time">0:00 / 0:00</span>
+      <button id="tts-forward" class="tts-bar-btn tts-skip" aria-label="Forward 10 seconds" title="Forward 10s">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5"/>
+        </svg>
+        <span class="tts-skip-num">10</span>
+      </button>
+    </div>
+
+    <!-- Progress row -->
+    <div class="tts-progress-row">
+      <span id="tts-bar-elapsed" class="tts-time-left">0:00</span>
+      <div id="tts-track" class="tts-track" role="slider" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="tts-bar-fill" class="tts-fill"></div>
+      </div>
+      <span id="tts-bar-total" class="tts-time-right">0:00</span>
+    </div>
+
+    <!-- Rate selector (desktop only) -->
+    <button id="tts-rate-btn" class="tts-rate" aria-label="Playback speed">1×</button>
+
+    <!-- Close / dismiss -->
+    <button id="tts-bar-stop" class="tts-bar-stop" aria-label="Close player">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+      </svg>
+    </button>
+
   </div>
-
-  <!-- Progress track -->
-  <div id="tts-track" class="tts-track">
-    <div id="tts-bar-fill" class="tts-fill"></div>
-  </div>
-
-  <!-- Playback rate -->
-  <button id="tts-rate-btn" class="tts-rate" aria-label="Playback speed">1×</button>
-
-  <!-- Close -->
-  <button id="tts-bar-stop" class="tts-bar-stop" aria-label="Close player">
-    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
-    </svg>
-  </button>
-
 </div>
 
 <script>
@@ -72,15 +82,14 @@
     const RATES   = [1, 1.25, 1.5, 2, 0.75];
     let rateIdx   = 0;
 
-    /* ── Static (persistent) UI handles ────────────────────── */
+    const SKIP_SECONDS = 10;
+
     const ttsBar    = document.getElementById('tts-bar')        as HTMLElement | null;
     const barToggle = document.getElementById('tts-bar-toggle');
     const barStop   = document.getElementById('tts-bar-stop');
     const backBtn   = document.getElementById('tts-back');
     const fwdBtn    = document.getElementById('tts-forward');
     const rateBtn   = document.getElementById('tts-rate-btn');
-    const barTitle  = document.getElementById('tts-bar-title');
-    const barTimer  = document.getElementById('tts-bar-timer');
     const barFill   = document.getElementById('tts-bar-fill')   as HTMLElement | null;
     const trackEl   = document.getElementById('tts-track')      as HTMLElement | null;
     const iconPlay  = document.getElementById('tts-icon-play');
@@ -94,9 +103,8 @@
     let timerInterval: number | undefined;
     let totalDuration = 0;
     let elapsed       = 0;
-    let currentPath: string | null = null;   // pathname of the article whose audio is loaded
+    let currentPath: string | null = null;
 
-    /* ── Paragraph-highlight tracking ──────────────────────── */
     let paragraphs: HTMLParagraphElement[] = [];
     let paragraphOffsets: number[] = [];
     let totalChars     = 0;
@@ -141,7 +149,6 @@
       setActiveParagraph(idx);
     }
 
-    /* ── Helpers ───────────────────────────────────────────── */
     function fmt(s: number): string {
       const m = Math.floor(s / 60);
       const sec = Math.floor(s % 60);
@@ -149,11 +156,9 @@
     }
 
     function updateTriggerUI() {
-      // Trigger lives on per-page article layout; query fresh every time.
       const triggerBtn   = document.getElementById('tts-trigger');
       const triggerLabel = document.getElementById('tts-trigger-label');
       if (!triggerBtn || !triggerLabel) return;
-
       const onPlayingPage = currentPath !== null && location.pathname === currentPath;
       const active        = state !== 'idle' && onPlayingPage;
       triggerBtn.classList.toggle('active', active);
@@ -163,10 +168,11 @@
     function setVisual(next: VisualState) {
       state = next;
       if (!ttsBar) return;
-      ttsBar.classList.toggle('active',         next !== 'idle');
-      ttsBar.classList.toggle('state-playing',  next === 'playing');
-      ttsBar.classList.toggle('state-buffering',next === 'buffering');
-      ttsBar.classList.toggle('state-ended',    next === 'ended');
+      ttsBar.classList.toggle('active',          next !== 'idle');
+      ttsBar.classList.toggle('state-playing',   next === 'playing');
+      ttsBar.classList.toggle('state-buffering', next === 'buffering');
+      ttsBar.classList.toggle('state-paused',    next === 'paused');
+      ttsBar.classList.toggle('state-ended',     next === 'ended');
 
       const isPlaying   = next === 'playing';
       const isBuffering = next === 'buffering';
@@ -175,7 +181,7 @@
       iconPause?.classList.toggle('hidden', !isPlaying);
       eqBars   ?.classList.toggle('hidden', !isBuffering);
 
-      document.body.style.paddingBottom = next === 'idle' ? '' : '72px';
+      document.body.style.paddingBottom = next === 'idle' ? '' : 'var(--tts-bar-offset, 96px)';
 
       if (next === 'idle' || next === 'ended') {
         barToggle?.setAttribute('aria-label', 'Play');
@@ -187,11 +193,15 @@
     }
 
     function updateTimer() {
-      if (!barTimer || !barFill) return;
+      const elapsedEl = document.getElementById('tts-bar-elapsed');
+      const totalEl   = document.getElementById('tts-bar-total');
+      if (!barFill) return;
       const total = totalDuration || 1;
       const pct   = Math.min((elapsed / total) * 100, 100);
       barFill.style.width = `${pct}%`;
-      barTimer.textContent = `${fmt(elapsed)} / ${fmt(total)}`;
+      if (elapsedEl) elapsedEl.textContent = fmt(elapsed);
+      if (totalEl)   totalEl.textContent   = fmt(total);
+      trackEl?.setAttribute('aria-valuenow', String(Math.round(pct)));
     }
 
     function startTimer() {
@@ -235,7 +245,10 @@
       if (currentAudio) { currentAudio.pause(); currentAudio.src = ''; currentAudio = null; }
       elapsed = 0; totalDuration = 0;
       if (barFill) barFill.style.width = '0%';
-      if (barTimer) barTimer.textContent = '0:00 / 0:00';
+      const elapsedEl = document.getElementById('tts-bar-elapsed');
+      const totalEl   = document.getElementById('tts-bar-total');
+      if (elapsedEl) elapsedEl.textContent = '0:00';
+      if (totalEl)   totalEl.textContent   = '0:00';
       clearActiveParagraph();
       paragraphs = [];
       paragraphOffsets = [];
@@ -322,20 +335,26 @@
       speechSynthesis.speak(utt);
     }
 
+    function bindMeta() {
+      const titleEl    = document.getElementById('tts-bar-title');
+      const subtitleEl = document.getElementById('tts-bar-subtitle');
+      const h1         = document.querySelector<HTMLElement>('.article-headline');
+      const kicker     = document.querySelector<HTMLElement>('.article-kicker');
+
+      const title = h1?.textContent?.trim() ||
+                    document.title.split(' | ')[0] ||
+                    'Article';
+      const subtitle = kicker?.textContent?.trim() || 'ihabnk · audio';
+
+      if (titleEl)    titleEl.textContent    = title;
+      if (subtitleEl) subtitleEl.textContent = subtitle;
+    }
+
     async function startForCurrentArticle() {
       const article = document.getElementById('article-body');
       if (!article) return;
 
-      // Re-query each call: the persistent bar's title node should survive
-      // view transitions, but a fresh lookup guards against any DOM swap.
-      const titleEl = document.getElementById('tts-bar-title') ?? barTitle;
-      const h1 = document.querySelector<HTMLElement>('.article-headline');
-      const resolvedTitle =
-        h1?.textContent?.trim() ||
-        document.title.split(' | ')[0] ||
-        'Article';
-      if (titleEl) titleEl.textContent = resolvedTitle;
-
+      bindMeta();
       indexParagraphs(article);
       currentPath = location.pathname;
 
@@ -352,22 +371,16 @@
       }
     }
 
-    /* ── Trigger (event delegation: works across view transitions) ── */
+    /* ── Trigger (event delegation) ── */
     document.addEventListener('click', (e) => {
       const target = e.target as HTMLElement | null;
       if (!target?.closest('#tts-trigger')) return;
-
-      // Same article that's currently active → toggle off.
-      if (state !== 'idle' && currentPath === location.pathname) {
-        stopAll();
-        return;
-      }
-      // Different article or nothing playing → stop any current and start this one.
+      if (state !== 'idle' && currentPath === location.pathname) { stopAll(); return; }
       if (state !== 'idle') stopAll();
       startForCurrentArticle();
     });
 
-    /* ── Play / Pause toggle (persistent bar button) ───────── */
+    /* ── Play / Pause ── */
     barToggle?.addEventListener('click', () => {
       if (state === 'playing') {
         if (currentAudio) currentAudio.pause();
@@ -381,24 +394,23 @@
         setVisual('playing');
       } else if (state === 'ended') {
         stopAll();
-        // If we're on the article that just ended, restart it; otherwise stay idle.
         if (document.getElementById('article-body')) startForCurrentArticle();
       }
     });
 
-    /* ── Skip buttons ──────────────────────────────────────── */
+    /* ── Skip ── */
     backBtn?.addEventListener('click', () => {
-      if (currentAudio) currentAudio.currentTime = Math.max(0, currentAudio.currentTime - 15);
-      elapsed = Math.max(0, elapsed - 15);
+      if (currentAudio) currentAudio.currentTime = Math.max(0, currentAudio.currentTime - SKIP_SECONDS);
+      elapsed = Math.max(0, elapsed - SKIP_SECONDS);
       updateTimer();
     });
     fwdBtn?.addEventListener('click', () => {
-      if (currentAudio) currentAudio.currentTime = Math.min(currentAudio.duration, currentAudio.currentTime + 15);
-      elapsed = Math.min(totalDuration, elapsed + 15);
+      if (currentAudio) currentAudio.currentTime = Math.min(currentAudio.duration, currentAudio.currentTime + SKIP_SECONDS);
+      elapsed = Math.min(totalDuration, elapsed + SKIP_SECONDS);
       updateTimer();
     });
 
-    /* ── Rate toggle ───────────────────────────────────────── */
+    /* ── Rate ── */
     rateBtn?.addEventListener('click', () => {
       rateIdx = (rateIdx + 1) % RATES.length;
       const rate = RATES[rateIdx];
@@ -407,7 +419,7 @@
       if (currentAudio) currentAudio.playbackRate = rate;
     });
 
-    /* ── Track seek ────────────────────────────────────────── */
+    /* ── Seek ── */
     trackEl?.addEventListener('click', (e) => {
       const rect = trackEl.getBoundingClientRect();
       const pct  = (e.clientX - rect.left) / rect.width;
@@ -418,27 +430,17 @@
       updateTimer();
     });
 
-    /* ── Close / Stop ──────────────────────────────────────── */
+    /* ── Stop ── */
     barStop?.addEventListener('click', () => stopAll());
 
-    /* ── View-transition lifecycle ─────────────────────────── */
-    // After each navigation, re-sync the per-page trigger button label
-    // and re-attach paragraph highlights if the user came back to the
-    // article currently being read.
+    /* ── View-transition lifecycle ── */
     document.addEventListener('astro:after-swap', () => {
-      // Re-apply body bottom padding so the persistent bar never overlaps
-      // page content after a transition.
-      document.body.style.paddingBottom = state === 'idle' ? '' : '72px';
+      document.body.style.paddingBottom = state === 'idle' ? '' : 'var(--tts-bar-offset, 96px)';
       updateTriggerUI();
-
       if (currentPath && location.pathname === currentPath) {
         const article = document.getElementById('article-body');
-        if (article) {
-          // Re-index against fresh DOM so the highlight follows along.
-          indexParagraphs(article);
-        }
+        if (article) indexParagraphs(article);
       } else {
-        // Highlighting only applies to the article whose audio is loaded.
         clearActiveParagraph();
       }
     });
