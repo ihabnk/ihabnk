@@ -1,0 +1,81 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+  tags?: string[];
+  date: Date;
+  updated?: Date;
+  kind: 'review' | 'comparison';
+  tools: string[];
+  rating?: number;
+  readingTimeMin: number;
+  articleUrl: string;
+}
+
+const {
+  title, description, tags = [], date, updated,
+  kind, tools, rating, readingTimeMin, articleUrl,
+} = Astro.props;
+
+const dateStr    = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+const kickerDate = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase();
+
+const kindLabel = kind === 'comparison' ? 'Comparison' : 'Review';
+const toolStr   = tools.length ? tools.join(' · ') : (tags[0] ?? '');
+const kicker    = [kindLabel, toolStr, kickerDate].filter(Boolean).join(' · ');
+
+const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(articleUrl)}`;
+const twitterShare  = `https://twitter.com/intent/tweet?url=${encodeURIComponent(articleUrl)}&text=${encodeURIComponent(title)}`;
+---
+
+<header class="mb-10">
+
+  <div class="article-kicker">{kicker}</div>
+
+  <h1 class="article-headline">{title}</h1>
+
+  {description && <p class="article-dek">{description}</p>}
+
+  <!-- Tools row (chips) -->
+  {tools.length > 0 && (
+    <div class="flex flex-wrap gap-2 mt-6">
+      {tools.map(t => (
+        <span
+          class="font-mono text-[11px] px-[12px] py-[5px] rounded-[4px] font-medium"
+          style="border:1.5px solid var(--fg);color:var(--fg);letter-spacing:0.04em;background:var(--bg-card)"
+        >{t}</span>
+      ))}
+      {rating !== undefined && (
+        <span
+          class="font-mono text-[11px] px-[12px] py-[5px] rounded-[4px] font-bold ms-auto"
+          style="border:1.5px solid var(--fg);background:var(--accent);color:var(--on-accent);letter-spacing:0.04em"
+          aria-label={`Rating ${rating} of 5`}
+        >★ {rating.toFixed(1)} / 5</span>
+      )}
+    </div>
+  )}
+
+  <!-- Meta strip -->
+  <div class="article-meta">
+    <span class="author">Ihab NK</span>
+    <span class="dot"></span>
+    <span>QA Engineer → AI Builder</span>
+    <span class="dot"></span>
+    <time datetime={date.toISOString()}>{dateStr}</time>
+    <span class="dot"></span>
+    <span>{readingTimeMin} min read</span>
+    {updated && (
+      <>
+        <span class="dot"></span>
+        <span style="color:var(--fg-muted)">Updated {updated.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+      </>
+    )}
+    <div style="margin-left:auto;display:flex;gap:12px;align-items:center">
+      <a href={twitterShare} target="_blank" rel="noopener noreferrer"
+         class="transition-colors duration-150 hover:underline" style="color:var(--fg-muted)">Tweet ↗</a>
+      <a href={linkedInShare} target="_blank" rel="noopener noreferrer"
+         class="transition-colors duration-150 hover:underline" style="color:var(--fg-muted)">LinkedIn ↗</a>
+    </div>
+  </div>
+
+</header>

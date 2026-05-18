@@ -1,0 +1,111 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { readingTime } from '../lib/reading-time';
+
+type ReviewEntry = CollectionEntry<'reviews-en'>;
+
+interface Props {
+  review: ReviewEntry;
+  animate?: boolean;
+  stagger?: number;
+  featured?: boolean;
+}
+
+const { review, animate = false, stagger, featured = false } = Astro.props;
+const href = `/reviews/${review.slug}`;
+const dateStr = review.data.date.toLocaleDateString('en-US', {
+  year: 'numeric', month: 'short', day: 'numeric',
+});
+const tags: string[] = review.data.tags ?? [];
+const tools = review.data.tools ?? [];
+const kindLabel = review.data.kind === 'comparison' ? 'VS' : 'REVIEW';
+const minutes = readingTime(review.body);
+const staggerClass = stagger ? `stagger-${stagger}` : '';
+---
+
+<article
+  class:list={[
+    'card-brutal card-shine group relative flex flex-col gap-3 cursor-pointer',
+    animate && 'fade-up',
+    staggerClass,
+    featured ? 'p-6' : 'p-5',
+  ]}
+  style="background:var(--bg-card)"
+  data-tags={tags.join(',')}
+  data-kind={review.data.kind}
+>
+  <!-- Kind chip + rating -->
+  <div class="flex items-center gap-2.5 flex-wrap">
+    <span
+      class="font-mono text-[10px] px-[10px] py-[3px] rounded-[3px] font-bold"
+      style={review.data.kind === 'comparison'
+        ? 'background:var(--accent);color:var(--on-accent);letter-spacing:0.05em'
+        : 'border:1.5px solid var(--fg);color:var(--fg);background:var(--bg-page);letter-spacing:0.05em'}
+    >{kindLabel}</span>
+
+    {tags[0] && (
+      <span
+        class="font-mono text-[10px]"
+        style="color:var(--fg-muted);letter-spacing:0.04em;text-transform:uppercase"
+      >{tags[0]}</span>
+    )}
+
+    {review.data.rating !== undefined && (
+      <span
+        class="ms-auto font-mono text-[11px] font-bold tabular-nums"
+        style="color:var(--accent-text)"
+        aria-label={`Rating ${review.data.rating} of 5`}
+      >★ {review.data.rating.toFixed(1)}</span>
+    )}
+  </div>
+
+  <!-- Title -->
+  <h3
+    class:list={['font-bold leading-[1.18]', featured ? 'text-[28px] sm:text-[32px]' : 'text-[22px]']}
+    style="color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em"
+  >
+    <a href={href} class="stretched-link">{review.data.title}</a>
+  </h3>
+
+  <!-- Verdict / description -->
+  {(review.data.verdict || review.data.description) && (
+    <p
+      class:list={['leading-[1.65] line-clamp-3', featured ? 'text-[15px]' : 'text-[14px]']}
+      style="color:var(--fg-mid)"
+    >{review.data.verdict ?? review.data.description}</p>
+  )}
+
+  <!-- Tools row (only for comparisons or multi-tool reviews) -->
+  {tools.length > 0 && (
+    <div class="flex flex-wrap gap-1.5">
+      {tools.map((t, i) => (
+        <>
+          {i > 0 && <span class="font-mono text-[10px] self-center" style="color:var(--fg-muted)">vs</span>}
+          <span
+            class="font-mono text-[10px] px-[8px] py-[2px] rounded-[3px]"
+            style="border:1.5px solid var(--border-mid);color:var(--fg);background:var(--bg-page);letter-spacing:0.04em"
+          >{t}</span>
+        </>
+      ))}
+    </div>
+  )}
+
+  <!-- Best for callout -->
+  {review.data.bestFor && (
+    <p
+      class="font-mono text-[11px] mt-1"
+      style="color:var(--fg-muted)"
+    ><span style="color:var(--accent-text);font-weight:700">Best for ›</span> {review.data.bestFor}</p>
+  )}
+
+  <!-- Footer -->
+  <div class="mt-auto pt-3 flex items-center justify-between gap-3"
+       style="border-top:1.5px dashed var(--border)">
+    <div class="flex items-center gap-3 font-mono text-[10px]" style="color:var(--fg-muted)">
+      <time>{dateStr}</time>
+      <span>·</span>
+      <span>{minutes} min</span>
+    </div>
+    <span class="font-mono text-[10px] font-bold" style="color:var(--accent-text)">Read →</span>
+  </div>
+</article>

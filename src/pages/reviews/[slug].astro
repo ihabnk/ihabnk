@@ -1,0 +1,57 @@
+---
+import ReviewPost from '../../layouts/ReviewPost.astro';
+import ReviewCard from '../../components/ReviewCard.astro';
+import { getCollection } from 'astro:content';
+import { readingTime } from '../../lib/reading-time';
+
+export async function getStaticPaths() {
+  const reviews = await getCollection('reviews-en', ({ data }) => !data.draft);
+  return reviews.map(review => ({
+    params: { slug: review.slug },
+    props: { review },
+  }));
+}
+
+const { review } = Astro.props;
+const { Content } = await review.render();
+
+// Surface up to 3 related reviews (shared tag, exclude self)
+const all = await getCollection('reviews-en', ({ data }) => !data.draft);
+const myTags = new Set(review.data.tags ?? []);
+const related = all
+  .filter(r => r.slug !== review.slug && (r.data.tags ?? []).some(t => myTags.has(t)))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
+
+const minutes = readingTime(review.body);
+---
+
+<ReviewPost
+  title={review.data.title}
+  description={review.data.description}
+  date={review.data.date}
+  updated={review.data.updated}
+  tags={review.data.tags}
+  kind={review.data.kind}
+  tools={review.data.tools}
+  verdict={review.data.verdict}
+  bestFor={review.data.bestFor}
+  rating={review.data.rating}
+  pros={review.data.pros}
+  cons={review.data.cons}
+  scores={review.data.scores}
+  toc={review.data.toc}
+  readingTimeMin={minutes}
+>
+  <Content />
+
+  {related.length > 0 && (
+    <aside class="not-prose mt-16 pt-10" style="border-top:2px solid var(--fg)">
+      <span class="section-label mb-5 block">// related reviews</span>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {related.map(r => <ReviewCard review={r} />)}
+      </div>
+    </aside>
+  )}
+
+</ReviewPost>

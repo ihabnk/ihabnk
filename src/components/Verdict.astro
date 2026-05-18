@@ -1,0 +1,35 @@
+---
+interface Props {
+  text: string;
+  bestFor?: string;
+}
+
+const { text, bestFor } = Astro.props;
+---
+
+<aside
+  class="card-brutal mb-10 p-5 sm:p-6"
+  style="background:var(--bg-card)"
+  aria-label="Quick verdict"
+>
+  <div class="flex flex-col gap-3">
+    <span class="section-label">// verdict</span>
+    <p
+      class="text-[17px] sm:text-[18px] leading-[1.55]"
+      style="color:var(--fg);font-family:var(--font-sans);font-weight:500"
+    >{text}</p>
+
+    {bestFor && (
+      <div
+        class="flex items-center gap-3 mt-1 pt-3"
+        style="border-top:1.5px dashed var(--border)"
+      >
+        <span
+          class="font-mono text-[10px] px-[10px] py-[4px] rounded-[3px] font-bold flex-shrink-0"
+          style="background:var(--accent);color:var(--on-accent);letter-spacing:0.05em;text-transform:uppercase"
+        >Best for</span>
+        <span class="font-mono text-[13px]" style="color:var(--fg-mid)">{bestFor}</span>
+      </div>
+    )}
+  </div>
+</aside>

@@ -1,0 +1,57 @@
+---
+interface Props {
+  scores: Record<string, number>;
+  max?: number;
+}
+
+const { scores, max = 5 } = Astro.props;
+
+const entries = Object.entries(scores);
+const avg = entries.length
+  ? entries.reduce((s, [, v]) => s + v, 0) / entries.length
+  : 0;
+---
+
+<section
+  class="card-brutal mb-10 p-5 sm:p-6"
+  style="background:var(--bg-card)"
+  aria-label="Scored criteria"
+>
+  <div class="flex items-baseline justify-between gap-3 mb-5 flex-wrap">
+    <span class="section-label">// criteria</span>
+    {entries.length > 0 && (
+      <span class="font-mono text-[12px]" style="color:var(--fg-muted)">
+        Avg <strong style="color:var(--accent-text)">{avg.toFixed(1)}</strong> / {max}
+      </span>
+    )}
+  </div>
+
+  <ul class="flex flex-col gap-3">
+    {entries.map(([label, value]) => {
+      const pct = Math.round((value / max) * 100);
+      return (
+        <li class="grid items-center gap-3" style="grid-template-columns:minmax(0,1fr) 64px auto">
+
+          <span class="text-[14px]" style="color:var(--fg);font-family:var(--font-sans)">{label}</span>
+
+          <!-- Pip row: 5 brutal segments -->
+          <span class="flex gap-1" aria-hidden="true">
+            {Array.from({ length: max }).map((_, i) => (
+              <span
+                class="block"
+                style={`flex:1;height:8px;border:1.5px solid var(--fg);background:${i < value ? 'var(--accent)' : 'var(--bg-page)'}`}
+              ></span>
+            ))}
+          </span>
+
+          <span
+            class="font-mono text-[12px] font-bold tabular-nums"
+            style="color:var(--accent-text);min-width:40px;text-align:right"
+            aria-label={`${value} of ${max}`}
+          >{value.toFixed(1)}/{max}</span>
+
+        </li>
+      );
+    })}
+  </ul>
+</section>

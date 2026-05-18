@@ -1,0 +1,149 @@
+---
+import Base from '../../layouts/Base.astro';
+import ReviewCard from '../../components/ReviewCard.astro';
+import ReviewRow from '../../components/ReviewRow.astro';
+import { getCollection } from 'astro:content';
+
+const all = (await getCollection('reviews-en', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const featured     = all.filter(r => r.data.featured).slice(0, 2);
+const comparisons  = all.filter(r => r.data.kind === 'comparison');
+const headToHeads  = comparisons.slice(0, 4);
+const latest       = all;
+
+const allTags = [...new Set(all.flatMap(r => r.data.tags ?? []))].sort();
+
+// Build a small jump-nav for in-page sections
+const jumpLinks = [
+  { href: '#featured',   label: 'Featured'       },
+  { href: '#categories', label: 'Categories'     },
+  { href: '#latest',     label: 'Latest reviews' },
+  { href: '#head-to-head', label: 'Head-to-head' },
+];
+---
+
+<Base
+  title="Reviews"
+  description="Tech tool reviews and comparisons for QA engineers and builders — testing frameworks, API tools, automation, and developer platforms."
+>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+
+    <div class="glow-sep mb-10"></div>
+
+    <!-- Hero -->
+    <header class="mb-10">
+      <span class="section-label mb-2">// reviews</span>
+      <h1
+        class="font-bold"
+        style="font-size:clamp(36px,5vw,56px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.015em;line-height:1"
+      >Tool reviews &<br/>head-to-head comparisons</h1>
+
+      <p
+        class="mt-6 max-w-[640px] text-[17px] leading-[1.65]"
+        style="color:var(--fg-mid);font-family:var(--font-sans)"
+      >
+        Honest write-ups of testing frameworks, API tools, automation platforms,
+        and AI-assisted developer tooling — scored on the criteria that actually
+        matter in a real engineering workflow.
+      </p>
+
+      <!-- Jump nav -->
+      <nav class="mt-7 flex flex-wrap gap-2" aria-label="Jump to section">
+        {jumpLinks.map(j => (
+          <a
+            href={j.href}
+            class="font-mono text-[11px] px-3 py-1.5 rounded-[4px] transition-colors duration-150 hover:underline"
+            style="border:1.5px solid var(--border-mid);color:var(--fg-mid);background:var(--bg-card)"
+          >↓ {j.label}</a>
+        ))}
+      </nav>
+    </header>
+
+    <!-- Featured -->
+    {featured.length > 0 && (
+      <section id="featured" class="mb-14 scroll-mt-24">
+        <div class="flex items-baseline justify-between mb-5">
+          <span class="section-label">// featured</span>
+          <span class="font-mono text-[11px]" style="color:var(--fg-muted)">{featured.length}</span>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {featured.map((r, i) => (
+            <ReviewCard review={r} featured animate stagger={(i % 4) + 1 as 1 | 2 | 3 | 4} />
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Categories (tag filter) -->
+    {allTags.length > 0 && (
+      <section id="categories" class="mb-12 scroll-mt-24">
+        <div class="flex items-baseline justify-between mb-4">
+          <span class="section-label">// categories</span>
+        </div>
+        <div class="flex flex-wrap gap-2" id="tag-filter">
+          <button
+            data-filter="all"
+            class="active font-mono text-[11px] px-3 py-1.5 rounded-[4px] cursor-pointer"
+          >All</button>
+          {allTags.map(tag => (
+            <button
+              data-filter={tag}
+              class="font-mono text-[11px] px-3 py-1.5 rounded-[4px] cursor-pointer"
+            >{tag}</button>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Latest reviews -->
+    <section id="latest" class="mb-14 scroll-mt-24">
+      <div class="flex items-baseline justify-between mb-5">
+        <span class="section-label">// latest</span>
+        <span class="font-mono text-[11px]" style="color:var(--fg-muted)">{latest.length} total</span>
+      </div>
+
+      {latest.length === 0 ? (
+        <p class="font-mono text-sm" style="color:var(--fg-muted)">No reviews yet.</p>
+      ) : (
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="reviews-grid">
+          {latest.map((r, i) => (
+            <ReviewCard review={r} animate stagger={((i % 4) + 1) as 1 | 2 | 3 | 4} />
+          ))}
+        </div>
+      )}
+    </section>
+
+    <!-- Popular head-to-heads -->
+    {headToHeads.length > 0 && (
+      <section id="head-to-head" class="mb-10 scroll-mt-24">
+        <div class="flex items-baseline justify-between mb-5">
+          <span class="section-label">// head-to-head</span>
+          <span class="font-mono text-[11px]" style="color:var(--fg-muted)">Popular comparisons</span>
+        </div>
+        <div class="flex flex-col gap-3.5">
+          {headToHeads.map(r => <ReviewRow review={r} />)}
+        </div>
+      </section>
+    )}
+
+  </div>
+</Base>
+
+<script>
+  // Mirrors blog/index.astro tag-filter behavior, scoped to #reviews-grid
+  const filterBtns = document.querySelectorAll<HTMLButtonElement>('#tag-filter [data-filter]');
+  const cards      = document.querySelectorAll<HTMLElement>('#reviews-grid [data-tags]');
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tag = btn.dataset.filter!;
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      cards.forEach(card => {
+        const tags = card.dataset.tags ? card.dataset.tags.split(',') : [];
+        (card as HTMLElement).style.display = tag === 'all' || tags.includes(tag) ? '' : 'none';
+      });
+    });
+  });
+</script>

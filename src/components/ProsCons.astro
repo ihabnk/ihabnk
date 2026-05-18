@@ -1,0 +1,52 @@
+---
+interface Props {
+  pros: string[];
+  cons: string[];
+}
+
+const { pros, cons } = Astro.props;
+---
+
+<section class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10" aria-label="Pros and cons">
+
+  {pros.length > 0 && (
+    <div class="card-brutal p-5" style="background:var(--bg-card)">
+      <div class="flex items-center gap-2 mb-4">
+        <span
+          class="font-mono text-[10px] px-[8px] py-[3px] rounded-[3px] font-bold"
+          style="background:var(--accent);color:var(--on-accent);letter-spacing:0.05em"
+        >PROS</span>
+        <span class="font-mono text-[11px]" style="color:var(--fg-muted)">{pros.length}</span>
+      </div>
+      <ul class="flex flex-col gap-2.5">
+        {pros.map(p => (
+          <li class="flex gap-2.5 text-[14px] leading-[1.55]" style="color:var(--fg)">
+            <span aria-hidden="true" style="color:var(--accent-text);font-weight:700;flex-shrink:0">+</span>
+            <span>{p}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
+
+  {cons.length > 0 && (
+    <div class="card-brutal p-5" style="background:var(--bg-card)">
+      <div class="flex items-center gap-2 mb-4">
+        <span
+          class="font-mono text-[10px] px-[8px] py-[3px] rounded-[3px] font-bold"
+          style="background:var(--pop-red);color:#fff;letter-spacing:0.05em"
+        >CONS</span>
+        <span class="font-mono text-[11px]" style="color:var(--fg-muted)">{cons.length}</span>
+      </div>
+      <ul class="flex flex-col gap-2.5">
+        {cons.map(c => (
+          <li class="flex gap-2.5 text-[14px] leading-[1.55]" style="color:var(--fg)">
+            <span aria-hidden="true" style="color:var(--pop-red);font-weight:700;flex-shrink:0">−</span>
+            <span>{c}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
+
+</section>
