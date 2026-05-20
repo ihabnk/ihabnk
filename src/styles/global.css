@@ -547,14 +547,21 @@ body::after {
    reserve exactly enough room. Includes env(safe-area-inset-bottom)
    so iOS home-indicator and iOS 26 floating Safari URL bar don't
    eat into the reserved gutter. */
-:root { --tts-bar-offset: calc(96px + env(safe-area-inset-bottom, 0px)); }
+:root {
+  --tts-bar-offset:     calc(96px + env(safe-area-inset-bottom, 0px));
+  --tts-bar-min-offset: calc(56px + env(safe-area-inset-bottom, 0px));
+  --vp-offset: 0px;
+}
 @media (max-width: 639px) {
-  :root { --tts-bar-offset: calc(112px + env(safe-area-inset-bottom, 0px)); }
+  :root {
+    --tts-bar-offset:     calc(112px + env(safe-area-inset-bottom, 0px));
+    --tts-bar-min-offset: calc(60px  + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 .tts-bar {
   position: fixed;
-  bottom: 0;
+  bottom: var(--vp-offset, 0px);
   left: 0;
   right: 0;
   z-index: 9000;
@@ -569,7 +576,9 @@ body::after {
   visibility: hidden;
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
               opacity 0.2s ease,
-              visibility 0s linear 0.3s;
+              visibility 0s linear 0.3s,
+              padding 0.25s ease,
+              bottom  0.15s ease;
 }
 .tts-bar.active {
   transform: translateY(0);
@@ -590,12 +599,12 @@ body::after {
   max-width: 760px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto auto;
   grid-template-areas:
-    "thumb meta controls rate stop"
-    "thumb meta progress progress progress";
+    "thumb meta controls rate min  stop"
+    "thumb meta progress progress progress progress";
   align-items: center;
-  gap: 6px 14px;
+  gap: 6px 12px;
 }
 
 /* ── Thumbnail / icon badge ───────────────────────────────── */
@@ -610,11 +619,41 @@ body::after {
   flex-shrink: 0;
   transition: background 0.2s, color 0.2s;
 }
-.tts-thumb svg { width: 20px; height: 20px; }
+.tts-thumb .tts-thumb-icon { width: 20px; height: 20px; }
 .tts-bar.state-playing .tts-thumb {
   background: var(--accent);
   color: var(--on-accent);
   border-color: var(--fg);
+}
+
+/* Pulsing 4-bar waveform — only shown in minimized + playing state. */
+.tts-thumb .tts-wave {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 60%;
+}
+.tts-thumb .tts-wave span {
+  display: inline-block;
+  width: 3px;
+  background: currentColor;
+  border-radius: 1px;
+  transform-origin: center;
+}
+.tts-thumb .tts-wave span:nth-child(1) { height: 40%; animation: tts-wave-bar 1.1s ease-in-out  0.00s infinite; }
+.tts-thumb .tts-wave span:nth-child(2) { height: 90%; animation: tts-wave-bar 1.1s ease-in-out  0.18s infinite; }
+.tts-thumb .tts-wave span:nth-child(3) { height: 60%; animation: tts-wave-bar 1.1s ease-in-out  0.36s infinite; }
+.tts-thumb .tts-wave span:nth-child(4) { height: 80%; animation: tts-wave-bar 1.1s ease-in-out  0.54s infinite; }
+@keyframes tts-wave-bar {
+  0%, 100% { transform: scaleY(0.3); }
+  50%      { transform: scaleY(1); }
+}
+.tts-bar.minimized.state-playing .tts-thumb-icon { display: none; }
+.tts-bar.minimized.state-playing .tts-thumb .tts-wave { display: inline-flex; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tts-thumb .tts-wave span { animation: none !important; transform: scaleY(0.7); }
 }
 
 /* ── Meta column ──────────────────────────────────────────── */
@@ -771,6 +810,25 @@ body::after {
 .tts-rate:hover { border-color: var(--accent); color: var(--accent-text); }
 .tts-rate.boosted { border-color: var(--accent); color: var(--accent-text); background: var(--accent-chip); }
 
+/* ── Minimize toggle ───────────────────────────────────────── */
+.tts-bar-min {
+  grid-area: min;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px; height: 34px;
+  background: none;
+  border: none;
+  color: var(--fg-muted);
+  cursor: pointer;
+  border-radius: 50%;
+  touch-action: manipulation;
+  transition: background 0.15s, color 0.15s, transform 0.25s ease;
+}
+.tts-bar-min svg { width: 18px; height: 18px; transition: transform 0.25s ease; }
+.tts-bar-min:hover { background: var(--accent-chip); color: var(--accent-text); }
+.tts-bar.minimized .tts-bar-min svg { transform: rotate(180deg); }
+
 /* ── Close ─────────────────────────────────────────────────── */
 .tts-bar-stop {
   grid-area: stop;
@@ -783,39 +841,70 @@ body::after {
   color: var(--fg-muted);
   cursor: pointer;
   border-radius: 50%;
+  touch-action: manipulation;
+  will-change: transform;
   transition: background 0.15s, color 0.15s, transform 0.18s;
 }
 .tts-bar-stop svg { width: 16px; height: 16px; }
 .tts-bar-stop:hover { background: var(--accent-chip); color: var(--pop-red); transform: rotate(90deg); }
 
+/* ── Minimized state (slim pill) ───────────────────────────── */
+.tts-bar.minimized { padding: 8px 16px; padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)); }
+.tts-bar.minimized .tts-bar-inner {
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "thumb meta min stop";
+  gap: 4px 10px;
+}
+.tts-bar.minimized .tts-controls,
+.tts-bar.minimized .tts-rate,
+.tts-bar.minimized .tts-progress-row,
+.tts-bar.minimized .tts-subtitle { display: none; }
+.tts-bar.minimized .tts-thumb { width: 36px; height: 36px; }
+.tts-bar.minimized .tts-thumb .tts-thumb-icon { width: 16px; height: 16px; }
+.tts-bar.minimized .tts-title { font-size: 13px; }
+
 /* ── Mobile layout ────────────────────────────────────────── */
 @media (max-width: 639px) {
-  .tts-bar { padding: 10px 14px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+  .tts-bar { padding: 10px 12px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+  /* Three rows: meta+chrome on top, controls centered below, progress last.
+     min/stop are inline in the grid so they can never overlap the play
+     button or any other control. */
   .tts-bar-inner {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
     grid-template-areas:
-      "thumb meta controls"
-      "progress progress progress";
-    gap: 4px 10px;
+      "thumb    meta     min      stop"
+      "controls controls controls controls"
+      "progress progress progress progress";
+    gap: 6px 8px;
+    align-items: center;
   }
   .tts-rate { display: none; }
+  .tts-bar-min,
   .tts-bar-stop {
-    position: absolute;
-    top: -2px;
-    right: -4px;
-    width: 28px;
-    height: 28px;
+    position: static;
+    width: 44px;
+    height: 44px;
+    justify-self: end;
   }
-  .tts-bar-stop svg { width: 14px; height: 14px; }
+  .tts-bar-min  svg { width: 20px; height: 20px; }
+  .tts-bar-stop svg { width: 16px; height: 16px; }
   .tts-thumb { width: 40px; height: 40px; }
-  .tts-thumb svg { width: 18px; height: 18px; }
-  .tts-bar-btn { width: 36px; height: 36px; }
+  .tts-thumb .tts-thumb-icon { width: 18px; height: 18px; }
+  .tts-bar-btn { width: 40px; height: 40px; }
   .tts-bar-btn svg { width: 20px; height: 20px; }
-  .tts-bar-play { width: 44px; height: 44px; }
+  .tts-bar-play { width: 46px; height: 46px; }
   .tts-title { font-size: 13.5px; }
   .tts-subtitle { font-size: 10px; }
-  .tts-controls { gap: 0; }
+  .tts-controls { gap: 4px; justify-content: center; }
   .tts-progress-row { gap: 8px; font-size: 10px; }
+
+  /* Minimized on mobile collapses to one row: thumb + meta + min + stop. */
+  .tts-bar.minimized { padding: 6px 12px; padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)); }
+  .tts-bar.minimized .tts-bar-inner {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-areas: "thumb meta min stop";
+    gap: 4px 8px;
+  }
 }
 
 /* ── Listen trigger button ── */

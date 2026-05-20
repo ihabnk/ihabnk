@@ -1,0 +1,72 @@
+---
+interface Props {
+  text:  string;
+  url:   string;
+  label?: string;
+}
+
+const { text, url, label = 'Share on 𝕏' } = Astro.props;
+---
+
+<button
+  type="button"
+  class="x-share"
+  data-share-text={text}
+  data-share-url={url}
+  aria-label="Share on X"
+>
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+  </svg>
+  <span>{label}</span>
+</button>
+
+<script>
+  (() => {
+    type W = Window & { __xShareInited?: boolean };
+    const w = window as W;
+    if (w.__xShareInited) return;
+    w.__xShareInited = true;
+
+    document.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement | null)?.closest<HTMLElement>('.x-share');
+      if (!btn) return;
+      e.preventDefault();
+      const text = btn.dataset.shareText ?? document.title;
+      const url  = btn.dataset.shareUrl  ?? location.href;
+      const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+      window.open(intent, '_blank', 'width=550,height=420,noopener,noreferrer');
+    });
+  })();
+</script>
+
+<style>
+  .x-share {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #000;
+    color: #fff;
+    border: 1px solid #333;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+  }
+  .x-share:hover { background: #1a1a1a; border-color: #4a4a4a; }
+  .x-share:active { transform: scale(0.97); }
+  .x-share:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .x-share svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .x-share { transition: none; }
+    .x-share:active { transform: none; }
+  }
+</style>

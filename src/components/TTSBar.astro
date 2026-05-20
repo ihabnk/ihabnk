@@ -8,12 +8,15 @@
 <div id="tts-bar" class="tts-bar" aria-live="polite" role="region" aria-label="Article audio player" transition:persist="tts-bar">
   <div class="tts-bar-inner">
 
-    <!-- Thumbnail / icon badge (left) -->
+    <!-- Thumbnail / icon badge (left). Swaps to a pulsing waveform when minimized + playing. -->
     <div class="tts-thumb" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg class="tts-thumb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3 18v-6a9 9 0 0 1 18 0v6"/>
         <path stroke-linecap="round" stroke-linejoin="round" d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
       </svg>
+      <span class="tts-wave">
+        <span></span><span></span><span></span><span></span>
+      </span>
     </div>
 
     <!-- Meta: title + subtitle -->
@@ -61,6 +64,13 @@
     <!-- Rate selector (desktop only) -->
     <button id="tts-rate-btn" class="tts-rate" aria-label="Playback speed">1×</button>
 
+    <!-- Minimize / expand toggle -->
+    <button id="tts-bar-min" class="tts-bar-min" aria-label="Minimize player" title="Minimize">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/>
+      </svg>
+    </button>
+
     <!-- Close / dismiss -->
     <button id="tts-bar-stop" class="tts-bar-stop" aria-label="Close player">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -87,6 +97,7 @@
     const ttsBar    = document.getElementById('tts-bar')        as HTMLElement | null;
     const barToggle = document.getElementById('tts-bar-toggle');
     const barStop   = document.getElementById('tts-bar-stop');
+    const barMin    = document.getElementById('tts-bar-min');
     const backBtn   = document.getElementById('tts-back');
     const fwdBtn    = document.getElementById('tts-forward');
     const rateBtn   = document.getElementById('tts-rate-btn');
@@ -95,6 +106,50 @@
     const iconPlay  = document.getElementById('tts-icon-play');
     const iconPause = document.getElementById('tts-icon-pause');
     const eqBars    = document.getElementById('tts-eq-bars');
+
+    let minimized = false;
+
+    function applyBodyPadding() {
+      if (!visible) { document.body.style.paddingBottom = ''; return; }
+      document.body.style.paddingBottom = minimized
+        ? 'var(--tts-bar-min-offset, 56px)'
+        : 'var(--tts-bar-offset, 96px)';
+    }
+
+    function setMinimized(next: boolean) {
+      minimized = next;
+      ttsBar?.classList.toggle('minimized', next);
+      barMin?.setAttribute('aria-label', next ? 'Expand player' : 'Minimize player');
+      barMin?.setAttribute('title',      next ? 'Expand'        : 'Minimize');
+      applyBodyPadding();
+    }
+
+    // Push the bar above mobile browser chrome (Chrome's slide-in URL bar
+    // on Android, Safari's floating address bar on iOS). The diff between
+    // layout viewport and visual viewport height is the overlap — BUT only
+    // when the user isn't pinch-zooming. While zoomed, visualViewport.height
+    // also shrinks for unrelated reasons, which would otherwise rocket the
+    // bar off the bottom of the screen.
+    const setVpOffset = () => {
+      const vv = window.visualViewport;
+      if (!vv) {
+        document.documentElement.style.setProperty('--vp-offset', '0px');
+        return;
+      }
+      // Pinch-zoom guard: only apply the offset when scale is effectively 1.
+      if (vv.scale > 1.01 || vv.scale < 0.99) {
+        document.documentElement.style.setProperty('--vp-offset', '0px');
+        return;
+      }
+      const raw = window.innerHeight - vv.height;
+      // Sub-pixel jitter floor so tiny rounding mismatches don't move the bar.
+      const offset = raw > 4 ? raw : 0;
+      document.documentElement.style.setProperty('--vp-offset', `${offset}px`);
+    };
+    window.visualViewport?.addEventListener('resize', setVpOffset);
+    window.visualViewport?.addEventListener('scroll', setVpOffset);
+    window.addEventListener('resize', setVpOffset);
+    setVpOffset();
 
     type VisualState = 'idle' | 'buffering' | 'playing' | 'paused' | 'ended';
     type CancelToken = { cancelled: boolean };
@@ -189,7 +244,7 @@
       iconPause?.classList.toggle('hidden', !isPlaying);
       eqBars   ?.classList.toggle('hidden', !isBuffering);
 
-      document.body.style.paddingBottom = visible ? 'var(--tts-bar-offset, 96px)' : '';
+      applyBodyPadding();
 
       if (isPlaying) {
         barToggle?.setAttribute('aria-label', 'Pause');
@@ -469,9 +524,12 @@
     /* ── Stop (X button) — the only thing that hides the bar ── */
     barStop?.addEventListener('click', () => dismiss());
 
+    /* ── Minimize toggle ── */
+    barMin?.addEventListener('click', () => setMinimized(!minimized));
+
     /* ── View-transition lifecycle ── */
     document.addEventListener('astro:after-swap', () => {
-      document.body.style.paddingBottom = visible ? 'var(--tts-bar-offset, 96px)' : '';
+      applyBodyPadding();
       updateTriggerUI();
       if (currentPath && location.pathname === currentPath) {
         const article = document.getElementById('article-body');

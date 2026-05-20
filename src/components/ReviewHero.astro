@@ -1,4 +1,6 @@
 ---
+import XShareButton from './XShareButton.astro';
+
 interface Props {
   title: string;
   description?: string;
@@ -25,7 +27,6 @@ const toolStr   = tools.length ? tools.join(' · ') : (tags[0] ?? '');
 const kicker    = [kindLabel, toolStr, kickerDate].filter(Boolean).join(' · ');
 
 const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(articleUrl)}`;
-const twitterShare  = `https://twitter.com/intent/tweet?url=${encodeURIComponent(articleUrl)}&text=${encodeURIComponent(title)}`;
 ---
 
 <header class="mb-10">
@@ -70,9 +71,8 @@ const twitterShare  = `https://twitter.com/intent/tweet?url=${encodeURIComponent
         <span style="color:var(--fg-muted)">Updated {updated.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
       </>
     )}
-    <div style="margin-left:auto;display:flex;gap:12px;align-items:center">
-      <a href={twitterShare} target="_blank" rel="noopener noreferrer"
-         class="transition-colors duration-150 hover:underline" style="color:var(--fg-muted)">Tweet ↗</a>
+    <div style="margin-left:auto;display:flex;gap:10px;align-items:center">
+      <XShareButton text={title} url={articleUrl} />
       <a href={linkedInShare} target="_blank" rel="noopener noreferrer"
          class="transition-colors duration-150 hover:underline" style="color:var(--fg-muted)">LinkedIn ↗</a>
     </div>

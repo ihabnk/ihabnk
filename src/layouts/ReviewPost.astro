@@ -32,9 +32,7 @@ const {
   pros, cons, scores, toc, readingTimeMin,
 } = Astro.props;
 
-const articleUrl    = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
-const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(articleUrl)}`;
-const twitterShare  = `https://twitter.com/intent/tweet?url=${encodeURIComponent(articleUrl)}&text=${encodeURIComponent(title)}`;
+const articleUrl = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
 ---
 
 <Base {title} {description}>
@@ -92,26 +90,14 @@ const twitterShare  = `https://twitter.com/intent/tweet?url=${encodeURIComponent
 
     <!-- Footer -->
     <footer class="mt-16 pt-8" style="border-top:2px solid var(--fg)">
-      <div class="flex items-center justify-between flex-wrap gap-4">
-        <a
-          href="/reviews"
-          class="group inline-flex items-center gap-2 font-mono text-sm transition-colors duration-200"
-          style="color:var(--fg-muted)"
-        >
-          <span class="transition-transform duration-200 group-hover:-translate-x-0.5">←</span>
-          Back to reviews
-        </a>
-        <div class="flex gap-3">
-          <a href={twitterShare} target="_blank" rel="noopener noreferrer"
-             class="font-mono text-xs transition-colors duration-200" style="color:var(--fg-muted)">
-            Share ↗
-          </a>
-          <a href={linkedInShare} target="_blank" rel="noopener noreferrer"
-             class="font-mono text-xs transition-colors duration-200" style="color:var(--fg-muted)">
-            LinkedIn ↗
-          </a>
-        </div>
-      </div>
+      <a
+        href="/reviews"
+        class="group inline-flex items-center gap-2 font-mono text-sm transition-colors duration-200"
+        style="color:var(--fg-muted)"
+      >
+        <span class="transition-transform duration-200 group-hover:-translate-x-0.5">←</span>
+        Back to reviews
+      </a>
     </footer>
 
   </div>
