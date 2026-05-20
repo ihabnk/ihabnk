@@ -97,6 +97,25 @@ html {
   transition: background-color 0.25s ease, color 0.25s ease;
 }
 
+/* ── Disable text selection site-wide ──────────────────────────
+   Prevents accidental selection while scrolling on touch devices
+   and suppresses the iOS long-press callout. Form inputs are
+   re-enabled below so users can still type into fields. */
+html, body {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+input, textarea, select, [contenteditable="true"], [contenteditable=""] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
 h1, h2, h3 { text-wrap: balance; }
 p { text-wrap: pretty; }
 

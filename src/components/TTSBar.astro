@@ -97,8 +97,11 @@
     const eqBars    = document.getElementById('tts-eq-bars');
 
     type VisualState = 'idle' | 'buffering' | 'playing' | 'paused' | 'ended';
+    type CancelToken = { cancelled: boolean };
+
     let state: VisualState = 'idle';
-    let stopped       = false;
+    let visible = false;                          // bar visibility, separate from playback state
+    let activeRun: CancelToken | null = null;     // current playback "generation" token
     let currentAudio: HTMLAudioElement | null = null;
     let timerInterval: number | undefined;
     let totalDuration = 0;
@@ -168,7 +171,12 @@
     function setVisual(next: VisualState) {
       state = next;
       if (!ttsBar) return;
-      ttsBar.classList.toggle('active',          next !== 'idle');
+
+      // Visibility is owned by `visible`, not by playback state — the bar
+      // stays mounted across pause/end/article-switch and only hides when
+      // the user explicitly dismisses it via the X button.
+      ttsBar.classList.toggle('active', visible);
+
       ttsBar.classList.toggle('state-playing',   next === 'playing');
       ttsBar.classList.toggle('state-buffering', next === 'buffering');
       ttsBar.classList.toggle('state-paused',    next === 'paused');
@@ -181,12 +189,12 @@
       iconPause?.classList.toggle('hidden', !isPlaying);
       eqBars   ?.classList.toggle('hidden', !isBuffering);
 
-      document.body.style.paddingBottom = next === 'idle' ? '' : 'var(--tts-bar-offset, 96px)';
+      document.body.style.paddingBottom = visible ? 'var(--tts-bar-offset, 96px)' : '';
 
-      if (next === 'idle' || next === 'ended') {
-        barToggle?.setAttribute('aria-label', 'Play');
-      } else if (isPlaying) {
+      if (isPlaying) {
         barToggle?.setAttribute('aria-label', 'Pause');
+      } else {
+        barToggle?.setAttribute('aria-label', 'Play');
       }
 
       updateTriggerUI();
@@ -204,9 +212,10 @@
       trackEl?.setAttribute('aria-valuenow', String(Math.round(pct)));
     }
 
-    function startTimer() {
+    function startTimer(run: CancelToken) {
       clearInterval(timerInterval);
       timerInterval = window.setInterval(() => {
+        if (run.cancelled) { clearInterval(timerInterval); return; }
         if (state !== 'playing') return;
         elapsed = Math.min(elapsed + 0.25, totalDuration || elapsed + 0.25);
         updateTimer();
@@ -238,12 +247,27 @@
       return chunks;
     }
 
-    function stopAll() {
-      stopped = true;
+    // Cancel the in-flight playback run and clear all transient state, but
+    // do NOT change visibility — the bar stays mounted unless dismiss() is
+    // called. Crucially, marking activeRun.cancelled = true prevents the
+    // previous async chain from racing the new one and writing stale state
+    // (the "play-button-turns-white-and-pause-makes-it-disappear" bug).
+    function cancelPlayback() {
+      if (activeRun) {
+        activeRun.cancelled = true;
+        activeRun = null;
+      }
       clearInterval(timerInterval);
       try { speechSynthesis.cancel(); } catch {}
-      if (currentAudio) { currentAudio.pause(); currentAudio.src = ''; currentAudio = null; }
-      elapsed = 0; totalDuration = 0;
+      if (currentAudio) {
+        currentAudio.onended = null;
+        currentAudio.onerror = null;
+        currentAudio.pause();
+        currentAudio.src = '';
+        currentAudio = null;
+      }
+      elapsed = 0;
+      totalDuration = 0;
       if (barFill) barFill.style.width = '0%';
       const elapsedEl = document.getElementById('tts-bar-elapsed');
       const totalEl   = document.getElementById('tts-bar-total');
@@ -252,40 +276,48 @@
       clearActiveParagraph();
       paragraphs = [];
       paragraphOffsets = [];
+    }
+
+    function dismiss() {
+      cancelPlayback();
       currentPath = null;
+      visible = false;
       setVisual('idle');
     }
 
-    async function playWithAzure(text: string) {
+    async function playWithAzure(text: string, run: CancelToken) {
       const chunks   = chunkText(text);
       const totalLen = chunks.reduce((s, c) => s + c.length, 0);
       let doneLen    = 0;
       let pace       = 0;
 
       for (const chunk of chunks) {
-        if (stopped) return;
+        if (run.cancelled) return;
         const res = await fetch(TTS_API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: chunk, lang: 'en' }),
         });
-        if (!res.ok || stopped) throw new Error(`api-${res.status}`);
+        if (run.cancelled) return;
+        if (!res.ok) throw new Error(`api-${res.status}`);
         const blob = await res.blob();
-        if (stopped) return;
+        if (run.cancelled) return;
         const url   = URL.createObjectURL(blob);
         const audio = new Audio(url);
         audio.playbackRate = RATES[rateIdx];
         currentAudio = audio;
 
         audio.addEventListener('loadedmetadata', () => {
+          if (run.cancelled) return;
           const chunkDur = audio.duration / audio.playbackRate;
           pace = chunkDur / Math.max(chunk.length, 1);
           totalDuration = pace * totalLen;
           if (state === 'buffering') setVisual('playing');
-          startTimer();
+          startTimer(run);
         });
 
         audio.addEventListener('timeupdate', () => {
+          if (run.cancelled) return;
           if (!audio.duration) return;
           const chunkPct    = audio.currentTime / audio.duration;
           const currentChar = doneLen + chunk.length * chunkPct;
@@ -300,27 +332,27 @@
           audio.onerror = () => { URL.revokeObjectURL(url); resolve(); };
           audio.play().catch(resolve);
         });
-        if (stopped) return;
+        if (run.cancelled) return;
       }
 
-      if (!stopped) {
-        clearInterval(timerInterval);
-        if (barFill) barFill.style.width = '100%';
-        setTimeout(() => { if (barFill) barFill.style.width = '0%'; }, 800);
-        clearActiveParagraph();
-        setVisual('ended');
-      }
+      if (run.cancelled) return;
+      clearInterval(timerInterval);
+      if (barFill) barFill.style.width = '100%';
+      setTimeout(() => { if (!run.cancelled && barFill) barFill.style.width = '0%'; }, 800);
+      clearActiveParagraph();
+      setVisual('ended');
     }
 
-    function playWithWebSpeech(text: string) {
-      if (!('speechSynthesis' in window)) { setVisual('idle'); return; }
+    function playWithWebSpeech(text: string, run: CancelToken) {
+      if (!('speechSynthesis' in window)) { dismiss(); return; }
       const utt = new SpeechSynthesisUtterance(text);
       utt.lang  = 'en-US';
       utt.rate  = RATES[rateIdx] * 0.92;
       totalDuration = text.length * 0.06;
       setVisual('playing');
-      startTimer();
+      startTimer(run);
       utt.onboundary = (event) => {
+        if (run.cancelled) return;
         if (typeof event.charIndex === 'number') {
           updateActiveFromChar(event.charIndex);
           elapsed = (event.charIndex / Math.max(text.length, 1)) * totalDuration;
@@ -328,9 +360,10 @@
         }
       };
       utt.onend = () => {
+        if (run.cancelled) return;
         clearInterval(timerInterval);
         clearActiveParagraph();
-        if (!stopped) setVisual('ended');
+        setVisual('ended');
       };
       speechSynthesis.speak(utt);
     }
@@ -354,20 +387,22 @@
       const article = document.getElementById('article-body');
       if (!article) return;
 
+      cancelPlayback();         // tear down any previous run before starting a new one
       bindMeta();
       indexParagraphs(article);
       currentPath = location.pathname;
 
-      stopped = false;
-      elapsed = 0;
+      const run: CancelToken = { cancelled: false };
+      activeRun = run;
+
+      visible = true;
       setVisual('buffering');
 
       const text = cleanText(article.textContent?.trim() ?? '');
       try {
-        await playWithAzure(text);
+        await playWithAzure(text, run);
       } catch {
-        if (!stopped) playWithWebSpeech(text);
-        else setVisual('idle');
+        if (!run.cancelled) playWithWebSpeech(text, run);
       }
     }
 
@@ -375,8 +410,9 @@
     document.addEventListener('click', (e) => {
       const target = e.target as HTMLElement | null;
       if (!target?.closest('#tts-trigger')) return;
-      if (state !== 'idle' && currentPath === location.pathname) { stopAll(); return; }
-      if (state !== 'idle') stopAll();
+      // Same article and already active → user is asking to dismiss it
+      if (state !== 'idle' && currentPath === location.pathname) { dismiss(); return; }
+      // Different article (or idle) → start a fresh playback
       startForCurrentArticle();
     });
 
@@ -390,10 +426,10 @@
       } else if (state === 'paused') {
         if (currentAudio) currentAudio.play().catch(() => {});
         else { try { speechSynthesis.resume(); } catch {} }
-        startTimer();
+        if (activeRun) startTimer(activeRun);
         setVisual('playing');
       } else if (state === 'ended') {
-        stopAll();
+        // Restart playback for the current article. Bar stays visible.
         if (document.getElementById('article-body')) startForCurrentArticle();
       }
     });
@@ -430,12 +466,12 @@
       updateTimer();
     });
 
-    /* ── Stop ── */
-    barStop?.addEventListener('click', () => stopAll());
+    /* ── Stop (X button) — the only thing that hides the bar ── */
+    barStop?.addEventListener('click', () => dismiss());
 
     /* ── View-transition lifecycle ── */
     document.addEventListener('astro:after-swap', () => {
-      document.body.style.paddingBottom = state === 'idle' ? '' : 'var(--tts-bar-offset, 96px)';
+      document.body.style.paddingBottom = visible ? 'var(--tts-bar-offset, 96px)' : '';
       updateTriggerUI();
       if (currentPath && location.pathname === currentPath) {
         const article = document.getElementById('article-body');

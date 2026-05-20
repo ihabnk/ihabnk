@@ -2,15 +2,13 @@
 import Base from '../layouts/Base.astro';
 import HeroVisual from '../components/HeroVisual.astro';
 import BlogCard from '../components/BlogCard.astro';
-import ProjectCard from '../components/ProjectCard.astro';
 import { getCollection } from 'astro:content';
-import { fetchRepos } from '../lib/github';
 
 const posts = (await getCollection('blog-en', ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 3);
 
-const repos = await fetchRepos('ihabnk');
+const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/01KRX7GT1KB53TTBX7BTKZ4529';
 ---
 
 <Base title="ihabnk" description="QA Engineer turned AI Product builder">
@@ -45,8 +43,8 @@ const repos = await fetchRepos('ihabnk');
           <a href="/blog" class="btn-primary inline-flex items-center gap-2 font-bold text-sm px-6 h-11 rounded-[4px]">
             Read articles
           </a>
-          <a href="#projects" class="ghost-btn inline-flex items-center gap-2 text-sm px-6 h-11 rounded-[4px]">
-            Projects
+          <a href="/reviews" class="ghost-btn inline-flex items-center gap-2 text-sm px-6 h-11 rounded-[4px]">
+            Reviews
           </a>
         </div>
 
@@ -80,53 +78,61 @@ const repos = await fetchRepos('ihabnk');
   </section>
 
   <!-- ═══════════════════════════════════════════
-       PROJECTS
+       COMMUNITY
        ═══════════════════════════════════════════ -->
-  <section id="projects" class="max-w-5xl mx-auto px-4 sm:px-6 py-20">
+  <section id="community" class="max-w-5xl mx-auto px-4 sm:px-6 pb-20">
     <div class="glow-sep mb-14"></div>
 
-    <div class="flex items-end justify-between mb-10">
-      <div>
-        <span class="section-label mb-2">// projects</span>
-        <h2 class="font-bold" style="font-size:clamp(32px,4vw,44px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1">Projects</h2>
-      </div>
-      <a
-        href="https://github.com/ihabnk"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="font-mono text-[11px] transition-opacity duration-200 hover:opacity-70"
-        style="color:var(--accent-text)"
-      >GitHub →</a>
-    </div>
-
-    {repos.length === 0 ? (
-      <p class="font-mono text-sm" style="color:var(--fg-muted)">// no repos loaded — visit GitHub directly</p>
-    ) : (
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {repos.map(repo => <ProjectCard {repo} />)}
-      </div>
-    )}
-  </section>
-
-  <!-- ═══════════════════════════════════════════
-       SUPPORT CTA (compact)
-       ═══════════════════════════════════════════ -->
-  <section
-    id="support"
-    class="py-10 px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-center gap-4 text-center"
-    style="background:var(--bg-surface);border-top:2px solid var(--fg);border-bottom:2px solid var(--fg)"
-  >
-    <p class="text-[14px] font-mono" style="color:var(--fg-mid)">
-      If my work helped you →
-    </p>
-    <a
-      href="https://www.buymeacoffee.com/ihabnk"
-      target="_blank"
-      rel="noopener noreferrer"
-      class="ghost-btn inline-flex items-center gap-2 font-mono text-[12px] px-5 h-9 rounded-[4px]"
+    <div
+      class="card-brutal community-card relative overflow-hidden p-7 sm:p-10"
+      style="background:var(--bg-card)"
     >
-      Buy me a coffee
-    </a>
+      <!-- Decorative accent glow in the top-right -->
+      <div
+        aria-hidden="true"
+        class="absolute pointer-events-none"
+        style="top:-60px;right:-60px;width:280px;height:280px;background:radial-gradient(circle at center, var(--accent-glow), transparent 65%)"
+      ></div>
+
+      <div class="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:gap-10">
+
+        <div class="flex-1">
+          <span class="section-label mb-3 block">// community</span>
+          <h2
+            class="font-bold mb-4"
+            style="font-size:clamp(26px,3.6vw,38px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1.08"
+          >Build alongside other QA &amp; AI engineers</h2>
+          <p
+            class="text-[16px] leading-[1.65] max-w-[560px]"
+            style="color:var(--fg-mid)"
+          >
+            I run a Stoat channel where I share works-in-progress, swap tooling
+            notes, and answer questions from people moving from QA into AI
+            product work. Pull up a chair — it's quiet, useful, and zero noise.
+          </p>
+
+          <!-- Trio of fine-print value props -->
+          <ul class="mt-5 flex flex-wrap gap-x-5 gap-y-2 font-mono text-[11px]" style="color:var(--fg-muted)">
+            <li><span style="color:var(--accent-text);font-weight:700">·</span> Tool deep-dives</li>
+            <li><span style="color:var(--accent-text);font-weight:700">·</span> Code review threads</li>
+            <li><span style="color:var(--accent-text);font-weight:700">·</span> Career questions, answered</li>
+          </ul>
+        </div>
+
+        <div class="flex-shrink-0">
+          <a
+            href={STOAT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn-primary inline-flex items-center gap-2 font-bold text-sm px-6 h-12 rounded-[4px]"
+          >
+            Join the channel
+            <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+
+      </div>
+    </div>
   </section>
 
 </Base>
