@@ -21,10 +21,12 @@ const reviewSchema = z.object({
   verdict: z.string().optional(),
   bestFor: z.string().optional(),
   rating: z.number().min(1).max(5).optional(),
+  toolRatings: z.record(z.string(), z.number().min(1).max(5)).optional(),
 
   pros: z.array(z.string()).optional(),
   cons: z.array(z.string()).optional(),
   scores: z.record(z.string(), z.number().min(1).max(5)).optional(),
+  scoresByTool: z.record(z.string(), z.record(z.string(), z.number().min(1).max(5))).optional(),
 
   featured: z.boolean().default(false),
   toc: z.array(z.object({ label: z.string(), anchor: z.string() })).optional(),

@@ -10,14 +10,17 @@ interface Props {
   kind: 'review' | 'comparison';
   tools: string[];
   rating?: number;
+  toolRatings?: Record<string, number>;
   readingTimeMin: number;
   articleUrl: string;
 }
 
 const {
   title, description, tags = [], date, updated,
-  kind, tools, rating, readingTimeMin, articleUrl,
+  kind, tools, rating, toolRatings, readingTimeMin, articleUrl,
 } = Astro.props;
+
+const hasPerToolRatings = toolRatings && Object.keys(toolRatings).length > 0;
 
 const dateStr    = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 const kickerDate = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase();
@@ -37,8 +40,29 @@ const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${enc
 
   {description && <p class="article-dek">{description}</p>}
 
-  <!-- Tools row (chips) -->
-  {tools.length > 0 && (
+  <!-- Tools row -->
+  {hasPerToolRatings ? (
+    <div class="flex flex-wrap gap-2 mt-6" aria-label="Tools rated in this comparison">
+      {tools.map(t => {
+        const r = toolRatings![t];
+        return (
+          <span
+            class="inline-flex items-center gap-2 font-mono text-[11px] px-[12px] py-[5px] rounded-[4px] font-medium"
+            style="border:1.5px solid var(--fg);color:var(--fg);letter-spacing:0.04em;background:var(--bg-card)"
+            aria-label={r !== undefined ? `${t} rating ${r} of 5` : t}
+          >
+            <span>{t}</span>
+            {r !== undefined && (
+              <span
+                class="font-bold tabular-nums"
+                style="color:var(--accent-text)"
+              >★ {r.toFixed(1)}</span>
+            )}
+          </span>
+        );
+      })}
+    </div>
+  ) : tools.length > 0 && (
     <div class="flex flex-wrap gap-2 mt-6">
       {tools.map(t => (
         <span

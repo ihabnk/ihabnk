@@ -1,40 +1,124 @@
 ---
 interface Props {
-  scores: Record<string, number>;
+  scores?: Record<string, number>;
+  scoresByTool?: Record<string, Record<string, number>>;
+  tools?: string[];
   max?: number;
+  methodology?: string;
 }
 
-const { scores, max = 5 } = Astro.props;
+const {
+  scores,
+  scoresByTool,
+  tools = [],
+  max = 5,
+  methodology = 'Scores reflect practical evaluation across setup, reliability, debugging, speed, ecosystem, CI/CD, documentation, and language support.',
+} = Astro.props;
 
-const entries = Object.entries(scores);
-const avg = entries.length
+// Comparison mode: per-tool scores side by side
+const toolList = scoresByTool
+  ? (tools.length ? tools.filter(t => scoresByTool[t]) : Object.keys(scoresByTool))
+  : [];
+
+const criteria = scoresByTool
+  ? Array.from(new Set(toolList.flatMap(t => Object.keys(scoresByTool[t] ?? {}))))
+  : Object.keys(scores ?? {});
+
+// Per-tool averages (comparison mode)
+const toolAvgs = scoresByTool
+  ? toolList.map(t => {
+      const vals = Object.values(scoresByTool[t] ?? {});
+      const avg = vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : 0;
+      return { tool: t, avg };
+    })
+  : [];
+
+// Single-tool average
+const entries = scores ? Object.entries(scores) : [];
+const singleAvg = entries.length
   ? entries.reduce((s, [, v]) => s + v, 0) / entries.length
   : 0;
+
+const isComparison = !!scoresByTool && toolList.length > 0;
 ---
 
 <section
   class="card-brutal mb-10 p-5 sm:p-6"
   style="background:var(--bg-card)"
-  aria-label="Scored criteria"
+  aria-label="Scoring breakdown"
 >
-  <div class="flex items-baseline justify-between gap-3 mb-5 flex-wrap">
-    <span class="section-label">// criteria</span>
-    {entries.length > 0 && (
+  <div class="flex items-baseline justify-between gap-3 mb-2 flex-wrap">
+    <span class="section-label">// scoring</span>
+    {isComparison ? (
+      <div class="flex gap-3 flex-wrap font-mono text-[12px]" style="color:var(--fg-muted)">
+        {toolAvgs.map(({ tool, avg }) => (
+          <span>{tool} <strong style="color:var(--accent-text)">{avg.toFixed(1)}</strong> / {max}</span>
+        ))}
+      </div>
+    ) : entries.length > 0 && (
       <span class="font-mono text-[12px]" style="color:var(--fg-muted)">
-        Avg <strong style="color:var(--accent-text)">{avg.toFixed(1)}</strong> / {max}
+        Avg <strong style="color:var(--accent-text)">{singleAvg.toFixed(1)}</strong> / {max}
       </span>
     )}
   </div>
 
-  <ul class="flex flex-col gap-3">
-    {entries.map(([label, value]) => {
-      const pct = Math.round((value / max) * 100);
-      return (
+  <p class="text-[12px] mb-5 leading-snug" style="color:var(--fg-muted);font-family:var(--font-mono)">
+    {methodology}
+  </p>
+
+  {isComparison ? (
+    <ul class="flex flex-col gap-3">
+      {/* Column headers */}
+      <li
+        class="grid items-center gap-3 pb-2"
+        style={`grid-template-columns:minmax(0,1.4fr) repeat(${toolList.length}, minmax(0,1fr));border-bottom:1.5px solid var(--fg)`}
+      >
+        <span class="font-mono text-[11px]" style="color:var(--fg-muted);letter-spacing:0.04em">Criterion</span>
+        {toolList.map(t => (
+          <span class="font-mono text-[11px] font-bold" style="color:var(--fg);letter-spacing:0.04em">{t}</span>
+        ))}
+      </li>
+
+      {criteria.map(label => (
+        <li
+          class="grid items-center gap-3"
+          style={`grid-template-columns:minmax(0,1.4fr) repeat(${toolList.length}, minmax(0,1fr))`}
+        >
+          <span class="text-[14px]" style="color:var(--fg);font-family:var(--font-sans)">{label}</span>
+          {toolList.map(t => {
+            const v = scoresByTool![t]?.[label];
+            if (v === undefined) {
+              return (
+                <span class="font-mono text-[12px]" style="color:var(--fg-muted)">—</span>
+              );
+            }
+            return (
+              <span class="flex items-center gap-2" aria-label={`${t} ${label} ${v} of ${max}`}>
+                <span class="flex gap-[3px]" aria-hidden="true" style="flex:1">
+                  {Array.from({ length: max }).map((_, i) => (
+                    <span
+                      class="block"
+                      style={`flex:1;height:7px;border:1.5px solid var(--fg);background:${i < v ? 'var(--accent)' : 'var(--bg-page)'}`}
+                    ></span>
+                  ))}
+                </span>
+                <span
+                  class="font-mono text-[11px] font-bold tabular-nums"
+                  style="color:var(--accent-text);min-width:18px;text-align:right"
+                >{v}</span>
+              </span>
+            );
+          })}
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <ul class="flex flex-col gap-3">
+      {entries.map(([label, value]) => (
         <li class="grid items-center gap-3" style="grid-template-columns:minmax(0,1fr) 64px auto">
 
           <span class="text-[14px]" style="color:var(--fg);font-family:var(--font-sans)">{label}</span>
 
-          <!-- Pip row: 5 brutal segments -->
           <span class="flex gap-1" aria-hidden="true">
             {Array.from({ length: max }).map((_, i) => (
               <span
@@ -51,7 +135,7 @@ const avg = entries.length
           >{value.toFixed(1)}/{max}</span>
 
         </li>
-      );
-    })}
-  </ul>
+      ))}
+    </ul>
+  )}
 </section>

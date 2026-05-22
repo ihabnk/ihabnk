@@ -20,7 +20,7 @@ const staggerClass = stagger ? `stagger-${stagger}` : '';
 
 <article
   class:list={[
-    'card-brutal card-shine group relative p-5 flex flex-col gap-3 cursor-pointer',
+    'card-brutal card-shine group relative p-5 flex flex-col gap-2.5 cursor-pointer',
     animate && 'fade-up',
     staggerClass,
   ]}
@@ -45,11 +45,11 @@ const staggerClass = stagger ? `stagger-${stagger}` : '';
 
   <!-- Description -->
   {post.data.description && (
-    <p class="text-sm leading-relaxed line-clamp-2" style="color:var(--fg-mid)">{post.data.description}</p>
+    <p class="text-sm leading-snug line-clamp-2" style="color:var(--fg-mid)">{post.data.description}</p>
   )}
 
   <!-- Footer -->
-  <div class="mt-auto pt-3 flex justify-between items-center">
+  <div class="mt-auto pt-2 flex justify-between items-center">
     <span class="font-mono text-[10px]" style="color:var(--fg-muted)"></span>
     <span class="font-mono text-[10px]" style="color:var(--accent-text)">Read →</span>
   </div>

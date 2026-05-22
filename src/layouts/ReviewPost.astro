@@ -19,17 +19,19 @@ interface Props {
   verdict?: string;
   bestFor?: string;
   rating?: number;
+  toolRatings?: Record<string, number>;
   pros?: string[];
   cons?: string[];
   scores?: Record<string, number>;
+  scoresByTool?: Record<string, Record<string, number>>;
   toc?: TocItem[];
   readingTimeMin: number;
 }
 
 const {
   title, description, date, updated, tags,
-  kind, tools, verdict, bestFor, rating,
-  pros, cons, scores, toc, readingTimeMin,
+  kind, tools, verdict, bestFor, rating, toolRatings,
+  pros, cons, scores, scoresByTool, toc, readingTimeMin,
 } = Astro.props;
 
 const articleUrl = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
@@ -67,6 +69,7 @@ const articleUrl = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
       {kind}
       {tools}
       {rating}
+      {toolRatings}
       {readingTimeMin}
       {articleUrl}
     />
@@ -75,9 +78,11 @@ const articleUrl = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
 
     {toc && toc.length > 0 && <ReviewToc items={toc} />}
 
-    {scores && Object.keys(scores).length > 0 && (
+    {scoresByTool && Object.keys(scoresByTool).length > 0 ? (
+      <ScoreBreakdown {scoresByTool} {tools} />
+    ) : scores && Object.keys(scores).length > 0 ? (
       <ScoreBreakdown {scores} />
-    )}
+    ) : null}
 
     {(pros?.length || cons?.length) && (
       <ProsCons pros={pros ?? []} cons={cons ?? []} />
