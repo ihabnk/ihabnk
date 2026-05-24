@@ -88,5 +88,3 @@ For a typical 2026 team that wants a tool that lives in git and in CI
 without a cloud account: **Bruno**. For a typical team that wants polish
 and doesn't mind a SaaS account: **Postman**. For a JVM-only stack with no
 GUI required: **RestAssured**.
-
-*This is placeholder content; edit freely.*

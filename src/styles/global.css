@@ -188,6 +188,18 @@ p { text-wrap: pretty; }
   padding-bottom: 12px;
 }
 
+/* Inline code chip — readable against body text on both themes */
+.prose :not(pre) > code {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+.prose :not(pre) > code::before,
+.prose :not(pre) > code::after { content: none; }
+
 /* RTL drop-cap support */
 [dir="rtl"] .prose p:first-of-type::first-letter {
   float: right;
@@ -983,4 +995,13 @@ html[data-theme="dark"] .article-body p.reading-now {
   .article-headline { font-size: clamp(28px, 7vw, 44px); }
   .article-dek { font-size: 18px; }
   .article-meta { font-size: 10px; gap: 10px; }
+  /* On narrow screens, force the share controls onto their own row
+     so the in-line dot separators don't dangle at a wrap point. */
+  .article-meta > div[style*="margin-left"] {
+    margin-left: 0 !important;
+    width: 100%;
+    justify-content: flex-end;
+    padding-top: 8px;
+    border-top: 1.5px dashed var(--border);
+  }
 }

@@ -10,7 +10,7 @@ tools: ["Selenium", "Playwright"]
 featured: true
 toolRatings:
   Playwright: 4.6
-  Selenium: 4.1
+  Selenium: 4.0
 verdict: "For new projects, Playwright wins on speed, reliability, and DX. Selenium still wins when you need cross-language support across legacy enterprise stacks."
 bestFor: "Teams starting fresh on a JS/TS stack with no existing Selenium grid investment."
 pros:

@@ -9,7 +9,7 @@ tools: ["Cypress", "Playwright"]
 featured: true
 toolRatings:
   Cypress: 4.4
-  Playwright: 4.6
+  Playwright: 4.9
 verdict: "Cypress is the friendlier developer-experience for a single web app. Playwright is the better choice for multi-domain, multi-context, or cross-browser flows."
 bestFor: "Web teams who need real cross-browser coverage and parallelism without paying for a SaaS dashboard."
 pros:
@@ -91,5 +91,3 @@ If your product is a single web app and your top priority is "make every
 engineer comfortable writing tests on day one" — choose **Cypress**. If you
 need cross-browser, multi-context, or you're cost-sensitive about a SaaS
 dashboard, choose **Playwright**.
-
-*This is placeholder content; edit freely.*

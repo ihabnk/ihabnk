@@ -80,5 +80,3 @@ default to:
 - **Appium** for cross-platform mobile e2e
 - **Postman + Newman** for fast API smoke tests in CI
 - **Pact** for contract tests between front-end and back-end
-
-*This is placeholder content; edit freely.*
