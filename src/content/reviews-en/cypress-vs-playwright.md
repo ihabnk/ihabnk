@@ -7,7 +7,9 @@ tags: ["Testing", "Automation"]
 kind: "comparison"
 tools: ["Cypress", "Playwright"]
 featured: true
-rating: 4.5
+toolRatings:
+  Cypress: 4.4
+  Playwright: 4.6
 verdict: "Cypress is the friendlier developer-experience for a single web app. Playwright is the better choice for multi-domain, multi-context, or cross-browser flows."
 bestFor: "Web teams who need real cross-browser coverage and parallelism without paying for a SaaS dashboard."
 pros:
@@ -19,15 +21,25 @@ cons:
   - "Cypress's single-tab, same-origin model is a real constraint for SSO flows."
   - "Playwright's assertion library is leaner than Cypress's chai-jquery stack."
   - "Cypress Cloud is great but quickly becomes a non-trivial line item."
-scores:
-  Ease of setup: 5
-  Reliability: 5
-  Debugging: 5
-  Speed: 4
-  Ecosystem: 5
-  CI/CD friendliness: 5
-  Documentation: 5
-  Cross-browser: 4
+scoresByTool:
+  Cypress:
+    Ease of setup: 5
+    Reliability: 4
+    Debugging: 5
+    Speed: 4
+    Ecosystem: 4
+    CI/CD friendliness: 5
+    Documentation: 5
+    Cross-browser: 3
+  Playwright:
+    Ease of setup: 5
+    Reliability: 5
+    Debugging: 5
+    Speed: 5
+    Ecosystem: 4
+    CI/CD friendliness: 5
+    Documentation: 5
+    Cross-browser: 5
 toc:
   - { label: "Verdict at a glance",   anchor: "verdict" }
   - { label: "Architecture & model",  anchor: "architecture" }

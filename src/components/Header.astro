@@ -37,7 +37,7 @@ function isActive(href: string) {
         <a
           href={link.href}
           aria-current={isActive(link.href) ? 'page' : undefined}
-          class="nav-link font-mono text-[13px] py-2 transition-colors duration-150"
+          class="nav-link font-mono text-[13px] py-2 transition-colors duration-150 hover:opacity-100"
           style={isActive(link.href)
             ? 'color:var(--accent-text);font-weight:700'
             : 'color:var(--fg-muted);font-weight:400'}
@@ -55,7 +55,7 @@ function isActive(href: string) {
       <ThemeToggle />
       <button
         id="mobile-menu-btn"
-        class="p-1 transition-colors"
+        class="p-2 -mr-2 transition-colors"
         style="color:var(--fg-muted)"
         aria-label="Toggle menu"
         aria-expanded="false"
@@ -78,7 +78,7 @@ function isActive(href: string) {
         <a
           href={link.href}
           aria-current={isActive(link.href) ? 'page' : undefined}
-          class="font-mono text-[14px] px-3 py-2.5 rounded-[4px] transition-colors duration-150"
+          class="font-mono text-[14px] px-4 py-3 rounded-[4px] transition-colors duration-150"
           style={isActive(link.href)
             ? 'color:var(--accent-text);font-weight:700;border-left:3px solid var(--accent);background:var(--accent-chip)'
             : 'color:var(--fg);font-weight:400'}
@@ -97,6 +97,11 @@ function isActive(href: string) {
     transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
                 background-color 0.2s ease,
                 box-shadow 0.2s ease;
+  }
+
+  /* Inactive nav links: subtle hover affordance to confirm interactivity */
+  .nav-link:not([aria-current='page']):hover {
+    color: var(--fg) !important;
   }
 
   /* Scroll-aware: only translate on mobile so desktop never hides.

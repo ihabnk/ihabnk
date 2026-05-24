@@ -17,6 +17,9 @@ const tags: string[] = review.data.tags ?? [];
 const tools = review.data.tools ?? [];
 const kindLabel = review.data.kind === 'comparison' ? 'VS' : 'REVIEW';
 const minutes = readingTime(review.body);
+
+const toolRatings = review.data.toolRatings;
+const hasPerToolRatings = toolRatings && Object.keys(toolRatings).length > 0;
 ---
 
 <article
@@ -44,7 +47,22 @@ const minutes = readingTime(review.body);
     <span class="font-mono text-[11px]" style="color:var(--fg-muted)">·</span>
     <span class="font-mono text-[11px]" style="color:var(--fg-muted)">{minutes} min</span>
 
-    {review.data.rating !== undefined && (
+    {hasPerToolRatings ? (
+      <span
+        class="ms-auto flex items-center gap-2 font-mono text-[11px] font-bold tabular-nums"
+        style="color:var(--accent-text)"
+        aria-label="Per-tool ratings"
+      >
+        {tools
+          .filter(t => toolRatings![t] !== undefined)
+          .map((t, i) => (
+            <>
+              {i > 0 && <span style="color:var(--fg-muted);font-weight:400">·</span>}
+              <span>{t.slice(0, 1)} ★ {toolRatings![t].toFixed(1)}</span>
+            </>
+          ))}
+      </span>
+    ) : review.data.rating !== undefined && (
       <span
         class="ms-auto font-mono text-[11px] font-bold tabular-nums"
         style="color:var(--accent-text)"

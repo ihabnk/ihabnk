@@ -7,9 +7,10 @@ interface Props {
   tags?: string[];
   date: Date;
   articleUrl: string;
+  readingTimeMin?: number;
 }
 
-const { title, description, tags = [], date, articleUrl } = Astro.props;
+const { title, description, tags = [], date, articleUrl, readingTimeMin } = Astro.props;
 
 const dateStr    = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 const kickerDate = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase();
@@ -38,7 +39,12 @@ const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${enc
     <span>QA Engineer → AI Builder</span>
     <span class="dot"></span>
     <time datetime={date.toISOString()}>{dateStr}</time>
-    <span class="dot"></span>
+    {readingTimeMin !== undefined && (
+      <>
+        <span class="dot"></span>
+        <span>{readingTimeMin} min read</span>
+      </>
+    )}
     <div style="margin-left:auto;display:flex;gap:10px;align-items:center">
       <XShareButton text={title} url={articleUrl} />
       <a href={linkedInShare} target="_blank" rel="noopener noreferrer"

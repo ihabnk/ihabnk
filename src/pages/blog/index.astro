@@ -14,10 +14,20 @@ const allTags = [...new Set(posts.flatMap(p => p.data.tags ?? []))].sort();
 
     <div class="glow-sep mb-10"></div>
 
-    <div class="mb-10">
+    <header class="mb-10">
       <span class="section-label mb-2">// articles</span>
-      <h1 class="font-bold" style="font-size:clamp(32px,4vw,44px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1">All Articles</h1>
-    </div>
+      <h1
+        class="font-bold"
+        style="font-size:clamp(32px,4vw,44px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1"
+      >All Articles</h1>
+      <p
+        class="mt-5 max-w-[640px] text-[16px] leading-[1.6]"
+        style="color:var(--fg-mid);font-family:var(--font-sans)"
+      >
+        Practical notes on QA, AI-augmented quality systems, and the
+        engineering habits that hold up once they leave the slide deck.
+      </p>
+    </header>
 
     {allTags.length > 0 && (
       <div class="flex flex-wrap gap-2 mb-10" id="tag-filter">
