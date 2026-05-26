@@ -200,11 +200,34 @@ p { text-wrap: pretty; }
 .prose :not(pre) > code::before,
 .prose :not(pre) > code::after { content: none; }
 
-/* RTL drop-cap support */
-[dir="rtl"] .prose p:first-of-type::first-letter {
-  float: right;
-  margin: 6px 0 0 12px;
+/* ── Editorial / comparison tables ──────────────────────────── */
+/* No custom table rules existed, so markdown tables fell back to the
+   typography plugin's cold-grey defaults. Bring them onto the warm
+   brutalist palette; the mobile rule (below) lets wide tables scroll
+   horizontally instead of breaking the page. */
+.article-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 32px 0;
+  font-family: var(--font-sans);
+  font-size: 15px;
 }
+.article-body thead th {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg);
+  border-bottom: 2px solid var(--fg);
+  padding: 10px 14px;
+}
+.article-body tbody td {
+  padding: 10px 14px;
+  color: var(--fg-mid);
+  border-bottom: 1.5px solid var(--border);
+}
+.article-body tbody tr:last-child td { border-bottom: none; }
 
 /* ── Tag filter buttons ── */
 [data-filter] {
@@ -995,6 +1018,13 @@ html[data-theme="dark"] .article-body p.reading-now {
   .article-headline { font-size: clamp(28px, 7vw, 44px); }
   .article-dek { font-size: 18px; }
   .article-meta { font-size: 10px; gap: 10px; }
+  /* Wide comparison tables scroll inside their own box rather than
+     forcing the whole page to scroll sideways. */
+  .article-body table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
   /* On narrow screens, force the share controls onto their own row
      so the in-line dot separators don't dangle at a wrap point. */
   .article-meta > div[style*="margin-left"] {

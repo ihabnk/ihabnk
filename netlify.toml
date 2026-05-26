@@ -4,3 +4,25 @@
 
 [build.environment]
   NODE_VERSION = "20"
+
+# Retire leftover routes from the previous Hugo/Blowfish (bilingual) site so
+# any still-indexed old URLs 301 to the current brand instead of 404-ing.
+# These patterns never exist in the Astro build, so the rules are harmless
+# no-ops unless an old URL is actually hit.
+[[redirects]]
+  from = "/ar/*"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/tags/*"
+  to = "/blog"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/categories/*"
+  to = "/blog"
+  status = 301
+  force = true
