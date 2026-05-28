@@ -9,11 +9,65 @@ interface Props {
   title: string;
   description?: string;
   ogImage?: string;
+  /** When set, page is treated as an article: og:type=article, article meta
+   *  tags emitted, and an Article/BlogPosting JSON-LD is rendered. */
+  article?: {
+    published: Date;
+    modified?: Date;
+    tags?: string[];
+    /** "BlogPosting" for /blog/*, "Article" (or "Review") for /reviews/* */
+    schemaType?: 'BlogPosting' | 'Article' | 'Review';
+  };
 }
 
-const { title, description = 'ihabnk — QA Engineer turned AI Product builder', ogImage } = Astro.props;
+const {
+  title,
+  description = 'ihabnk — QA Engineer turned AI Product builder',
+  ogImage,
+  article,
+} = Astro.props;
 const pageTitle = title === 'ihabnk' ? 'ihabnk' : `${title} | ihabnk`;
 const canonical = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
+const ogType = article ? 'article' : 'website';
+
+// Person identity — used for sitewide JSON-LD and as the Article author/publisher.
+const person = {
+  '@type': 'Person',
+  name: 'Ihab NK',
+  url: 'https://ihabnk.org',
+  sameAs: [
+    'https://github.com/ihabnk',
+    'https://linkedin.com/in/ihabnk',
+    'https://bsky.app/profile/ihabnk.org',
+  ],
+};
+
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'ihabnk',
+  url: 'https://ihabnk.org',
+  description: 'ihabnk — QA Engineer turned AI Product builder. Articles and reviews on AI quality, evals, and product engineering.',
+  author: person,
+  publisher: person,
+};
+
+const articleSchema = article
+  ? {
+      '@context': 'https://schema.org',
+      '@type': article.schemaType ?? 'BlogPosting',
+      headline: title,
+      description,
+      datePublished: article.published.toISOString(),
+      dateModified: (article.modified ?? article.published).toISOString(),
+      author: person,
+      publisher: person,
+      mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+      url: canonical,
+      ...(article.tags?.length ? { keywords: article.tags.join(', ') } : {}),
+      ...(ogImage ? { image: ogImage } : {}),
+    }
+  : null;
 ---
 
 <!doctype html>
@@ -42,18 +96,43 @@ const canonical = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
     <ClientRouter />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
+    <meta name="author" content="Ihab NK" />
     <link rel="canonical" href={canonical} />
+
+    <!-- Full favicon family — covers SVG-aware browsers, the auto /favicon.ico
+         request, PNG fallbacks, and iOS touch-icon. Multi-source so any cached
+         old (Hugo/Blowfish) icon is replaced on next paint. -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="alternate icon" href="/favicon.ico" />
+
+    <!-- Mobile address-bar tint, matched to the warm cream / espresso palette -->
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5efe6" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#150f0b" />
+
+    <!-- RSS — both surfaces SEO + lets readers subscribe -->
+    <link rel="alternate" type="application/rss+xml" title="ihabnk — articles & reviews" href="/rss.xml" />
+
+    <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content="ihabnk" />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     {ogImage && <meta property="og:image" content={ogImage} />}
+    {article && <meta property="article:published_time" content={article.published.toISOString()} />}
+    {article?.modified && <meta property="article:modified_time" content={article.modified.toISOString()} />}
+    {article && <meta property="article:author" content="Ihab NK" />}
+    {article?.tags?.map(t => <meta property="article:tag" content={t} />)}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={pageTitle} />
     <meta name="twitter:description" content={description} />
     {ogImage && <meta name="twitter:image" content={ogImage} />}
+
+    <!-- Structured data: WebSite always; Article only on /blog/* and /reviews/* -->
+    <script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
+    {articleSchema && <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

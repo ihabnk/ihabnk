@@ -14,7 +14,11 @@ const { title, description, date, tags, readingTimeMin } = Astro.props;
 const articleUrl = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
 ---
 
-<Base {title} {description}>
+<Base
+  {title}
+  {description}
+  article={{ published: date, tags, schemaType: 'BlogPosting' }}
+>
 
   <!-- Reading progress bar (sits flush below the header, including notch inset) -->
   <div
