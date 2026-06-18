@@ -142,11 +142,136 @@ const articleSchema = article
   </head>
   <body class="min-h-full flex flex-col antialiased" style="background-color:var(--bg-page);color:var(--fg)">
     <a href="#main-content" class="skip-link">Skip to content</a>
+
+    <!-- Global scroll-progress bar (very thin, above the header) -->
+    <div
+      id="global-scroll-progress"
+      class="fixed left-0 right-0 top-0 h-[2px] z-50 scale-x-0"
+      style="transform-origin:left;background:var(--accent);will-change:transform"
+      aria-hidden="true"
+    ></div>
+
     <Header />
     <main id="main-content" class="flex-1">
       <slot />
     </main>
     <Footer />
     <TTSBar />
+
+    <!-- Site-wide scroll interactivity: bidirectional reveal + top progress bar.
+         Reveal is direction-aware — elements animate in from the same edge they
+         scrolled off (down = from below, up = from above).
+
+         Hardening for SPA-style navigation:
+           • Re-bind on every Astro navigation event AND on bfcache restore.
+           • MutationObserver watches for new `.reveal*` nodes inserted at any
+             time (Astro view-transitions, async content, manual injection).
+           • Stale `.in-view` / `.from-above` classes are cleared on swap so
+             the next page starts fresh. -->
+    <script is:inline>
+      (() => {
+        const w = window;
+        if (w.__siteScrollInited) return;
+        w.__siteScrollInited = true;
+
+        // Gate the .reveal opacity:0 in CSS until JS confirms it can show them.
+        document.documentElement.classList.add('reveal-ready');
+
+        const SELECTOR = '.reveal, .reveal-soft';
+        let io = null;
+        const seen = new WeakSet(); // elements currently observed
+
+        function onEntries(entries) {
+          for (const e of entries) {
+            const target = e.target;
+            if (e.isIntersecting) {
+              target.classList.add('in-view');
+            } else {
+              target.classList.remove('in-view');
+              target.classList.toggle('from-above', e.boundingClientRect.top < 0);
+            }
+          }
+        }
+
+        function ensureObserver() {
+          if (io) return io;
+          io = new IntersectionObserver(onEntries, {
+            threshold: 0.05,
+            rootMargin: '-40px 0px -40px 0px',
+          });
+          return io;
+        }
+
+        function observeAll(root) {
+          const obs = ensureObserver();
+          const scope = root && root.querySelectorAll ? root : document;
+          scope.querySelectorAll(SELECTOR).forEach((el) => {
+            if (seen.has(el)) return;
+            seen.add(el);
+            obs.observe(el);
+          });
+        }
+
+        function rebindAll() {
+          // After a view transition the body subtree is replaced — old
+          // observations point at dead nodes. Recreate the observer and
+          // re-observe everything from a clean resting state.
+          if (io) { io.disconnect(); io = null; }
+          document.querySelectorAll(SELECTOR).forEach((el) => {
+            el.classList.remove('in-view', 'from-above');
+          });
+          observeAll(document);
+        }
+
+        function onScroll() {
+          const bar = document.getElementById('global-scroll-progress');
+          if (!bar) return;
+          const doc = document.documentElement;
+          const total = doc.scrollHeight - doc.clientHeight;
+          const ratio = total > 0 ? Math.max(0, Math.min(1, window.scrollY / total)) : 0;
+          bar.style.transform = 'scaleX(' + ratio + ')';
+        }
+
+        // Watch DOM mutations so any later-inserted .reveal element gets observed.
+        const mo = new MutationObserver((muts) => {
+          for (const m of muts) {
+            m.addedNodes.forEach((n) => {
+              if (n.nodeType !== 1) return; // element only
+              if (n.matches && n.matches(SELECTOR)) {
+                if (!seen.has(n)) { seen.add(n); ensureObserver().observe(n); }
+              }
+              observeAll(n);
+            });
+          }
+        });
+        mo.observe(document.body, { childList: true, subtree: true });
+
+        // First-paint binding
+        observeAll(document);
+        onScroll();
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+
+        // Astro view-transition lifecycle
+        document.addEventListener('astro:after-swap', () => {
+          const bar = document.getElementById('global-scroll-progress');
+          if (bar) bar.style.transform = 'scaleX(0)';
+          rebindAll();
+          onScroll();
+        });
+        document.addEventListener('astro:page-load', () => {
+          observeAll(document);
+          onScroll();
+        });
+
+        // Browser back/forward — restoring from bfcache doesn't fire load events
+        // but does fire pageshow with persisted=true.
+        window.addEventListener('pageshow', (ev) => {
+          if (ev.persisted) rebindAll();
+          onScroll();
+        });
+        window.addEventListener('hashchange', onScroll);
+      })();
+    </script>
   </body>
 </html>

@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { readingTime } from '../lib/reading-time';
+import ReviewArt from './ReviewArt.astro';
 
 type ReviewEntry = CollectionEntry<'reviews-en'>;
 
@@ -23,80 +24,84 @@ const hasPerToolRatings = toolRatings && Object.keys(toolRatings).length > 0;
 ---
 
 <article
-  class="card-brutal group relative flex flex-col gap-2.5 cursor-pointer"
-  style="background:var(--bg-card);padding:22px 26px"
+  class="card-brutal group relative flex items-stretch gap-5 cursor-pointer reveal"
+  style="background:var(--bg-card);padding:18px 22px"
   data-tags={tags.join(',')}
   data-kind={review.data.kind}
 >
-  <div class="flex items-center gap-3 flex-wrap">
-    <span
-      class="font-mono text-[10px] px-[10px] py-[3px] rounded-[3px] font-bold"
-      style={review.data.kind === 'comparison'
-        ? 'background:var(--accent);color:var(--on-accent);letter-spacing:0.05em'
-        : 'border:1.5px solid var(--fg);color:var(--fg);background:var(--bg-page);letter-spacing:0.05em'}
-    >{kindLabel}</span>
+  <ReviewArt slug={review.slug} variant="row" kind={review.data.kind} tools={tools} />
 
-    {tags[0] && (
+  <div class="flex flex-col gap-2.5 min-w-0 flex-1">
+    <div class="flex items-center gap-3 flex-wrap">
       <span
-        class="font-mono text-[10px]"
-        style="color:var(--fg-muted);letter-spacing:0.04em;text-transform:uppercase"
-      >{tags[0]}</span>
-    )}
+        class="font-mono text-[10px] px-[10px] py-[3px] rounded-[3px] font-bold"
+        style={review.data.kind === 'comparison'
+          ? 'background:var(--accent);color:var(--on-accent);letter-spacing:0.05em'
+          : 'border:1.5px solid var(--fg);color:var(--fg);background:var(--bg-page);letter-spacing:0.05em'}
+      >{kindLabel}</span>
 
-    <time class="font-mono text-[11px]" style="color:var(--fg-muted)">{dateStr}</time>
-    <span class="font-mono text-[11px]" style="color:var(--fg-muted)">·</span>
-    <span class="font-mono text-[11px]" style="color:var(--fg-muted)">{minutes} min</span>
+      {tags[0] && (
+        <span
+          class="font-mono text-[10px]"
+          style="color:var(--fg-muted);letter-spacing:0.04em;text-transform:uppercase"
+        >{tags[0]}</span>
+      )}
 
-    {hasPerToolRatings ? (
-      <span
-        class="ms-auto flex items-center gap-2 font-mono text-[11px] font-bold tabular-nums"
-        style="color:var(--accent-text)"
-        aria-label="Per-tool ratings"
-      >
-        {tools
-          .filter(t => toolRatings![t] !== undefined)
-          .map((t, i) => (
-            <>
-              {i > 0 && <span style="color:var(--fg-muted);font-weight:400">·</span>}
-              <span>{t.slice(0, 1)} ★ {toolRatings![t].toFixed(1)}</span>
-            </>
-          ))}
-      </span>
-    ) : review.data.rating !== undefined && (
-      <span
-        class="ms-auto font-mono text-[11px] font-bold tabular-nums"
-        style="color:var(--accent-text)"
-        aria-label={`Rating ${review.data.rating} of 5`}
-      >★ {review.data.rating.toFixed(1)} <span style="color:var(--fg-muted);font-weight:400">/ 5</span></span>
-    )}
-  </div>
+      <time class="font-mono text-[11px]" style="color:var(--fg-muted)">{dateStr}</time>
+      <span class="font-mono text-[11px]" style="color:var(--fg-muted)">·</span>
+      <span class="font-mono text-[11px]" style="color:var(--fg-muted)">{minutes} min</span>
 
-  <h3 class="text-[24px] font-bold leading-[1.2]" style="color:var(--fg);font-family:var(--font-display)">
-    <a href={href} class="stretched-link">{review.data.title}</a>
-  </h3>
-
-  {(review.data.verdict || review.data.description) && (
-    <p class="text-[14px] leading-[1.65]" style="color:var(--fg-mid)">
-      {review.data.verdict ?? review.data.description}
-    </p>
-  )}
-
-  {tools.length > 0 && (
-    <div class="flex flex-wrap gap-1.5">
-      {tools.map((t, i) => (
-        <>
-          {i > 0 && <span class="font-mono text-[10px] self-center" style="color:var(--fg-muted)">vs</span>}
-          <span
-            class="font-mono text-[10px] px-[8px] py-[2px] rounded-[3px]"
-            style="border:1.5px solid var(--border-mid);color:var(--fg);background:var(--bg-page);letter-spacing:0.04em"
-          >{t}</span>
-        </>
-      ))}
-      {review.data.bestFor && (
-        <span class="font-mono text-[11px] ms-2" style="color:var(--fg-muted)">
-          <span style="color:var(--accent-text);font-weight:700">Best for ›</span> {review.data.bestFor}
+      {hasPerToolRatings ? (
+        <span
+          class="ms-auto flex items-center gap-2 font-mono text-[11px] font-bold tabular-nums"
+          style="color:var(--accent-text)"
+          aria-label="Per-tool ratings"
+        >
+          {tools
+            .filter(t => toolRatings![t] !== undefined)
+            .map((t, i) => (
+              <>
+                {i > 0 && <span style="color:var(--fg-muted);font-weight:400">·</span>}
+                <span>{t.slice(0, 1)} ★ {toolRatings![t].toFixed(1)}</span>
+              </>
+            ))}
         </span>
+      ) : review.data.rating !== undefined && (
+        <span
+          class="ms-auto font-mono text-[11px] font-bold tabular-nums"
+          style="color:var(--accent-text)"
+          aria-label={`Rating ${review.data.rating} of 5`}
+        >★ {review.data.rating.toFixed(1)} <span style="color:var(--fg-muted);font-weight:400">/ 5</span></span>
       )}
     </div>
-  )}
+
+    <h3 class="text-[24px] font-bold leading-[1.2]" style="color:var(--fg);font-family:var(--font-display)">
+      <a href={href} class="stretched-link">{review.data.title}</a>
+    </h3>
+
+    {(review.data.verdict || review.data.description) && (
+      <p class="text-[14px] leading-[1.65]" style="color:var(--fg-mid)">
+        {review.data.verdict ?? review.data.description}
+      </p>
+    )}
+
+    {tools.length > 0 && (
+      <div class="flex flex-wrap gap-1.5">
+        {tools.map((t, i) => (
+          <>
+            {i > 0 && <span class="font-mono text-[10px] self-center" style="color:var(--fg-muted)">vs</span>}
+            <span
+              class="font-mono text-[10px] px-[8px] py-[2px] rounded-[3px]"
+              style="border:1.5px solid var(--border-mid);color:var(--fg);background:var(--bg-page);letter-spacing:0.04em"
+            >{t}</span>
+          </>
+        ))}
+        {review.data.bestFor && (
+          <span class="font-mono text-[11px] ms-2" style="color:var(--fg-muted)">
+            <span style="color:var(--accent-text);font-weight:700">Best for ›</span> {review.data.bestFor}
+          </span>
+        )}
+      </div>
+    )}
+  </div>
 </article>

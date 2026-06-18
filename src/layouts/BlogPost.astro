@@ -8,9 +8,10 @@ interface Props {
   date: Date;
   tags?: string[];
   readingTimeMin?: number;
+  slug: string;
 }
 
-const { title, description, date, tags, readingTimeMin } = Astro.props;
+const { title, description, date, tags, readingTimeMin, slug } = Astro.props;
 const articleUrl = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
 ---
 
@@ -54,7 +55,7 @@ const articleUrl = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
       </button>
     </div>
 
-    <ArticleHero {title} {description} {tags} {date} {articleUrl} {readingTimeMin} />
+    <ArticleHero {title} {description} {tags} {date} {articleUrl} {readingTimeMin} {slug} />
 
     <!-- Article body -->
     <div id="article-body" class="article-body prose max-w-none">
@@ -78,21 +79,34 @@ const articleUrl = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
 </Base>
 
 <script>
+  // Article-specific scripts:
+  //   1. Reading-progress bar (positioned below the header).
+  //   2. Tag structural prose elements with `.reveal-soft` so the global IO
+  //      in Base.astro animates them as the reader scrolls.
   (() => {
-    type W = Window & { __blogPostInited?: boolean };
+    type W = Window & { __blogPostInited?: boolean; __proseTaggerBound?: boolean };
     const w = window as W;
 
-    // Always re-observe reveal targets for the current page.
-    const io = new IntersectionObserver(
-      entries => entries.forEach(e => {
-        if (e.isIntersecting) { e.target.classList.add('in-view'); io.unobserve(e.target); }
-      }),
-      { threshold: 0.08 }
-    );
-    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+    const tagProseReveal = () => {
+      const body = document.getElementById('article-body');
+      if (!body) return;
+      // .reveal-soft is the always-on base (IO fallback for older browsers).
+      // The motion-variant classes layer on top for browsers that support
+      // animation-timeline: view() and override the base values.
+      body.querySelectorAll('p, ul, ol, h2, h3, h4, blockquote, figure, img, hr, pre').forEach((el) => el.classList.add('reveal-soft'));
+      body.querySelectorAll('h2').forEach((el) => el.classList.add('reveal-pop'));
+      body.querySelectorAll('blockquote').forEach((el) => el.classList.add('reveal-tilt'));
+      body.querySelectorAll('figure, img, hr, pre').forEach((el) => el.classList.add('reveal-drift'));
+    };
 
-    // Reading-progress listener: install once on the window so navigations
-    // don't stack up duplicate scroll handlers.
+    tagProseReveal();
+    // Idempotent — only register the listener once across the session.
+    if (!w.__proseTaggerBound) {
+      w.__proseTaggerBound = true;
+      document.addEventListener('astro:page-load', tagProseReveal);
+      document.addEventListener('astro:after-swap', tagProseReveal);
+    }
+
     if (w.__blogPostInited) return;
     w.__blogPostInited = true;
 

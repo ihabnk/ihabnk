@@ -26,12 +26,13 @@ interface Props {
   scoresByTool?: Record<string, Record<string, number>>;
   toc?: TocItem[];
   readingTimeMin: number;
+  slug: string;
 }
 
 const {
   title, description, date, updated, tags,
   kind, tools, verdict, bestFor, rating, toolRatings,
-  pros, cons, scores, scoresByTool, toc, readingTimeMin,
+  pros, cons, scores, scoresByTool, toc, readingTimeMin, slug,
 } = Astro.props;
 
 const articleUrl = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
@@ -76,6 +77,7 @@ const articleUrl = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
       {toolRatings}
       {readingTimeMin}
       {articleUrl}
+      {slug}
     />
 
     {verdict && <Verdict text={verdict} bestFor={bestFor} />}
@@ -114,17 +116,33 @@ const articleUrl = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
 </Base>
 
 <script>
+  // Article-specific scripts:
+  //   1. Reading-progress bar (positioned below the header).
+  //   2. Tag structural prose elements with `.reveal-soft` so the global IO
+  //      in Base.astro animates them as the reader scrolls.
   (() => {
-    type W = Window & { __blogPostInited?: boolean };
+    type W = Window & { __blogPostInited?: boolean; __proseTaggerBound?: boolean };
     const w = window as W;
 
-    const io = new IntersectionObserver(
-      entries => entries.forEach(e => {
-        if (e.isIntersecting) { e.target.classList.add('in-view'); io.unobserve(e.target); }
-      }),
-      { threshold: 0.08 }
-    );
-    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+    const tagProseReveal = () => {
+      const body = document.getElementById('article-body');
+      if (!body) return;
+      // .reveal-soft is the always-on base (IO fallback for older browsers).
+      // The motion-variant classes layer on top for browsers that support
+      // animation-timeline: view() and override the base values.
+      body.querySelectorAll('p, ul, ol, h2, h3, h4, blockquote, figure, img, hr, pre').forEach((el) => el.classList.add('reveal-soft'));
+      body.querySelectorAll('h2').forEach((el) => el.classList.add('reveal-pop'));
+      body.querySelectorAll('blockquote').forEach((el) => el.classList.add('reveal-tilt'));
+      body.querySelectorAll('figure, img, hr, pre').forEach((el) => el.classList.add('reveal-drift'));
+    };
+
+    tagProseReveal();
+    // Idempotent — only register the listener once across the session.
+    if (!w.__proseTaggerBound) {
+      w.__proseTaggerBound = true;
+      document.addEventListener('astro:page-load', tagProseReveal);
+      document.addEventListener('astro:after-swap', tagProseReveal);
+    }
 
     if (w.__blogPostInited) return;
     w.__blogPostInited = true;

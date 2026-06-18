@@ -1,5 +1,6 @@
 ---
 import XShareButton from './XShareButton.astro';
+import ArticleArt from './ArticleArt.astro';
 
 interface Props {
   title: string;
@@ -8,9 +9,10 @@ interface Props {
   date: Date;
   articleUrl: string;
   readingTimeMin?: number;
+  slug: string;
 }
 
-const { title, description, tags = [], date, articleUrl, readingTimeMin } = Astro.props;
+const { title, description, tags = [], date, articleUrl, readingTimeMin, slug } = Astro.props;
 
 const dateStr    = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 const kickerDate = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase();
@@ -20,6 +22,9 @@ const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${enc
 ---
 
 <header class="mb-12">
+
+  <!-- Per-article hero art -->
+  <ArticleArt slug={slug} variant="hero" />
 
   <!-- Article kicker: — TAG · DATE -->
   <div class="article-kicker">{firstTag} · {kickerDate}</div>

@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { readingTime } from '../lib/reading-time';
+import ReviewArt from './ReviewArt.astro';
 
 type ReviewEntry = CollectionEntry<'reviews-en'>;
 
@@ -29,7 +30,7 @@ const hasPerToolRatings = toolRatings && Object.keys(toolRatings).length > 0;
 <article
   class:list={[
     'card-brutal card-shine group relative flex flex-col gap-3 cursor-pointer',
-    animate && 'fade-up',
+    animate && 'reveal',
     staggerClass,
     featured ? 'p-6' : 'p-5',
   ]}
@@ -37,6 +38,8 @@ const hasPerToolRatings = toolRatings && Object.keys(toolRatings).length > 0;
   data-tags={tags.join(',')}
   data-kind={review.data.kind}
 >
+  <ReviewArt slug={review.slug} variant="card" kind={review.data.kind} tools={tools} />
+
   <!-- Kind chip + rating -->
   <div class="flex items-center gap-2.5 flex-wrap">
     <span

@@ -1,5 +1,6 @@
 ---
 import XShareButton from './XShareButton.astro';
+import ReviewArt from './ReviewArt.astro';
 
 interface Props {
   title: string;
@@ -13,11 +14,12 @@ interface Props {
   toolRatings?: Record<string, number>;
   readingTimeMin: number;
   articleUrl: string;
+  slug: string;
 }
 
 const {
   title, description, tags = [], date, updated,
-  kind, tools, rating, toolRatings, readingTimeMin, articleUrl,
+  kind, tools, rating, toolRatings, readingTimeMin, articleUrl, slug,
 } = Astro.props;
 
 const hasPerToolRatings = toolRatings && Object.keys(toolRatings).length > 0;
@@ -33,6 +35,8 @@ const linkedInShare = `https://www.linkedin.com/sharing/share-offsite/?url=${enc
 ---
 
 <header class="mb-10">
+
+  <ReviewArt slug={slug} variant="hero" kind={kind} tools={tools} />
 
   <div class="article-kicker">{kicker}</div>
 

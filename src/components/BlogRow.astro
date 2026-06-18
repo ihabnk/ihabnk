@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { readingTime } from '../lib/reading-time';
+import ArticleArt from './ArticleArt.astro';
 
 type BlogEntry = CollectionEntry<'blog-en'>;
 
@@ -18,31 +19,36 @@ const minutes = readingTime(post.body);
 ---
 
 <article
-  class="card-brutal group relative flex flex-col gap-2.5 cursor-pointer"
-  style="background:var(--bg-card);padding:22px 26px"
+  class="card-brutal group relative flex items-stretch gap-5 cursor-pointer reveal"
+  style="background:var(--bg-card);padding:18px 22px"
   data-tags={tags.join(',')}
 >
-  <!-- Tag + date + Read arrow -->
-  <div class="flex items-center gap-3 flex-wrap">
-    {tags.length > 0 && (
-      <span
-        class="font-mono text-[10px] px-[10px] py-[3px] rounded-[3px] font-medium"
-        style="border:1.5px solid var(--fg);color:var(--fg);letter-spacing:0.04em;background:var(--bg-page)"
-      >{tags[0]}</span>
+  <!-- Per-article art (left side, hidden on small screens via component CSS) -->
+  <ArticleArt slug={post.slug} variant="row" />
+
+  <div class="flex flex-col gap-2.5 min-w-0 flex-1">
+    <!-- Tag + date + Read arrow -->
+    <div class="flex items-center gap-3 flex-wrap">
+      {tags.length > 0 && (
+        <span
+          class="font-mono text-[10px] px-[10px] py-[3px] rounded-[3px] font-medium"
+          style="border:1.5px solid var(--fg);color:var(--fg);letter-spacing:0.04em;background:var(--bg-page)"
+        >{tags[0]}</span>
+      )}
+      <time class="font-mono text-[11px]" style="color:var(--fg-muted)">{dateStr}</time>
+      <span class="font-mono text-[11px]" style="color:var(--fg-muted)">·</span>
+      <span class="font-mono text-[11px]" style="color:var(--fg-muted)">{minutes} min</span>
+      <span class="ms-auto font-mono text-[11px] font-bold" style="color:var(--accent-text)">Read →</span>
+    </div>
+
+    <!-- Title -->
+    <h3 class="text-[24px] font-bold leading-[1.2]" style="color:var(--fg);font-family:var(--font-display)">
+      <a href={href} class="stretched-link">{post.data.title}</a>
+    </h3>
+
+    <!-- Description -->
+    {post.data.description && (
+      <p class="text-[14px] leading-[1.75]" style="color:var(--fg-mid)">{post.data.description}</p>
     )}
-    <time class="font-mono text-[11px]" style="color:var(--fg-muted)">{dateStr}</time>
-    <span class="font-mono text-[11px]" style="color:var(--fg-muted)">·</span>
-    <span class="font-mono text-[11px]" style="color:var(--fg-muted)">{minutes} min</span>
-    <span class="ms-auto font-mono text-[11px] font-bold" style="color:var(--accent-text)">Read →</span>
   </div>
-
-  <!-- Title -->
-  <h3 class="text-[24px] font-bold leading-[1.2]" style="color:var(--fg);font-family:var(--font-display)">
-    <a href={href} class="stretched-link">{post.data.title}</a>
-  </h3>
-
-  <!-- Description -->
-  {post.data.description && (
-    <p class="text-[14px] leading-[1.75]" style="color:var(--fg-mid)">{post.data.description}</p>
-  )}
 </article>

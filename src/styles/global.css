@@ -438,30 +438,153 @@ body::after {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes reveal-up {
-  from { opacity: 0; transform: translateY(32px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
 
 @media (prefers-reduced-motion: no-preference) {
-  .fade-up  { opacity: 0; animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-  .reveal   { opacity: 0; }
-  .reveal.in-view { opacity: 1; animation: reveal-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .fade-up { opacity: 0; animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
   .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+  /* Bidirectional scroll-reveal — transitions, not one-shot animations.
+     Elements toggle in/out as they enter and leave the viewport; the
+     `.from-above` class flips the hidden translate so the element animates
+     in from the same edge it scrolled off. Gated by `html.reveal-ready`
+     so content stays visible when JS fails. */
+  html.reveal-ready .reveal {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0);
+    transition:
+      opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+      filter   0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+    filter: blur(2px);
+  }
+  html.reveal-ready .reveal.from-above {
+    transform: translate3d(0, -28px, 0);
+  }
+  html.reveal-ready .reveal.in-view {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+
+  /* Soft variant — for prose elements (paragraphs, headings, lists) while
+     reading. Bidirectional like .reveal, but tuned for editorial flow.
+     Resting opacity stays high (0.42) so peripheral text remains legible. */
+  html.reveal-ready .reveal-soft {
+    opacity: 0.42;
+    transform: translate3d(0, 14px, 0);
+    transition:
+      opacity 0.40s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.40s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+  }
+  html.reveal-ready .reveal-soft.from-above {
+    transform: translate3d(0, -14px, 0);
+  }
+  html.reveal-ready .reveal-soft.in-view {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  /* ───────────────────────────────────────────────────────────
+     SCROLL-LINKED motion — text and decorations track scroll
+     position continuously (not just toggled at thresholds).
+     Modern browsers only; falls back to IO-based reveal above. */
+  @supports (animation-timeline: view()) {
+    /* Override the IO-based transitions so animations drive the values */
+    html.reveal-ready .reveal-soft,
+    html.reveal-ready .reveal-soft.in-view,
+    html.reveal-ready .reveal-soft.from-above {
+      opacity: 1;
+      transform: none;
+      transition: none;
+      animation: prose-enter linear both, prose-exit linear both;
+      animation-timeline: view(), view();
+      animation-range: entry 0% cover 22%, exit 78% exit 100%;
+    }
+    @keyframes prose-enter {
+      from { opacity: 0.30; transform: translate3d(0, 22px, 0); }
+      to   { opacity: 1;    transform: translate3d(0, 0,   0); }
+    }
+    @keyframes prose-exit {
+      from { opacity: 1;    transform: translate3d(0, 0,    0); }
+      to   { opacity: 0.40; transform: translate3d(0, -16px, 0); }
+    }
+
+    /* Drift variant — for figures, images, hr. Slow upward drift while in
+       view, paired with fade-in/out. Feels like a parallax layer. */
+    html.reveal-ready .reveal-drift {
+      animation: drift-enter linear both, drift-cover linear both, drift-exit linear both;
+      animation-timeline: view(), view(), view();
+      animation-range: entry 0% entry 100%, cover 0% cover 100%, exit 0% exit 100%;
+    }
+    @keyframes drift-enter {
+      from { opacity: 0;  transform: translate3d(0, 40px, 0); }
+      to   { opacity: 1;  transform: translate3d(0, 0,    0); }
+    }
+    @keyframes drift-cover {
+      from { transform: translate3d(0, 0,    0); }
+      to   { transform: translate3d(0, -30px, 0); }
+    }
+    @keyframes drift-exit {
+      from { opacity: 1;  transform: translate3d(0, -30px, 0); }
+      to   { opacity: 0;  transform: translate3d(0, -60px, 0); }
+    }
+
+    /* Tilt variant — for blockquotes and call-outs. Slight rotation as it
+       passes through, plus stronger fade. */
+    html.reveal-ready .reveal-tilt {
+      animation: tilt-enter linear both, tilt-exit linear both;
+      animation-timeline: view(), view();
+      animation-range: entry 0% cover 30%, exit 70% exit 100%;
+      transform-origin: left center;
+    }
+    @keyframes tilt-enter {
+      from { opacity: 0.20; transform: translate3d(0, 24px, 0) rotate(-1.2deg); }
+      to   { opacity: 1;    transform: translate3d(0, 0,    0) rotate(0); }
+    }
+    @keyframes tilt-exit {
+      from { opacity: 1;    transform: translate3d(0, 0,    0) rotate(0); }
+      to   { opacity: 0.35; transform: translate3d(0, -16px, 0) rotate(0.8deg); }
+    }
+
+    /* Pop variant — for h2 markers. Stronger lift + brief overshoot. */
+    html.reveal-ready .reveal-pop {
+      animation: pop-enter cubic-bezier(0.22, 1, 0.36, 1) both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 25%;
+    }
+    @keyframes pop-enter {
+      0%   { opacity: 0;   transform: translate3d(0, 32px, 0) scale(0.96); }
+      70%  { opacity: 1;   transform: translate3d(0, -3px, 0) scale(1.005); }
+      100% { opacity: 1;   transform: translate3d(0, 0,    0) scale(1); }
+    }
+  }
 }
 /* Reduced-motion: render content immediately at full opacity, no animation. */
 @media (prefers-reduced-motion: reduce) {
-  .fade-up,
-  .reveal,
-  .reveal.in-view { opacity: 1; }
+  .fade-up { opacity: 1; }
+  html.reveal-ready .reveal,
+  html.reveal-ready .reveal.from-above,
+  html.reveal-ready .reveal.in-view,
+  html.reveal-ready .reveal-soft,
+  html.reveal-ready .reveal-soft.from-above,
+  html.reveal-ready .reveal-soft.in-view,
+  html.reveal-ready .reveal-drift,
+  html.reveal-ready .reveal-tilt,
+  html.reveal-ready .reveal-pop {
+    opacity: 1; transform: none; filter: none;
+    transition: none; animation: none !important;
+  }
   .pulse-dot { animation: none; }
   .card-brutal, .btn-primary, .ghost-btn { transition-duration: 0ms; }
 }
 
-.stagger-1 { animation-delay: 0.05s; }
-.stagger-2 { animation-delay: 0.12s; }
-.stagger-3 { animation-delay: 0.19s; }
-.stagger-4 { animation-delay: 0.26s; }
+/* Stagger: works for both animation-based (fade-up) and transition-based (reveal) entries */
+.stagger-1 { animation-delay: 0.05s; transition-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.12s; transition-delay: 0.12s; }
+.stagger-3 { animation-delay: 0.19s; transition-delay: 0.19s; }
+.stagger-4 { animation-delay: 0.26s; transition-delay: 0.26s; }
 
 /* ── Stretched link ── */
 .stretched-link::after {

@@ -1,0 +1,306 @@
+---
+/**
+ * ReviewArt — per-review SVG illustrations. Same grammar as ArticleArt:
+ * solid fills, hard borders, mono captions, subtle ambient animation.
+ *
+ *   slug    — review slug; picks one of 4 variants
+ *   variant — 'card' | 'row' | 'hero'
+ *   kind    — 'review' | 'comparison' (used for fallback variant)
+ *   tools   — list of tool names (used by VS layouts)
+ */
+
+interface Props {
+  slug: string;
+  variant?: 'card' | 'row' | 'hero';
+  kind?: 'review' | 'comparison';
+  tools?: string[];
+  class?: string;
+}
+
+const { slug, variant = 'card', kind = 'review', tools = [], class: className = '' } = Astro.props;
+
+const variantBySlug: Record<string, string> = {
+  'best-api-testing-tools':      'api-tools',
+  'best-test-automation-tools':  'automation-matrix',
+  'cypress-vs-playwright':       'vs-cypress-playwright',
+  'selenium-vs-playwright':      'vs-selenium-playwright',
+};
+const art = variantBySlug[slug] ?? (kind === 'comparison' ? 'vs-generic' : 'review-generic');
+
+// For VS variants, derive the two single-letter labels
+const leftTool  = tools[0] ?? 'A';
+const rightTool = tools[1] ?? 'B';
+const leftLetter  = leftTool.slice(0, 1).toUpperCase();
+const rightLetter = rightTool.slice(0, 1).toUpperCase();
+---
+
+<div class:list={['review-art', `review-art--${variant}`, `rart-${art}`, className]} aria-hidden="true">
+  <svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+
+    <rect x="0" y="0" width="320" height="180" style="fill:var(--bg-surface)"/>
+    <pattern id={`rgrid-${slug}`} x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="1" style="fill:var(--fg);opacity:0.10"/>
+    </pattern>
+    <rect x="0" y="0" width="320" height="180" fill={`url(#rgrid-${slug})`}/>
+
+    {art === 'api-tools' && (
+      <g style="font-family:var(--font-mono)">
+        {/* Method chips (left column) */}
+        <g transform="translate(22,38)">
+          <rect class="rart-method rart-method-1" x="0" y="0" width="46" height="20" rx="2" style="fill:var(--accent);stroke:var(--fg);stroke-width:2"/>
+          <text x="23" y="14" text-anchor="middle" style="font-size:10px;fill:var(--on-accent);font-weight:700">GET</text>
+
+          <rect class="rart-method rart-method-2" x="0" y="28" width="46" height="20" rx="2" style="fill:var(--bg-page);stroke:var(--fg);stroke-width:2"/>
+          <text x="23" y="42" text-anchor="middle" style="font-size:10px;fill:var(--fg);font-weight:700">POST</text>
+
+          <rect class="rart-method rart-method-3" x="0" y="56" width="46" height="20" rx="2" style="fill:var(--bg-page);stroke:var(--fg);stroke-width:2"/>
+          <text x="23" y="70" text-anchor="middle" style="font-size:10px;fill:var(--fg);font-weight:700">PUT</text>
+        </g>
+
+        {/* Path indicator */}
+        <text x="78" y="52" style="font-size:11px;fill:var(--fg);letter-spacing:0.04em">/api/users</text>
+        <text x="78" y="68" style="font-size:9px;fill:var(--fg-muted)">→ application/json</text>
+
+        {/* Flow arrow */}
+        <g transform="translate(78,88)">
+          <line class="rart-flow" x1="0" y1="0" x2="160" y2="0" style="stroke:var(--accent-text);stroke-width:2.4;stroke-dasharray:6 4"/>
+          <polygon points="160,-6 172,0 160,6" style="fill:var(--accent-text)"/>
+        </g>
+
+        {/* Response box (right) */}
+        <g transform="translate(206,108)">
+          <rect x="0" y="0" width="96" height="40" rx="2" style="fill:var(--bg-page);stroke:var(--fg);stroke-width:2"/>
+          <text x="8" y="18" style="font-size:11px;fill:var(--fg);font-weight:700">{`{ ok: true }`}</text>
+          <rect class="rart-status" x="6" y="22" width="42" height="14" rx="2" style="fill:var(--accent);stroke:var(--fg);stroke-width:2"/>
+          <text x="27" y="32" text-anchor="middle" style="font-size:9px;fill:var(--on-accent);font-weight:700">200 OK</text>
+        </g>
+
+        <text x="22" y="170" style="font-size:9px;fill:var(--fg-muted);letter-spacing:0.06em">// REST · GraphQL · contract</text>
+      </g>
+    )}
+
+    {art === 'automation-matrix' && (
+      <g style="font-family:var(--font-mono)">
+        {/* Column headers */}
+        <text x="80"  y="32" text-anchor="middle" style="font-size:9px;fill:var(--fg-muted);letter-spacing:0.06em">WEB</text>
+        <text x="160" y="32" text-anchor="middle" style="font-size:9px;fill:var(--fg-muted);letter-spacing:0.06em">MOBILE</text>
+        <text x="240" y="32" text-anchor="middle" style="font-size:9px;fill:var(--fg-muted);letter-spacing:0.06em">API</text>
+
+        {/* Row labels */}
+        <text x="34" y="60"  text-anchor="end" style="font-size:9px;fill:var(--fg)">Play</text>
+        <text x="34" y="90"  text-anchor="end" style="font-size:9px;fill:var(--fg)">Cypr</text>
+        <text x="34" y="120" text-anchor="end" style="font-size:9px;fill:var(--fg)">Sel.</text>
+        <text x="34" y="150" text-anchor="end" style="font-size:9px;fill:var(--fg)">Appi</text>
+
+        {/* Scanning column highlight (animated) */}
+        <rect class="rart-scan" x="58" y="42" width="44" height="118" rx="2" style="fill:var(--accent-glow);opacity:0.55"/>
+
+        {/* Matrix dots — amber=good fit, hollow=gap */}
+        {[
+          // playwright: web ✓, mobile ✗, api ✓
+          [80, 56, true], [160, 56, false], [240, 56, true],
+          // cypress: web ✓, mobile ✗, api ✓
+          [80, 86, true], [160, 86, false], [240, 86, true],
+          // selenium: web ✓, mobile ✗, api ✗
+          [80, 116, true], [160, 116, false], [240, 116, false],
+          // appium: web ✗, mobile ✓, api ✗
+          [80, 146, false], [160, 146, true], [240, 146, false],
+        ].map(([cx, cy, filled], i) => (
+          <circle
+            class={`rart-cell rart-cell-${i}`}
+            cx={cx as number}
+            cy={cy as number}
+            r="6"
+            style={filled ? 'fill:var(--accent);stroke:var(--fg);stroke-width:2' : 'fill:var(--bg-page);stroke:var(--fg);stroke-width:2'}
+          />
+        ))}
+
+        <text x="22" y="172" style="font-size:9px;fill:var(--fg-muted);letter-spacing:0.06em">// 4 tools · 3 surfaces · fit-matrix</text>
+      </g>
+    )}
+
+    {(art === 'vs-cypress-playwright' || art === 'vs-selenium-playwright' || art === 'vs-generic') && (
+      <g style="font-family:var(--font-mono)">
+        {/* Left tool letter card */}
+        <g transform="translate(36,38)">
+          <rect class="rart-tool rart-tool-left" x="0" y="0" width="92" height="92" rx="3" style="fill:var(--bg-page);stroke:var(--fg);stroke-width:2"/>
+          <text x="46" y="68" text-anchor="middle" style="font-size:64px;fill:var(--fg);font-weight:800;font-family:var(--font-display)">{leftLetter}</text>
+          <text x="46" y="86" text-anchor="middle" style="font-size:9px;fill:var(--fg-muted);letter-spacing:0.08em">{leftTool.toUpperCase().slice(0, 10)}</text>
+
+          {/* Score bar */}
+          <rect x="6" y="98" width="80" height="6" rx="1" style="fill:none;stroke:var(--fg);stroke-width:1.5"/>
+          <rect class="rart-score rart-score-left" x="7.5" y="99.5" width="56" height="3" style="fill:var(--accent-text)"/>
+        </g>
+
+        {/* VS badge in middle */}
+        <g class="rart-vs" transform="translate(160,84)">
+          <circle cx="0" cy="0" r="22" style="fill:var(--accent);stroke:var(--fg);stroke-width:2.5"/>
+          <text x="0" y="5" text-anchor="middle" style="font-size:16px;fill:var(--on-accent);font-weight:800;font-family:var(--font-display)">VS</text>
+        </g>
+
+        {/* Right tool letter card */}
+        <g transform="translate(192,38)">
+          <rect class="rart-tool rart-tool-right" x="0" y="0" width="92" height="92" rx="3" style="fill:var(--accent);stroke:var(--fg);stroke-width:2"/>
+          <text x="46" y="68" text-anchor="middle" style="font-size:64px;fill:var(--on-accent);font-weight:800;font-family:var(--font-display)">{rightLetter}</text>
+          <text x="46" y="86" text-anchor="middle" style="font-size:9px;fill:var(--on-accent);letter-spacing:0.08em">{rightTool.toUpperCase().slice(0, 10)}</text>
+
+          <rect x="6" y="98" width="80" height="6" rx="1" style="fill:none;stroke:var(--fg);stroke-width:1.5"/>
+          <rect class="rart-score rart-score-right" x="7.5" y="99.5" width="72" height="3" style="fill:var(--accent-text)"/>
+        </g>
+
+        <text x="36" y="160" style="font-size:9px;fill:var(--fg-muted);letter-spacing:0.06em">// side-by-side · 6-axis score</text>
+      </g>
+    )}
+
+    {art === 'review-generic' && (
+      <g style="font-family:var(--font-mono)">
+        <rect x="40" y="40" width="84" height="92" rx="3" style="fill:var(--accent);stroke:var(--fg);stroke-width:2"/>
+        <text x="82" y="92" text-anchor="middle" style="font-size:46px;fill:var(--on-accent);font-weight:800;font-family:var(--font-display)">★</text>
+        <text x="82" y="116" text-anchor="middle" style="font-size:10px;fill:var(--on-accent);letter-spacing:0.06em">REVIEW</text>
+        <g transform="translate(160,52)">
+          <line x1="0"  y1="6"  x2="120" y2="6"  style="stroke:var(--fg);stroke-width:2"/>
+          <line x1="0"  y1="26" x2="90"  y2="26" style="stroke:var(--fg);stroke-width:2"/>
+          <line x1="0"  y1="46" x2="106" y2="46" style="stroke:var(--fg);stroke-width:2"/>
+          <line x1="0"  y1="66" x2="74"  y2="66" style="stroke:var(--fg);stroke-width:2"/>
+        </g>
+        <text x="36" y="166" style="font-size:9px;fill:var(--fg-muted);letter-spacing:0.06em">// pros · cons · verdict</text>
+      </g>
+    )}
+  </svg>
+</div>
+
+<style>
+  .review-art {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border: 2px solid var(--fg);
+    border-radius: 4px;
+    background: var(--bg-surface);
+  }
+  .review-art svg { display: block; width: 100%; height: 100%; }
+
+  .review-art--card {
+    aspect-ratio: 16 / 9;
+    margin: -20px -20px 6px;
+    width: calc(100% + 40px);
+    border-left: none; border-right: none; border-top: none;
+    border-bottom: 2px solid var(--fg);
+    border-radius: 0;
+  }
+  /* Featured ReviewCard uses p-6 instead of p-5 — extend art a bit further */
+  :where(.p-6) > .review-art--card {
+    margin: -24px -24px 8px;
+    width: calc(100% + 48px);
+  }
+  .review-art--row {
+    aspect-ratio: 16 / 9;
+    width: 132px;
+    flex-shrink: 0;
+  }
+  @media (max-width: 640px) {
+    .review-art--row { display: none; }
+  }
+  .review-art--hero {
+    aspect-ratio: 21 / 8;
+    margin-bottom: 28px;
+    box-shadow: 6px 6px 0 var(--fg);
+  }
+  @media (max-width: 640px) {
+    .review-art--hero {
+      aspect-ratio: 16 / 9;
+      box-shadow: 4px 4px 0 var(--fg);
+    }
+  }
+
+  /* ── Animations (api-tools) ── */
+  .rart-method, .rart-status, .rart-tool, .rart-vs, .rart-cell, .rart-scan {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .rart-method-1 { animation: rart-method 2.4s ease-in-out infinite; }
+  .rart-method-2 { animation: rart-method 2.4s ease-in-out infinite; animation-delay: 0.4s; }
+  .rart-method-3 { animation: rart-method 2.4s ease-in-out infinite; animation-delay: 0.8s; }
+  @keyframes rart-method {
+    0%, 100% { opacity: 0.6; }
+    50%      { opacity: 1;   }
+  }
+  .rart-flow { animation: rart-flow 1.6s linear infinite; }
+  @keyframes rart-flow { to { stroke-dashoffset: -20; } }
+  .rart-status { animation: rart-status 2s ease-in-out infinite; }
+  @keyframes rart-status {
+    0%, 100% { transform: scale(1);    }
+    50%      { transform: scale(1.12); }
+  }
+
+  /* ── Animations (automation-matrix) ── */
+  .rart-scan {
+    transform-origin: center;
+    animation: rart-scan 5.2s ease-in-out infinite;
+  }
+  @keyframes rart-scan {
+    0%, 16.6%  { transform: translateX(0);    opacity: 0.55; }
+    33.3%      { transform: translateX(80px); opacity: 0.65; }
+    50%, 66.6% { transform: translateX(160px); opacity: 0.55; }
+    83.3%      { transform: translateX(80px); opacity: 0.65; }
+    100%       { transform: translateX(0);    opacity: 0.55; }
+  }
+  .rart-cell { animation: rart-cell 3s ease-in-out infinite; }
+  /* Each cell pulses at a column-phase offset to match the scan */
+  .rart-cell-0, .rart-cell-3, .rart-cell-6, .rart-cell-9  { animation-delay: 0s;   }
+  .rart-cell-1, .rart-cell-4, .rart-cell-7, .rart-cell-10 { animation-delay: 1s;   }
+  .rart-cell-2, .rart-cell-5, .rart-cell-8, .rart-cell-11 { animation-delay: 2s;   }
+  @keyframes rart-cell {
+    0%, 100% { transform: scale(1);    }
+    14%      { transform: scale(1.25); }
+    28%      { transform: scale(1);    }
+  }
+
+  /* ── Animations (VS comparisons) ── */
+  .rart-vs {
+    animation: rart-vs 4.4s ease-in-out infinite;
+  }
+  @keyframes rart-vs {
+    0%, 100% { transform: translate(160px, 84px) rotate(-3deg); }
+    50%      { transform: translate(160px, 84px) rotate( 3deg); }
+  }
+  .rart-tool-left  { animation: rart-tool-l 3.2s ease-in-out infinite; }
+  .rart-tool-right { animation: rart-tool-r 3.2s ease-in-out infinite; animation-delay: 1.6s; }
+  @keyframes rart-tool-l {
+    0%, 50%, 100% { transform: translateY(0); }
+    25%           { transform: translateY(-3px); }
+  }
+  @keyframes rart-tool-r {
+    0%, 50%, 100% { transform: translateY(0); }
+    25%           { transform: translateY(-3px); }
+  }
+  .rart-score { transform-box: fill-box; transform-origin: left center; }
+  .rart-score-left  { animation: rart-score-l 5s ease-in-out infinite; }
+  .rart-score-right { animation: rart-score-r 5s ease-in-out infinite; animation-delay: 0.6s; }
+  @keyframes rart-score-l {
+    0%, 100% { transform: scaleX(0.85); }
+    50%      { transform: scaleX(1);    }
+  }
+  @keyframes rart-score-r {
+    0%, 100% { transform: scaleX(0.9); }
+    50%      { transform: scaleX(1);   }
+  }
+
+  /* Hover amplification on card variant */
+  :where(article:hover) .review-art--card .rart-method-1,
+  :where(article:hover) .review-art--card .rart-method-2,
+  :where(article:hover) .review-art--card .rart-method-3,
+  :where(article:hover) .review-art--card .rart-status,
+  :where(article:hover) .review-art--card .rart-vs,
+  :where(article:hover) .review-art--card .rart-tool-left,
+  :where(article:hover) .review-art--card .rart-tool-right { animation-duration: 1.4s; }
+  :where(article:hover) .review-art--card .rart-flow       { animation-duration: 0.9s; }
+  :where(article:hover) .review-art--card .rart-scan       { animation-duration: 3s; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .review-art *,
+    .review-art { animation: none !important; transition: none !important; }
+    .rart-vs    { transform: translate(160px, 84px); }
+    .rart-scan  { transform: translateX(80px); }
+  }
+</style>

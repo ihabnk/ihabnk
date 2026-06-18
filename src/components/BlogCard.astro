@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { readingTime } from '../lib/reading-time';
+import ArticleArt from './ArticleArt.astro';
 
 type BlogEntry = CollectionEntry<'blog-en'>;
 
@@ -23,12 +24,15 @@ const staggerClass = stagger ? `stagger-${stagger}` : '';
 <article
   class:list={[
     'card-brutal card-shine group relative p-5 flex flex-col gap-2.5 cursor-pointer',
-    animate && 'fade-up',
+    animate && 'reveal',
     staggerClass,
   ]}
   style="background:var(--bg-card)"
   data-tags={tags.join(',')}
 >
+  <!-- Per-article art (edge-to-edge thumbnail) -->
+  <ArticleArt slug={post.slug} variant="card" />
+
   <!-- Tag row -->
   {tags.length > 0 && (
     <div class="flex items-center gap-2.5 flex-wrap">
