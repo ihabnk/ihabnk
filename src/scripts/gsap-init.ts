@@ -24,11 +24,14 @@ gsap.registerPlugin(ScrollTrigger);
 //  - ignoreMobileResize prevents ScrollTrigger from re-calculating every
 //    time the mobile address bar shows/hides (the viewport-height jump
 //    causes a visible flicker otherwise).
-//  - normalizeScroll smooths iOS Safari's elastic / momentum scroll so
-//    ScrollTrigger fires at the right times instead of stuttering when
-//    rubber-banding past the top or bottom of the page.
+//
+// NOTE: we deliberately do NOT call ScrollTrigger.normalizeScroll(). It makes
+// GSAP hijack touch events and drive the scroll position itself, which breaks
+// scrolling entirely inside in-app webviews (Instagram/Facebook/LinkedIn/X
+// browsers, embedded WebViews) — the gesture gets swallowed and the page
+// won't move. Native momentum scrolling is fine; the smoothing it bought
+// wasn't worth a dead page.
 ScrollTrigger.config({ ignoreMobileResize: true });
-ScrollTrigger.normalizeScroll(true);
 
 // Tell the rest of the stylesheet that GSAP owns motion now —
 // the CSS .reveal / .reveal-soft transitions are gated behind
