@@ -46,7 +46,7 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
     <HeroVisual />
 
     <div class="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-      <div class="max-w-[600px] hero-text-parallax">
+      <div class="max-w-[600px] hero-text-parallax" data-anim="hero-stagger">
 
         <!-- Status chip: pulsing live dot + brand line -->
         <div class="hero-status mb-5">
@@ -67,7 +67,7 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
         </p>
 
         <!-- Code snippet card -->
-        <div class="card-brutal mb-6 inline-block max-w-full px-4 py-3 sm:px-5 sm:py-4" style="background:var(--bg-card)">
+        <div class="card-brutal mb-9 sm:mb-10 inline-block max-w-full px-4 py-3 sm:px-5 sm:py-4" style="background:var(--bg-card)">
           <div class="font-mono text-[12px] sm:text-[13px] line-through break-words" style="color:var(--pop-red)"># before: manual QA → delayed releases</div>
           <div class="font-mono text-[12px] sm:text-[13px] mt-1 break-words" style="color:var(--accent-text)"># after:  AI-augmented quality systems that ship</div>
         </div>
@@ -76,7 +76,7 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
           <a href="/blog" class="btn-primary inline-flex items-center gap-2 font-bold text-sm px-6 h-11 rounded-[4px]">
             Read articles
           </a>
-          <a href="/reviews" class="ghost-btn inline-flex items-center gap-2 text-sm px-6 h-11 rounded-[4px]">
+          <a href="/reviews" class="ghost-btn inline-flex items-center gap-2 font-bold text-sm px-6 h-11 rounded-[4px]">
             Reviews
           </a>
         </div>
@@ -110,7 +110,7 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
        PRINCIPLES STRIP — three brutalist glyphs
        ═══════════════════════════════════════════ -->
   <section class="max-w-5xl mx-auto px-4 sm:px-6 pt-10 sm:pt-14" aria-label="Working principles">
-    <div class="principles-strip">
+    <div class="principles-strip" data-anim="card-grid">
 
       <!-- BUILD -->
       <div class="principle-card reveal stagger-1">
@@ -166,8 +166,8 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
     <div class="glow-sep mb-8 sm:mb-10"></div>
 
     <div class="flex items-end justify-between mb-6 sm:mb-8">
-      <div>
-        <span class="section-label mb-2 reveal-soft">// articles</span>
+      <div data-anim="section-head">
+        <span class="section-label mb-2 reveal-soft block">// articles</span>
         <h2 class="font-bold reveal-soft reveal-pop" style="font-size:clamp(32px,4vw,44px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1">Recent Articles</h2>
       </div>
       <a href="/blog" class="font-mono text-[11px] transition-opacity duration-200 hover:opacity-70" style="color:var(--accent-text)">
@@ -178,7 +178,7 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
     {posts.length === 0 ? (
       <p class="font-mono text-sm" style="color:var(--fg-muted)">No posts yet.</p>
     ) : (
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-anim="card-grid">
         {posts.map((post, i) => <BlogCard {post} animate stagger={Math.min(i + 1, 4) as 1|2|3|4} />)}
       </div>
     )}
@@ -192,8 +192,8 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
       <div class="glow-sep mb-8 sm:mb-10"></div>
 
       <div class="flex items-end justify-between mb-6 sm:mb-8">
-        <div>
-          <span class="section-label mb-2 reveal-soft">// featured comparison</span>
+        <div data-anim="section-head">
+          <span class="section-label mb-2 reveal-soft block">// featured comparison</span>
           <h2 class="font-bold reveal-soft reveal-pop" style="font-size:clamp(32px,4vw,44px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1">
             Head-to-head
           </h2>
@@ -207,6 +207,7 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
         href={`/reviews/${featuredReview.slug}`}
         class="featured-review-card card-brutal group block relative overflow-hidden reveal"
         style="background:var(--bg-card)"
+        data-anim="featured"
       >
         <div class="featured-review-grid">
           <div class="featured-review-art">
@@ -269,7 +270,7 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
 
       <div class="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:gap-8">
 
-        <div class="flex-1">
+        <div class="flex-1" data-anim="section-head">
           <span class="section-label mb-3 block reveal-soft">// community</span>
           <h2
             class="font-bold mb-3 reveal-soft reveal-pop"
@@ -312,7 +313,7 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
        NOW — single-line status sticker
        ═══════════════════════════════════════════ -->
   <section class="max-w-5xl mx-auto px-4 sm:px-6 pb-16" aria-label="Currently">
-    <div class="now-card reveal">
+    <div class="now-card reveal" data-anim="featured">
       <div class="now-kicker">
         <span class="now-dot" aria-hidden="true"></span>
         <span class="now-label">// now</span>
@@ -711,29 +712,39 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
 </style>
 
 <script>
-  // Hero text parallax — text drifts up at 0.25× scroll speed, capped at 100px.
+  // Hero text parallax — text drifts up at 0.22× scroll speed, capped at 80px.
+  // Opacity floor of 0.85 so the hero never goes dim enough to look "ghosted";
+  // we just want a subtle parallax depth cue, not a full fade-out.
   (() => {
     type W = Window & { __heroParallaxBound?: boolean };
     const w = window as W;
-    if (w.__heroParallaxBound) return;
-    w.__heroParallaxBound = true;
 
     let ticking = false;
     const apply = () => {
       const el = document.querySelector<HTMLElement>('.hero-text-parallax');
       if (!el) return;
-      const y = Math.min(window.scrollY * 0.25, 100);
-      const opacity = Math.max(0, 1 - window.scrollY / 700);
+      const sy = window.scrollY;
+      const y = Math.min(sy * 0.22, 80);
+      const opacity = Math.max(0.85, 1 - sy / 1400);
       el.style.transform = `translate3d(0, ${-y}px, 0)`;
       el.style.opacity = String(opacity);
       ticking = false;
     };
-    window.addEventListener('scroll', () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(apply);
-      }
-    }, { passive: true });
+
+    if (!w.__heroParallaxBound) {
+      w.__heroParallaxBound = true;
+      window.addEventListener('scroll', () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(apply);
+        }
+      }, { passive: true });
+    }
+
+    // Always re-apply on (re)mount so a freshly-rendered hero gets the right
+    // values — this catches view-transition navigations where the parent DOM
+    // is new but the bound scroll listener already exists.
     apply();
+    document.addEventListener('astro:page-load', apply);
   })();
 </script>

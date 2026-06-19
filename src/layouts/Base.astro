@@ -158,6 +158,11 @@ const articleSchema = article
     <Footer />
     <TTSBar />
 
+    <!-- GSAP + ScrollTrigger orchestration. Bundles via Astro's Vite. -->
+    <script>
+      import '../scripts/gsap-init';
+    </script>
+
     <!-- Site-wide scroll interactivity: bidirectional reveal + top progress bar.
          Reveal is direction-aware — elements animate in from the same edge they
          scrolled off (down = from below, up = from above).

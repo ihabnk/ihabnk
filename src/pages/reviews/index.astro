@@ -32,8 +32,8 @@ const jumpLinks = [
     <div class="glow-sep mb-10"></div>
 
     <!-- Hero -->
-    <header class="mb-10">
-      <span class="section-label mb-2 reveal-soft">// reviews</span>
+    <header class="mb-10" data-anim="section-head">
+      <span class="section-label mb-2 reveal-soft block">// reviews</span>
       <h1
         class="font-bold reveal-soft reveal-pop"
         style="font-size:clamp(36px,5vw,56px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.015em;line-height:1"
@@ -67,7 +67,7 @@ const jumpLinks = [
           <span class="section-label reveal-soft">// featured</span>
           <span class="font-mono text-[11px]" style="color:var(--fg-muted)">{featured.length}</span>
         </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" data-anim="card-grid">
           {featured.map((r, i) => (
             <ReviewCard review={r} featured animate stagger={(i % 4) + 1 as 1 | 2 | 3 | 4} />
           ))}
@@ -106,7 +106,7 @@ const jumpLinks = [
       {latest.length === 0 ? (
         <p class="font-mono text-sm" style="color:var(--fg-muted)">No reviews yet.</p>
       ) : (
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="reviews-grid">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="reviews-grid" data-anim="card-grid">
           {latest.map((r, i) => (
             <ReviewCard review={r} animate stagger={((i % 4) + 1) as 1 | 2 | 3 | 4} />
           ))}
@@ -121,7 +121,7 @@ const jumpLinks = [
           <span class="section-label reveal-soft">// head-to-head</span>
           <span class="font-mono text-[11px]" style="color:var(--fg-muted)">Popular comparisons</span>
         </div>
-        <div class="flex flex-col gap-3.5">
+        <div class="flex flex-col gap-3.5" data-anim="row-list">
           {headToHeads.map(r => <ReviewRow review={r} />)}
         </div>
       </section>

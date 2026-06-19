@@ -247,14 +247,27 @@ p { text-wrap: pretty; }
   box-shadow: 3px 3px 0 var(--fg);
 }
 
-/* ── Ghost button ── */
+/* ── Ghost button ──
+   Same brutal 4px offset shadow + press behaviour as .btn-primary so the
+   two visually align when they sit side-by-side. Difference is fill only:
+   ghost = transparent + outlined, primary = amber-filled. */
 .ghost-btn {
   background: transparent;
   border: 2px solid var(--border-mid);
+  box-shadow: 4px 4px 0 var(--fg);
   color: var(--fg-mid);
-  transition: border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.12s, box-shadow 0.12s, border-color 0.15s ease, color 0.15s ease;
 }
-.ghost-btn:hover { border-color: var(--accent); color: var(--accent-text); box-shadow: 2px 2px 0 var(--accent); }
+.ghost-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent-text);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--fg);
+}
+.ghost-btn:active {
+  transform: translate(0, 0);
+  box-shadow: 2px 2px 0 var(--fg);
+}
 .ghost-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ── Primary brutal button ── */
@@ -447,8 +460,11 @@ body::after {
      Elements toggle in/out as they enter and leave the viewport; the
      `.from-above` class flips the hidden translate so the element animates
      in from the same edge it scrolled off. Gated by `html.reveal-ready`
-     so content stays visible when JS fails. */
-  html.reveal-ready .reveal {
+     so content stays visible when JS fails.
+
+     When GSAP loads it adds `.gsap-ready` to <html> and this entire
+     CSS reveal system is disabled — GSAP owns motion from that point on. */
+  html.reveal-ready:not(.gsap-ready) .reveal {
     opacity: 0;
     transform: translate3d(0, 28px, 0);
     transition:
@@ -458,10 +474,10 @@ body::after {
     will-change: opacity, transform;
     filter: blur(2px);
   }
-  html.reveal-ready .reveal.from-above {
+  html.reveal-ready:not(.gsap-ready) .reveal.from-above {
     transform: translate3d(0, -28px, 0);
   }
-  html.reveal-ready .reveal.in-view {
+  html.reveal-ready:not(.gsap-ready) .reveal.in-view {
     opacity: 1;
     transform: translate3d(0, 0, 0);
     filter: blur(0);
@@ -470,7 +486,7 @@ body::after {
   /* Soft variant — for prose elements (paragraphs, headings, lists) while
      reading. Bidirectional like .reveal, but tuned for editorial flow.
      Resting opacity stays high (0.42) so peripheral text remains legible. */
-  html.reveal-ready .reveal-soft {
+  html.reveal-ready:not(.gsap-ready) .reveal-soft {
     opacity: 0.42;
     transform: translate3d(0, 14px, 0);
     transition:
@@ -478,10 +494,10 @@ body::after {
       transform 0.40s cubic-bezier(0.22, 1, 0.36, 1);
     will-change: opacity, transform;
   }
-  html.reveal-ready .reveal-soft.from-above {
+  html.reveal-ready:not(.gsap-ready) .reveal-soft.from-above {
     transform: translate3d(0, -14px, 0);
   }
-  html.reveal-ready .reveal-soft.in-view {
+  html.reveal-ready:not(.gsap-ready) .reveal-soft.in-view {
     opacity: 1;
     transform: translate3d(0, 0, 0);
   }
@@ -492,9 +508,9 @@ body::after {
      Modern browsers only; falls back to IO-based reveal above. */
   @supports (animation-timeline: view()) {
     /* Override the IO-based transitions so animations drive the values */
-    html.reveal-ready .reveal-soft,
-    html.reveal-ready .reveal-soft.in-view,
-    html.reveal-ready .reveal-soft.from-above {
+    html.reveal-ready:not(.gsap-ready) .reveal-soft,
+    html.reveal-ready:not(.gsap-ready) .reveal-soft.in-view,
+    html.reveal-ready:not(.gsap-ready) .reveal-soft.from-above {
       opacity: 1;
       transform: none;
       transition: none;
@@ -513,7 +529,7 @@ body::after {
 
     /* Drift variant — for figures, images, hr. Slow upward drift while in
        view, paired with fade-in/out. Feels like a parallax layer. */
-    html.reveal-ready .reveal-drift {
+    html.reveal-ready:not(.gsap-ready) .reveal-drift {
       animation: drift-enter linear both, drift-cover linear both, drift-exit linear both;
       animation-timeline: view(), view(), view();
       animation-range: entry 0% entry 100%, cover 0% cover 100%, exit 0% exit 100%;
@@ -533,7 +549,7 @@ body::after {
 
     /* Tilt variant — for blockquotes and call-outs. Slight rotation as it
        passes through, plus stronger fade. */
-    html.reveal-ready .reveal-tilt {
+    html.reveal-ready:not(.gsap-ready) .reveal-tilt {
       animation: tilt-enter linear both, tilt-exit linear both;
       animation-timeline: view(), view();
       animation-range: entry 0% cover 30%, exit 70% exit 100%;
@@ -549,7 +565,7 @@ body::after {
     }
 
     /* Pop variant — for h2 markers. Stronger lift + brief overshoot. */
-    html.reveal-ready .reveal-pop {
+    html.reveal-ready:not(.gsap-ready) .reveal-pop {
       animation: pop-enter cubic-bezier(0.22, 1, 0.36, 1) both;
       animation-timeline: view();
       animation-range: entry 0% cover 25%;
@@ -565,11 +581,11 @@ body::after {
 @media (prefers-reduced-motion: reduce) {
   .fade-up { opacity: 1; }
   html.reveal-ready .reveal,
-  html.reveal-ready .reveal.from-above,
-  html.reveal-ready .reveal.in-view,
-  html.reveal-ready .reveal-soft,
-  html.reveal-ready .reveal-soft.from-above,
-  html.reveal-ready .reveal-soft.in-view,
+  html.reveal-ready:not(.gsap-ready) .reveal.from-above,
+  html.reveal-ready:not(.gsap-ready) .reveal.in-view,
+  html.reveal-ready:not(.gsap-ready) .reveal-soft,
+  html.reveal-ready:not(.gsap-ready) .reveal-soft.from-above,
+  html.reveal-ready:not(.gsap-ready) .reveal-soft.in-view,
   html.reveal-ready .reveal-drift,
   html.reveal-ready .reveal-tilt,
   html.reveal-ready .reveal-pop {
