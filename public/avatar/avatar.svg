@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 168" width="160" height="168" role="img" aria-label="Assistant avatar">
+  <!-- Standalone static mascot. Self-contained palette so it renders as <img>.
+       For the animated/interactive version, use avatar.js + avatar.css. -->
+  <style>
+    :root { --av-body-top:#f7cbb4; --av-body-mid:#df8160; --av-body-bot:#c25c3c; --av-ink:#3d2a1e; --av-spark:#ffe2c2; }
+  </style>
+  <defs>
+    <linearGradient id="avBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" style="stop-color:var(--av-body-top)"/>
+      <stop offset="52%" style="stop-color:var(--av-body-mid)"/>
+      <stop offset="100%" style="stop-color:var(--av-body-bot)"/>
+    </linearGradient>
+    <radialGradient id="avGloss" cx="50%" cy="30%" r="62%">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.38"/>
+      <stop offset="60%" stop-color="#fff" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <ellipse cx="80" cy="152" rx="40" ry="6" fill="rgba(0,0,0,0.14)"/>
+  <path d="M0 -7 C1.6 -2 2 -2 7 0 C2 2 1.6 2 0 7 C-1.6 2 -2 2 -7 0 C-2 -2 -1.6 -2 0 -7 Z" fill="var(--av-spark)" transform="translate(118 40)"/>
+  <rect x="28" y="26" width="104" height="100" rx="46" ry="48" fill="url(#avBody)"/>
+  <rect x="28" y="26" width="104" height="100" rx="46" ry="48" fill="url(#avGloss)"/>
+  <ellipse cx="62" cy="78" rx="6.5" ry="8.5" fill="var(--av-ink)"/>
+  <ellipse cx="98" cy="78" rx="6.5" ry="8.5" fill="var(--av-ink)"/>
+  <circle cx="64" cy="75" r="1.8" fill="#fff" opacity="0.55"/>
+  <circle cx="100" cy="75" r="1.8" fill="#fff" opacity="0.55"/>
+  <path d="M68 95 q12 9 24 0" fill="none" stroke="var(--av-ink)" stroke-width="4" stroke-linecap="round"/>
+</svg>

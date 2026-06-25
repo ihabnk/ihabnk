@@ -1,0 +1,48 @@
+---
+import Base from '../../layouts/Base.astro';
+import Lesson from '../../components/Lesson.astro';
+import { lessons, getLesson } from '../../data/lessons';
+
+export function getStaticPaths() {
+  return lessons.map((l) => ({ params: { slug: l.slug } }));
+}
+
+const { slug } = Astro.params;
+const lesson = getLesson(slug!)!;
+
+// After a lesson, point to the matching written guide if one exists, so the
+// reader can go deeper on the same topic.
+const nextByLesson: Record<string, { href: string; label: string }> = {
+  'think-like-a-tester': { href: '/guides/what-qa-engineer-does', label: 'Next guide' },
+};
+const nextStep = nextByLesson[lesson.slug];
+---
+
+<Base
+  title={lesson.title}
+  description={lesson.intro}
+>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+
+    <div class="flex items-center justify-between flex-wrap gap-3 mb-8">
+      <a
+        href="/guides"
+        class="ghost-btn group inline-flex items-center gap-2 font-mono text-[12px] px-4 h-10 rounded-[4px]"
+      >
+        <span class="transition-transform duration-200 group-hover:-translate-x-0.5">←</span>
+        Guidebook
+      </a>
+      <span class="font-mono text-[11px]" style="color:var(--fg-muted);letter-spacing:0.06em">
+        Interactive lesson
+      </span>
+    </div>
+
+    <Lesson
+      lesson={lesson}
+      nextHref={nextStep?.href}
+      nextLabel={nextStep?.label}
+      backHref="/guides"
+    />
+
+  </div>
+</Base>

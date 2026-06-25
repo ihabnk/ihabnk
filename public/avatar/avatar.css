@@ -1,0 +1,113 @@
+/* ============================================================
+   Assistant avatar widget — styles
+   Original mascot: a soft rounded character + minimal face and a
+   signature sparkle. Warm, simple, creative motion (squash & stretch).
+   All motion uses transform/opacity only (compositor-friendly).
+   ============================================================ */
+
+.av-root {
+  /* ---- Easily-swappable palette (warm by default) ---- */
+  --av-body-top: #f7cbb4;   /* light peach (top light)  */
+  --av-body-mid: #df8160;   /* coral (main)             */
+  --av-body-bot: #c25c3c;   /* deep coral (shaded)      */
+  --av-ink:      #3d2a1e;   /* eyes + mouth             */
+  --av-spark:    #ffe2c2;   /* signature sparkle        */
+
+  --av-size: 160px;
+
+  display: inline-block;
+  width: var(--av-size);
+  height: auto;
+  line-height: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.av-svg { width: 100%; height: auto; display: block; overflow: visible; }
+
+/* ---- Parts ---- */
+.av-shadow { fill: rgba(0, 0, 0, 0.14); }
+.av-gloss  { pointer-events: none; }
+.av-eye    { fill: var(--av-ink); transform-box: fill-box; transform-origin: center; }
+.av-glint  { fill: #fff; opacity: 0.55; }
+.av-eyes-happy path { fill: none; stroke: var(--av-ink); stroke-width: 4.2; stroke-linecap: round; }
+.av-mouth  { fill: var(--av-ink); }
+.av-mouth.m-rest { fill: none; stroke: var(--av-ink); stroke-width: 4; stroke-linecap: round; }
+.av-spark  { fill: var(--av-spark); }
+
+/* transform origins for grouped motion */
+.av-float   { transform-box: fill-box; transform-origin: center bottom; }
+.av-tilt    { transform-box: fill-box; transform-origin: center bottom; transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1); }
+.av-breathe { transform-box: fill-box; transform-origin: center bottom; }
+.av-eyes    { transform-box: fill-box; transform-origin: center; transition: transform 0.25s ease; }
+
+/* ---- Default expression visibility ---- */
+.av-eyes-happy { opacity: 0; }
+.av-mouth      { opacity: 0; }
+.av-mouth.m-rest { opacity: 1; }
+.av-burst      { opacity: 0; }
+
+/* ============================================================
+   IDLE — breathing squash/stretch, slow float, sparkle twinkle
+   ============================================================ */
+.av-float    { animation: av-float 4s ease-in-out infinite; }
+.av-breathe  { animation: av-breathe 4s ease-in-out infinite; }
+.av-spark    { animation: av-twinkle 3s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+
+/* JS-driven blink for natural randomness */
+.av-eye { transition: transform 90ms ease; }
+.av-root.is-blink .av-eye { transform: scaleY(0.12); }
+
+/* ============================================================
+   LISTENING — attentive lean + widened eyes, brighter sparkle
+   ============================================================ */
+.av-root[data-state="listening"] .av-tilt  { transform: rotate(-7deg); }
+.av-root[data-state="listening"] .av-eyes  { transform: scale(1.14); }
+.av-root[data-state="listening"] .av-spark { animation-duration: 1.4s; }
+
+/* ============================================================
+   THINKING — eyes glance up, sparkle orbits the head, slow bob
+   ============================================================ */
+.av-root[data-state="thinking"] .av-eyes  { transform: translate(2px, -4px); }
+.av-root[data-state="thinking"] .av-float { animation-duration: 5.5s; }
+.av-think-orbit { transform-box: view-box; transform-origin: 80px 78px; }
+.av-root[data-state="thinking"] .av-think-orbit { animation: av-orbit 2.6s linear infinite; }
+
+/* ============================================================
+   TALKING — mouth cycles through shapes (data-mouth set by JS)
+   ============================================================ */
+.av-root[data-state="talking"] .m-rest { opacity: 0; }
+.av-root[data-state="talking"][data-mouth="0"] .m-rest { opacity: 1; }
+.av-root[data-state="talking"][data-mouth="1"] .m-mid  { opacity: 1; }
+.av-root[data-state="talking"][data-mouth="2"] .m-open { opacity: 1; }
+
+/* ============================================================
+   CELEBRATING — happy arc eyes, grin, bounce, sparkle burst
+   ============================================================ */
+.av-root[data-state="celebrating"] .av-eyes       { opacity: 0; }
+.av-root[data-state="celebrating"] .av-eyes-happy  { opacity: 1; }
+.av-root[data-state="celebrating"] .m-rest        { opacity: 0; }
+.av-root[data-state="celebrating"] .m-grin        { opacity: 1; }
+.av-root[data-state="celebrating"] .av-float      { animation: av-bounce 0.7s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+.av-root[data-state="celebrating"] .av-burst      { opacity: 1; }
+.av-root[data-state="celebrating"] .av-burst .av-spark { animation: av-pop 0.9s ease-in-out infinite; }
+.av-burst .b2 { animation-delay: 0.15s !important; }
+.av-burst .b3 { animation-delay: 0.3s !important; }
+
+/* ============================================================
+   Keyframes
+   ============================================================ */
+@keyframes av-float   { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes av-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(0.985, 1.03); } }
+@keyframes av-twinkle { 0%, 100% { transform: scale(1) rotate(0); opacity: 0.95; } 50% { transform: scale(0.55) rotate(45deg); opacity: 0.5; } }
+@keyframes av-orbit   { to { transform: rotate(360deg); } }
+@keyframes av-bounce  { 0% { transform: translateY(0); } 32% { transform: translateY(-13px); } 64% { transform: translateY(0); } 82% { transform: translateY(-4px); } 100% { transform: translateY(0); } }
+@keyframes av-pop     { 0%, 100% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.1); opacity: 1; } }
+
+/* ============================================================
+   Reduced motion — calm static pose
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .av-float, .av-breathe, .av-spark, .av-think-orbit, .av-eye,
+  .av-root[data-state="celebrating"] .av-float,
+  .av-burst .av-spark { animation: none !important; transition: none !important; }
+}

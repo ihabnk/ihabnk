@@ -1,0 +1,127 @@
+---
+/**
+ * Bit — the QA learning companion. A flat, square 2D mascot in the site's
+ * brutalist amber grammar: solid fill, hard 2px outline, hard offset shadow,
+ * and a single white eye + signature sparkle.
+ *
+ * Drive expressions with `data-state`: idle | talk | happy | think | celebrate
+ * Motion is transform/opacity only and halts under prefers-reduced-motion.
+ */
+interface Props {
+  state?: 'idle' | 'talk' | 'happy' | 'think' | 'celebrate';
+  size?: number;
+  class?: string;
+}
+const { state = 'idle', size = 72, class: className = '' } = Astro.props;
+const SPARK = 'M0 -7 C1.6 -2 2 -2 7 0 C2 2 1.6 2 0 7 C-1.6 2 -2 2 -7 0 C-2 -2 -1.6 -2 0 -7 Z';
+---
+
+<div class:list={['qa-bot', className]} data-state={state} style={`--bot-size:${size}px`} aria-hidden="true">
+  <svg viewBox="0 0 160 168" xmlns="http://www.w3.org/2000/svg">
+    <!-- hard offset shadow (static; body floats above it) -->
+    <rect class="av-shadow" x="31" y="27" width="104" height="104" rx="22" />
+
+    <g class="av-float">
+      <g class="av-tilt">
+        <!-- orbiting signature sparkle -->
+        <g class="av-think-orbit"><path class="av-spark" d={SPARK} transform="translate(122 36)" /></g>
+
+        <g class="av-breathe">
+          <rect class="av-body" x="28" y="22" width="104" height="104" rx="22" />
+
+          <!-- single white eye -->
+          <g class="av-eye">
+            <ellipse class="av-eyeball" cx="80" cy="66" rx="18" ry="19" />
+            <circle class="av-pupil" cx="80" cy="68" r="8" />
+            <circle class="av-glint" cx="84" cy="62" r="2.6" />
+          </g>
+          <!-- happy arc eye -->
+          <path class="av-eye-happy" d="M61 70 q19 -17 38 0" />
+
+          <!-- mouth -->
+          <path class="av-mouth m-rest" d="M70 100 q10 7 20 0" />
+          <path class="av-mouth m-grin" d="M67 97 q13 12 26 0 q-13 7 -26 0 z" />
+        </g>
+
+        <g class="av-burst">
+          <path class="av-spark b1" d={SPARK} transform="translate(34 50) scale(0.8)" />
+          <path class="av-spark b2" d={SPARK} transform="translate(128 56)" />
+          <path class="av-spark b3" d={SPARK} transform="translate(122 104) scale(0.7)" />
+        </g>
+      </g>
+    </g>
+  </svg>
+</div>
+
+<style>
+  .qa-bot { width: var(--bot-size); height: calc(var(--bot-size) * 1.05); flex-shrink: 0; }
+  .qa-bot svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+  /* Flat 2D parts */
+  .av-shadow  { fill: var(--fg); }
+  .av-body    { fill: var(--accent); stroke: var(--fg); stroke-width: 2.5; }
+  .av-eyeball { fill: #fff; stroke: var(--fg); stroke-width: 2; }
+  .av-pupil   { fill: var(--on-accent); transform-box: fill-box; transform-origin: center; transition: transform 0.25s ease; }
+  .av-glint   { fill: #fff; }
+  .av-eye-happy { fill: none; stroke: var(--on-accent); stroke-width: 5; stroke-linecap: round; }
+  .av-mouth   { fill: var(--on-accent); }
+  .av-mouth.m-rest { fill: none; stroke: var(--on-accent); stroke-width: 4; stroke-linecap: round; }
+  .av-spark   { fill: var(--accent); stroke: var(--fg); stroke-width: 1.5; stroke-linejoin: round; }
+
+  .av-float   { transform-box: fill-box; transform-origin: center bottom; }
+  .av-tilt    { transform-box: fill-box; transform-origin: center bottom; transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+  .av-breathe { transform-box: fill-box; transform-origin: center bottom; }
+  .av-eye     { transform-box: fill-box; transform-origin: center; }
+
+  /* default visibility */
+  .av-eye-happy { opacity: 0; }
+  .av-mouth.m-grin { opacity: 0; }
+  .av-mouth.m-rest { opacity: 1; }
+  .av-burst { opacity: 0; }
+
+  /* idle motion */
+  .av-float   { animation: av-float 4s ease-in-out infinite; }
+  .av-breathe { animation: av-breathe 4s ease-in-out infinite; }
+  .av-spark   { animation: av-twinkle 3s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  .av-eye     { animation: av-blink 4.4s ease-in-out infinite; }
+
+  /* TALK */
+  .qa-bot[data-state="talk"] .m-rest { animation: av-chatter 0.42s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+
+  /* THINK */
+  .qa-bot[data-state="think"] .av-pupil { transform: translate(2px, -5px); }
+  .qa-bot[data-state="think"] .av-think-orbit { animation: av-orbit 2.6s linear infinite; }
+  .qa-bot[data-state="think"] .av-tilt { animation: av-wobble 2s ease-in-out infinite; }
+  .av-think-orbit { transform-box: view-box; transform-origin: 80px 68px; }
+
+  /* HAPPY + CELEBRATE */
+  .qa-bot[data-state="happy"] .av-eye,
+  .qa-bot[data-state="celebrate"] .av-eye { opacity: 0; }
+  .qa-bot[data-state="happy"] .av-eye-happy,
+  .qa-bot[data-state="celebrate"] .av-eye-happy { opacity: 1; }
+  .qa-bot[data-state="happy"] .m-rest,
+  .qa-bot[data-state="celebrate"] .m-rest { opacity: 0; }
+  .qa-bot[data-state="happy"] .m-grin,
+  .qa-bot[data-state="celebrate"] .m-grin { opacity: 1; }
+  .qa-bot[data-state="happy"] .av-float { animation: av-bounce 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+
+  .qa-bot[data-state="celebrate"] .av-float { animation: av-bounce 0.7s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+  .qa-bot[data-state="celebrate"] .av-burst { opacity: 1; }
+  .qa-bot[data-state="celebrate"] .av-burst .av-spark { animation: av-pop 0.9s ease-in-out infinite; }
+  .av-burst .b2 { animation-delay: 0.15s; }
+  .av-burst .b3 { animation-delay: 0.3s; }
+
+  @keyframes av-float   { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+  @keyframes av-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(0.99, 1.025); } }
+  @keyframes av-twinkle { 0%, 100% { transform: scale(1) rotate(0); opacity: 0.95; } 50% { transform: scale(0.55) rotate(45deg); opacity: 0.5; } }
+  @keyframes av-blink   { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.12); } }
+  @keyframes av-chatter { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.4); } }
+  @keyframes av-orbit   { to { transform: rotate(360deg); } }
+  @keyframes av-wobble  { 0%, 100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } }
+  @keyframes av-bounce  { 0% { transform: translateY(0); } 32% { transform: translateY(-11px); } 64% { transform: translateY(0); } 82% { transform: translateY(-4px); } 100% { transform: translateY(0); } }
+  @keyframes av-pop     { 0%, 100% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.1); opacity: 1; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .qa-bot *, .qa-bot { animation: none !important; transition: none !important; }
+  }
+</style>

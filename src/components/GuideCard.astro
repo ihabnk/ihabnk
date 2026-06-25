@@ -1,0 +1,98 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { readingTime } from '../lib/reading-time';
+import ArticleArt from './ArticleArt.astro';
+
+type GuideEntry = CollectionEntry<'guides-en'>;
+
+interface Props {
+  guide: GuideEntry;
+  animate?: boolean;
+  stagger?: number;
+  showArt?: boolean;
+}
+
+const { guide, animate = false, stagger, showArt = true } = Astro.props;
+const href = `/guides/${guide.slug}`;
+const minutes = readingTime(guide.body);
+const est = guide.data.est ?? `${minutes} min`;
+const staggerClass = stagger ? `stagger-${stagger}` : '';
+
+const levelLabel: Record<string, string> = {
+  beginner: 'Beginner',
+  intermediate: 'Intermediate',
+  advanced: 'Advanced',
+};
+const level = guide.data.level;
+---
+
+<article
+  class:list={[
+    'card-brutal card-shine group relative flex flex-col gap-3 cursor-pointer p-5',
+    animate && 'reveal',
+    staggerClass,
+  ]}
+  style="background:var(--bg-card)"
+  data-level={level}
+>
+  {showArt && <ArticleArt slug={guide.slug} variant="card" />}
+
+  <!-- Level chip + pathway -->
+  <div class="flex items-center gap-2.5 flex-wrap">
+    <span class:list={['guide-level', `guide-level--${level}`]}>
+      <span class="guide-level-dot" aria-hidden="true"></span>
+      {levelLabel[level]}
+    </span>
+    {guide.data.pathway && (
+      <span
+        class="font-mono text-[10px]"
+        style="color:var(--fg-muted);letter-spacing:0.04em;text-transform:uppercase"
+      >{guide.data.pathway}</span>
+    )}
+  </div>
+
+  <!-- Title -->
+  <h3 class="text-[22px] font-bold leading-[1.2]" style="color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em">
+    <a href={href} class="stretched-link">{guide.data.title}</a>
+  </h3>
+
+  <!-- Description -->
+  {guide.data.description && (
+    <p class="text-sm leading-snug line-clamp-2" style="color:var(--fg-mid)">{guide.data.description}</p>
+  )}
+
+  <!-- Footer -->
+  <div class="mt-auto pt-3 flex items-center justify-between gap-3" style="border-top:1.5px dashed var(--border)">
+    <span class="font-mono text-[10px]" style="color:var(--fg-muted)">{est}</span>
+    <span class="font-mono text-[10px] font-bold" style="color:var(--accent-text)">Read the guide →</span>
+  </div>
+</article>
+
+<style>
+  .guide-level {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 3px 9px 3px 8px;
+    border-radius: 3px;
+    border: 1.5px solid var(--fg);
+    background: var(--bg-page);
+    color: var(--fg);
+  }
+  .guide-level-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--fg-muted);
+  }
+  /* Level accents — restrained: only the dot changes, the chip stays neutral */
+  .guide-level--beginner    { background: var(--accent); color: var(--on-accent); border-color: var(--fg); }
+  .guide-level--beginner .guide-level-dot    { background: var(--on-accent); }
+  .guide-level--intermediate .guide-level-dot { background: var(--accent); }
+  .guide-level--advanced .guide-level-dot     { background: var(--fg); }
+</style>

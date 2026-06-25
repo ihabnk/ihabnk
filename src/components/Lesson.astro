@@ -1,0 +1,358 @@
+---
+import type { Lesson } from '../data/lessons';
+import Avatar from './Avatar.astro';
+
+interface Props {
+  lesson: Lesson;
+  nextHref?: string;
+  nextLabel?: string;
+  backHref?: string;
+}
+
+const { lesson, nextHref, nextLabel, backHref = '/guides' } = Astro.props;
+const levelLabel = { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' }[lesson.level];
+const stepCount = lesson.steps.length;
+const letters = ['A', 'B', 'C', 'D', 'E'];
+---
+
+<section class="lesson" data-lesson>
+  <div class="lesson-progress" aria-hidden="true"><div class="lesson-progress-fill"></div></div>
+
+  <!-- Persistent companion -->
+  <div class="lesson-top">
+    <Avatar class="lesson-avatar" state="idle" size={64} />
+    <span class="bot-caption" data-bot-caption>Ready when you are.</span>
+  </div>
+
+  <div class="lesson-stage">
+
+    <!-- Intro -->
+    <div class="lscreen lscreen-center" data-i="0" data-kind="intro">
+      <span class:list={['lesson-level', `lesson-level--${lesson.level}`]}>
+        <span class="lesson-level-dot" aria-hidden="true"></span>{levelLabel} · Interactive
+      </span>
+      <h1 class="lesson-title">{lesson.title}</h1>
+      <p class="lesson-intro">{lesson.intro}</p>
+      <span class="lesson-est">{stepCount} steps · {lesson.est}</span>
+    </div>
+
+    <!-- Steps -->
+    {lesson.steps.map((step, idx) => (
+      <div class="lscreen" data-i={idx + 1} data-kind={step.kind}>
+        {step.kind === 'concept' && (
+          <div class="lconcept">
+            <div class="say">
+              {step.title && <h2 class="say-title">{step.title}</h2>}
+              <p class="say-body">{step.body}</p>
+            </div>
+            {step.note && <p class="lconcept-note">{step.note}</p>}
+          </div>
+        )}
+
+        {step.kind === 'mcq' && (
+          <div class="lmcq">
+            <div class="say say--q">
+              <span class="say-tag">Quick check</span>
+              <p class="say-prompt">{step.prompt}</p>
+            </div>
+            <div class="lmcq-options" role="group">
+              {step.options.map((opt, oi) => (
+                <button
+                  type="button"
+                  class="lq-opt"
+                  data-correct={opt.correct ? '1' : '0'}
+                  data-feedback={opt.feedback}
+                >
+                  <span class="lq-marker" aria-hidden="true">{letters[oi]}</span>
+                  <span class="lq-text">{opt.text}</span>
+                  <span class="lq-icon" aria-hidden="true"></span>
+                </button>
+              ))}
+            </div>
+            <div class="lq-feedback" hidden></div>
+          </div>
+        )}
+      </div>
+    ))}
+
+    <!-- Completion -->
+    <div class="lscreen lscreen-center lscreen-done" data-i={stepCount + 1} data-kind="done">
+      <div class="confetti" aria-hidden="true">
+        {Array.from({ length: 14 }).map((_, i) => <span class={`cbit cbit-${i % 4}`} style={`--d:${(i * 0.08).toFixed(2)}s;--x:${(i * 7) % 100}%`}></span>)}
+      </div>
+      <h2 class="lesson-title">Lesson complete.</h2>
+      <p class="lesson-intro">You just practiced the real work of QA — predicting failure, probing the edges, and reporting clearly. That instinct is the foundation everything else builds on.</p>
+      <div class="lesson-done-actions">
+        {nextHref && (
+          <a href={nextHref} class="btn-primary inline-flex items-center gap-2 font-bold text-sm px-6 h-11 rounded-[4px]">
+            {nextLabel ?? 'Next'} →
+          </a>
+        )}
+        <a href={backHref} class="ghost-btn inline-flex items-center gap-2 font-bold text-sm px-6 h-11 rounded-[4px]">
+          Back to the Guidebook
+        </a>
+        <button type="button" class="lesson-restart">↻ Restart</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="lesson-foot">
+    <button type="button" class="lesson-back" hidden>← Back</button>
+    <span class="lesson-count" hidden></span>
+    <button type="button" class="lesson-next btn-primary">Start lesson</button>
+  </div>
+</section>
+
+<style>
+  .lesson {
+    max-width: 660px; margin: 0 auto;
+    border: 2px solid var(--fg); border-radius: 6px; background: var(--bg-card);
+    box-shadow: 6px 6px 0 var(--fg); overflow: hidden;
+  }
+
+  .lesson-progress { height: 6px; background: var(--bg-surface); border-bottom: 2px solid var(--fg); }
+  .lesson-progress-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
+
+  /* Companion row */
+  .lesson-top { display: flex; align-items: center; gap: 14px; padding: 18px 26px 0; }
+  .bot-caption {
+    font-family: var(--font-mono); font-size: 12px; color: var(--fg-mid);
+    background: var(--bg-page); border: 1.5px solid var(--border-mid); border-radius: 999px;
+    padding: 6px 14px; transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .bot-caption[hidden] { display: none; }
+  .bot-caption.pop { animation: caption-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  @keyframes caption-pop { from { transform: scale(0.9); opacity: 0.4; } to { transform: scale(1); opacity: 1; } }
+
+  .lesson-stage { padding: 16px 30px 8px; min-height: 320px; display: flex; flex-direction: column; }
+  @media (max-width: 560px) { .lesson-stage { padding: 14px 18px 6px; } .lesson-top { padding: 16px 18px 0; } }
+
+  .lscreen { animation: lscreen-in 0.34s cubic-bezier(0.22, 1, 0.36, 1); }
+  .lscreen[hidden] { display: none; }
+  .lscreen-center { text-align: center; align-items: center; display: flex; flex-direction: column; justify-content: center; flex: 1; }
+  @keyframes lscreen-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Speech bubble (the bot "talking") */
+  .say {
+    position: relative; background: var(--bg-page); border: 2px solid var(--fg);
+    border-radius: 12px; padding: 18px 20px; box-shadow: 3px 3px 0 var(--fg);
+    animation: say-in 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .say::before {
+    content: ''; position: absolute; top: -10px; left: 26px;
+    width: 16px; height: 16px; background: var(--bg-page);
+    border-left: 2px solid var(--fg); border-top: 2px solid var(--fg);
+    transform: rotate(45deg);
+  }
+  @keyframes say-in { from { opacity: 0; transform: translateY(-6px) scale(0.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  .say-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(21px, 3vw, 27px); line-height: 1.12; letter-spacing: -0.01em; color: var(--fg); margin: 0 0 10px; }
+  .say-body { font-family: var(--font-sans); font-size: 18px; line-height: 1.65; color: var(--fg); margin: 0; }
+  .say-tag { display: inline-block; font-family: var(--font-mono); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-text); margin-bottom: 8px; }
+  .say-prompt { font-family: var(--font-display); font-weight: 700; font-size: clamp(19px, 2.8vw, 24px); line-height: 1.22; letter-spacing: -0.01em; color: var(--fg); margin: 0; }
+
+  .lconcept-note {
+    margin: 18px 0 0; padding: 13px 16px; border-left: 3px solid var(--accent);
+    background: var(--accent-glow); border-radius: 0 4px 4px 0;
+    font-family: var(--font-sans); font-size: 15px; line-height: 1.55; color: var(--fg-mid);
+  }
+
+  /* Options */
+  .lmcq-options { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+  .lq-opt {
+    display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+    padding: 14px 16px; border: 2px solid var(--border-mid); border-radius: 5px;
+    background: var(--bg-page); color: var(--fg); cursor: pointer;
+    font-family: var(--font-sans); font-size: 16px; line-height: 1.4;
+    transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+    animation: opt-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+  .lq-opt:nth-child(1) { animation-delay: 0.06s; }
+  .lq-opt:nth-child(2) { animation-delay: 0.14s; }
+  .lq-opt:nth-child(3) { animation-delay: 0.22s; }
+  .lq-opt:nth-child(4) { animation-delay: 0.30s; }
+  @keyframes opt-in { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+  .lq-opt:hover:not(:disabled) { border-color: var(--accent); transform: translateY(-1px); }
+  .lq-opt:disabled { cursor: default; }
+  .lq-marker { flex-shrink: 0; width: 26px; height: 26px; display: grid; place-items: center; border: 1.5px solid var(--border-mid); border-radius: 5px; font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--fg-mid); }
+  .lq-text { flex: 1; }
+  .lq-icon { flex-shrink: 0; width: 18px; text-align: center; font-weight: 700; }
+
+  .lq-opt.is-correct { border-color: var(--accent); background: var(--accent-glow); animation: opt-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .lq-opt.is-correct .lq-marker { background: var(--accent); color: var(--on-accent); border-color: var(--fg); }
+  .lq-opt.is-correct .lq-icon::after { content: '✓'; color: var(--accent-text); }
+  .lq-opt.is-wrong { border-color: var(--pop-red); animation: opt-shake 0.4s ease; }
+  .lq-opt.is-wrong .lq-marker { border-color: var(--pop-red); color: var(--pop-red); }
+  .lq-opt.is-wrong .lq-icon::after { content: '✕'; color: var(--pop-red); }
+  @keyframes opt-pop { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
+  @keyframes opt-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(2px); } }
+
+  .lq-feedback { margin-top: 16px; padding: 14px 16px; border-radius: 5px; font-family: var(--font-sans); font-size: 15px; line-height: 1.55; border: 1.5px solid var(--border); animation: say-in 0.3s ease; }
+  .lq-feedback.fb-correct { border-color: var(--accent); background: var(--accent-glow); color: var(--fg); }
+  .lq-feedback.fb-wrong { border-color: var(--pop-red); background: color-mix(in srgb, var(--pop-red) 10%, transparent); color: var(--fg); }
+  .lq-feedback::before { display: block; font-family: var(--font-mono); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .lq-feedback.fb-correct::before { content: 'Correct'; color: var(--accent-text); }
+  .lq-feedback.fb-wrong::before { content: 'Not quite'; color: var(--pop-red); }
+
+  /* Completion + confetti */
+  .lscreen-done { position: relative; }
+  .lesson-done-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; margin-top: 8px; }
+  .lesson-restart { font-family: var(--font-mono); font-size: 12px; color: var(--fg-muted); background: none; border: none; cursor: pointer; padding: 8px 10px; transition: color 0.15s ease; }
+  .lesson-restart:hover { color: var(--accent-text); }
+  .confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .cbit { position: absolute; top: -12px; left: var(--x); width: 8px; height: 12px; opacity: 0; animation: confetti-fall 1.5s var(--d) ease-in forwards; }
+  .cbit-0 { background: var(--accent); }
+  .cbit-1 { background: var(--accent-text); }
+  .cbit-2 { background: var(--pop-cyan); }
+  .cbit-3 { background: var(--fg); }
+  @keyframes confetti-fall {
+    0% { opacity: 1; transform: translateY(0) rotate(0); }
+    100% { opacity: 0; transform: translateY(340px) rotate(420deg); }
+  }
+
+  /* Shared text */
+  .lesson-level { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 4px 11px 4px 9px; border-radius: 999px; border: 1.5px solid var(--fg); background: var(--bg-page); color: var(--fg); margin-bottom: 16px; }
+  .lesson-level-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--fg-muted); }
+  .lesson-level--beginner { background: var(--accent); color: var(--on-accent); }
+  .lesson-level--beginner .lesson-level-dot { background: var(--on-accent); }
+  .lesson-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(28px, 4.4vw, 40px); line-height: 1.05; letter-spacing: -0.015em; color: var(--fg); margin: 0 0 14px; }
+  .lesson-intro { font-family: var(--font-sans); font-size: 17px; line-height: 1.6; color: var(--fg-mid); margin: 0 0 18px; max-width: 48ch; }
+  .lesson-est { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-muted); }
+
+  /* Footer */
+  .lesson-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 24px; border-top: 2px solid var(--fg); background: var(--bg-surface); }
+  .lesson-back { font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--fg-mid); background: none; border: none; cursor: pointer; padding: 8px 6px; transition: color 0.15s ease; }
+  .lesson-back:hover { color: var(--accent-text); }
+  .lesson-back[hidden] { visibility: hidden; display: inline-block; }
+  .lesson-count { font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); letter-spacing: 0.06em; margin-left: auto; margin-right: auto; }
+  .lesson-next { padding: 0 22px; height: 42px; display: inline-flex; align-items: center; }
+  .lesson-next:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: 2px 2px 0 var(--fg); transform: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lscreen, .say, .lq-opt, .lq-feedback, .cbit, .bot-caption.pop, .lesson-progress-fill { animation: none !important; transition: none !important; }
+    .cbit { display: none; }
+  }
+</style>
+
+<script>
+  (() => {
+    function initLesson(root: HTMLElement) {
+      if (root.dataset.init === '1') return;
+      root.dataset.init = '1';
+
+      const screens = Array.from(root.querySelectorAll<HTMLElement>('.lscreen'));
+      const total = screens.length;
+      const stepCount = total - 2;
+      const fill = root.querySelector<HTMLElement>('.lesson-progress-fill')!;
+      const back = root.querySelector<HTMLButtonElement>('.lesson-back')!;
+      const next = root.querySelector<HTMLButtonElement>('.lesson-next')!;
+      const count = root.querySelector<HTMLElement>('.lesson-count')!;
+      const bot = root.querySelector<HTMLElement>('.lesson-avatar')!;
+      const caption = root.querySelector<HTMLElement>('[data-bot-caption]')!;
+      let idx = 0;
+
+      const setBot = (state: string, text?: string) => {
+        bot.dataset.state = state;
+        if (text === undefined) {
+          caption.hidden = true;
+        } else {
+          caption.hidden = false;
+          caption.textContent = text;
+          caption.classList.remove('pop');
+          void caption.offsetWidth; // restart animation
+          caption.classList.add('pop');
+        }
+      };
+
+      const render = () => {
+        screens.forEach((s) => { s.hidden = Number(s.dataset.i) !== idx; });
+        const cur = screens[idx];
+        const kind = cur.dataset.kind;
+
+        fill.style.width = `${idx === 0 ? 0 : idx > stepCount ? 100 : (idx / stepCount) * 100}%`;
+        back.hidden = idx === 0;
+
+        if (kind === 'concept' || kind === 'mcq') {
+          count.hidden = false;
+          count.textContent = `${idx} / ${stepCount}`;
+        } else {
+          count.hidden = true;
+        }
+
+        if (kind === 'done') {
+          next.hidden = true;
+        } else {
+          next.hidden = false;
+          next.textContent = kind === 'intro' ? 'Start lesson' : idx === stepCount ? 'Finish' : 'Continue';
+          next.disabled = kind === 'mcq' && cur.dataset.answered !== '1';
+        }
+
+        // Companion reactions
+        if (kind === 'intro') setBot('idle', 'Ready when you are.');
+        else if (kind === 'concept') setBot('talk', undefined);
+        else if (kind === 'done') setBot('celebrate', 'Lesson complete! 🎉');
+        else if (kind === 'mcq') {
+          if (cur.dataset.result === 'correct') setBot('happy', "Nice — that's right.");
+          else if (cur.dataset.result === 'wrong') setBot('think', 'Not quite — see why below.');
+          else setBot('idle', 'Your turn — pick one.');
+        }
+      };
+
+      const advance = (delta: number) => {
+        idx = Math.max(0, Math.min(idx + delta, total - 1));
+        render();
+        const top = root.getBoundingClientRect().top + window.scrollY - 84;
+        if (window.scrollY > top + 40 || window.scrollY < top - 200) window.scrollTo({ top, behavior: 'smooth' });
+      };
+
+      next.addEventListener('click', () => { if (!next.disabled) advance(1); });
+      back.addEventListener('click', () => advance(-1));
+
+      root.addEventListener('click', (e) => {
+        const opt = (e.target as HTMLElement).closest<HTMLButtonElement>('.lq-opt');
+        if (!opt) return;
+        const screen = opt.closest<HTMLElement>('.lscreen')!;
+        if (screen.dataset.answered === '1') return;
+        screen.dataset.answered = '1';
+
+        const correct = opt.dataset.correct === '1';
+        screen.dataset.result = correct ? 'correct' : 'wrong';
+        screen.querySelectorAll<HTMLButtonElement>('.lq-opt').forEach((o) => {
+          o.disabled = true;
+          if (o.dataset.correct === '1') o.classList.add('is-correct');
+        });
+        if (!correct) opt.classList.add('is-wrong');
+
+        const fb = screen.querySelector<HTMLElement>('.lq-feedback')!;
+        fb.textContent = opt.dataset.feedback ?? '';
+        fb.classList.add(correct ? 'fb-correct' : 'fb-wrong');
+        fb.hidden = false;
+        render();
+      });
+
+      const params = new URLSearchParams(location.search);
+      const startAt = Number.parseInt(params.get('step') ?? '', 10);
+      if (!Number.isNaN(startAt)) idx = Math.max(0, Math.min(startAt, total - 1));
+
+      root.querySelector<HTMLButtonElement>('.lesson-restart')?.addEventListener('click', () => {
+        idx = 0;
+        screens.forEach((s) => { delete s.dataset.answered; delete s.dataset.result; });
+        root.querySelectorAll<HTMLButtonElement>('.lq-opt').forEach((o) => { o.disabled = false; o.classList.remove('is-correct', 'is-wrong'); });
+        root.querySelectorAll<HTMLElement>('.lq-feedback').forEach((f) => { f.hidden = true; f.className = 'lq-feedback'; f.textContent = ''; });
+        render();
+        window.scrollTo({ top: root.getBoundingClientRect().top + window.scrollY - 84, behavior: 'smooth' });
+      });
+
+      render();
+
+      if (params.has('reveal')) {
+        const cur = screens[idx];
+        if (cur?.dataset.kind === 'mcq') cur.querySelector<HTMLButtonElement>('.lq-opt[data-correct="1"]')?.click();
+      }
+    }
+
+    const initAll = () => document.querySelectorAll<HTMLElement>('[data-lesson]').forEach(initLesson);
+    initAll();
+    document.addEventListener('astro:page-load', initAll);
+  })();
+</script>
