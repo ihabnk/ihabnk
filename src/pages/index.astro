@@ -2,100 +2,123 @@
 import Base from '../layouts/Base.astro';
 import HeroVisual from '../components/HeroVisual.astro';
 import BlogCard from '../components/BlogCard.astro';
+import ReviewCard from '../components/ReviewCard.astro';
 import ReviewArt from '../components/ReviewArt.astro';
+import { readingTime } from '../lib/reading-time';
 import { getCollection } from 'astro:content';
 
 const allPosts = await getCollection('blog-en', ({ data }) => !data.draft);
+const allReviews = await getCollection('reviews-en', ({ data }) => !data.draft);
+
 const posts = allPosts
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 3);
 
-// Pick a featured comparison review to showcase on the home page
-const allReviews = await getCollection('reviews-en', ({ data }) => !data.draft);
-
-// Hero stats (kept honest: live counts of content, fixed "10y QA")
-const heroStats = [
-  { value: '10+ y', label: 'qa' },
-  { value: String(allPosts.length), label: 'articles' },
-  { value: String(allReviews.length), label: 'reviews' },
-  { value: 'gmt+3', label: 'tz' },
-];
+// Flagship comparison for the reviews pillar — newest featured comparison,
+// falling back to the newest review of any kind.
 const featuredReview =
   allReviews
     .filter((r) => r.data.kind === 'comparison' && r.data.featured)
     .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())[0]
   ?? allReviews.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())[0];
 
-// "Now" line — what's currently on the bench
-const now = {
-  date: '2026-06-19',
-  building: 'a self-testing agent that grades its own evals',
-  shipping: 'the new ReviewArt + bidirectional scroll-reveal',
-};
+// The rest of the reviews, newest first, shown as a grid beneath the flagship.
+const otherReviews = allReviews
+  .filter((r) => r.slug !== featuredReview?.slug)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
 
-const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/01KRX7GT1KB53TTBX7BTKZ4529';
+// Curated on-ramp: three pieces that capture what the site is about. Mixed
+// essay + review so a first-time reader sees both pillars immediately.
+const pick = (coll: typeof allPosts | typeof allReviews, slug: string) =>
+  coll.find((e) => e.slug === slug);
+
+const startHere = [
+  { e: pick(allPosts, 'why-quality-is-the-bottleneck'), base: '/blog',    kicker: 'The thesis' },
+  { e: pick(allReviews, 'selenium-vs-playwright'),       base: '/reviews', kicker: 'Flagship comparison' },
+  { e: pick(allPosts, 'evals-are-the-new-tests'),        base: '/blog',    kicker: 'AI quality' },
+]
+  .filter((x): x is { e: NonNullable<typeof x.e>; base: string; kicker: string } => Boolean(x.e))
+  .map((x) => ({
+    href: `${x.base}/${x.e.slug}`,
+    kicker: x.kicker,
+    title: x.e.data.title,
+    blurb: (x.e.data as { verdict?: string }).verdict ?? x.e.data.description ?? '',
+    minutes: readingTime(x.e.body),
+  }));
+
+const LINKEDIN_URL = 'https://linkedin.com/in/ihabnk';
+const GITHUB_URL   = 'https://github.com/ihabnk';
+const BLUESKY_URL  = 'https://bsky.app/profile/ihabnk.org';
+const STOAT_URL    = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/01KRX7GT1KB53TTBX7BTKZ4529';
+
+const writesAbout = ['Testing tools', 'Evals', 'Test automation', 'AI quality', 'QA careers'];
+
+const why = [
+  {
+    n: '01',
+    title: 'A verdict, every time',
+    sub: 'Every review and comparison commits to a recommendation — with the scores, the trade-offs, and where it would lose.',
+  },
+  {
+    n: '02',
+    title: 'Written from production',
+    sub: 'Notes from a decade of shipping and breaking real systems. Not vendor decks, not borrowed takes.',
+  },
+  {
+    n: '03',
+    title: 'Signal over noise',
+    sub: 'No hype cycles and no sponsored verdicts — just what holds up once real users arrive.',
+  },
+];
 ---
 
-<Base title="ihabnk" description="QA Engineer turned AI Product builder">
+<Base
+  title="ihabnk"
+  description="Independent tool reviews, head-to-head comparisons, and field notes on testing, evals, and AI-assisted software quality."
+>
 
   <!-- ═══════════════════════════════════════════
        HERO
        ═══════════════════════════════════════════ -->
-  <section class="relative min-h-[520px] sm:min-h-[640px] lg:min-h-[720px] flex items-center overflow-hidden" style="background:var(--bg-page)">
+  <section class="relative min-h-[520px] sm:min-h-[640px] lg:min-h-[700px] flex items-center overflow-hidden" style="background:var(--bg-page)">
 
     <HeroVisual />
 
     <div class="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-      <div class="max-w-[600px] hero-text-parallax" data-anim="hero-stagger">
+      <div class="max-w-[640px] hero-text-parallax" data-anim="hero-stagger">
 
-        <!-- Status chip: pulsing live dot + brand line -->
+        <!-- Category chip: pulsing live dot + what this site is -->
         <div class="hero-status mb-5">
           <span class="hero-status-dot" aria-hidden="true"></span>
-          <span class="hero-status-label">Shipping</span>
-          <span class="hero-status-sep">·</span>
-          <span class="hero-status-meta">QA engineer turned AI builder</span>
+          <span class="hero-status-label">A publication on software quality</span>
         </div>
 
-        <h1 class="font-bold leading-[1.0] mb-4 hero-title" style="font-size:clamp(40px,9vw,72px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em">
-          <span class="hero-title-word">QA Engineering</span>
-          <span class="hero-title-arrow">→</span>
-          <span class="hero-title-word hero-title-word-accent">AI Product</span>
+        <h1 class="font-bold leading-[1.02] mb-5 hero-title" style="font-size:clamp(32px,7vw,68px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.015em">
+          <span class="hero-title-line">The hard part was never building it.</span>
+          <span class="hero-title-line hero-title-accent">It's knowing it works.</span>
         </h1>
 
-        <p class="text-[17px] leading-[1.6] mb-5 max-w-[480px]" style="color:var(--fg-mid)">
-          I build AI-augmented quality systems and ship digital products that actually work.
+        <p class="text-[17px] sm:text-[18px] leading-[1.6] mb-8 max-w-[540px]" style="color:var(--fg-mid)">
+          Independent tool reviews, head-to-head comparisons, and field notes
+          on testing, evals, and AI-assisted quality — for engineers who care
+          whether the thing actually holds up.
         </p>
 
-        <!-- Code snippet card -->
-        <div class="card-brutal mb-9 sm:mb-10 inline-block max-w-full px-4 py-3 sm:px-5 sm:py-4" style="background:var(--bg-card)">
-          <div class="font-mono text-[12px] sm:text-[13px] line-through break-words" style="color:var(--pop-red)"># before: manual QA → delayed releases</div>
-          <div class="font-mono text-[12px] sm:text-[13px] mt-1 break-words" style="color:var(--accent-text)"># after:  AI-augmented quality systems that ship</div>
-        </div>
-
-        <div class="flex flex-wrap gap-3 mb-7">
-          <a href="/blog" class="btn-primary inline-flex items-center gap-2 font-bold text-sm px-6 h-11 rounded-[4px]">
-            Read articles
+        <div class="flex flex-wrap gap-3">
+          <a href="#start" class="btn-primary inline-flex items-center gap-2 font-bold text-sm px-6 h-11 rounded-[4px]">
+            Start here
           </a>
           <a href="/reviews" class="ghost-btn inline-flex items-center gap-2 font-bold text-sm px-6 h-11 rounded-[4px]">
-            Reviews
+            Browse reviews
           </a>
         </div>
-
-        <!-- Stats strip — live counts of content + tz -->
-        <ul class="hero-stats" aria-label="At-a-glance stats">
-          {heroStats.map((s) => (
-            <li class="hero-stat">
-              <span class="hero-stat-value">{s.value}</span>
-              <span class="hero-stat-label">{s.label}</span>
-            </li>
-          ))}
-        </ul>
 
       </div>
     </div>
 
-    <!-- Scroll cue at the bottom of the hero -->
-    <a class="hero-scroll-cue" href="#articles" aria-label="Scroll to articles">
+    <!-- Scroll cue -->
+    <a class="hero-scroll-cue" href="#start" aria-label="Scroll to start here">
       <span class="hero-scroll-cue-label">scroll</span>
       <span class="hero-scroll-cue-arrow" aria-hidden="true">
         <svg viewBox="0 0 16 24" xmlns="http://www.w3.org/2000/svg">
@@ -107,105 +130,66 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
   </section>
 
   <!-- ═══════════════════════════════════════════
-       PRINCIPLES STRIP — three brutalist glyphs
+       START HERE — curated on-ramp
        ═══════════════════════════════════════════ -->
-  <section class="max-w-5xl mx-auto px-4 sm:px-6 pt-10 sm:pt-14" aria-label="Working principles">
-    <div class="principles-strip" data-anim="card-grid">
-
-      <!-- BUILD -->
-      <div class="principle-card reveal stagger-1">
-        <svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect x="6"  y="22" width="22" height="22" rx="2" style="fill:var(--bg-surface);stroke:var(--fg);stroke-width:2"/>
-          <rect class="pr-pulse" x="29" y="10" width="22" height="34" rx="2" style="fill:var(--accent);stroke:var(--fg);stroke-width:2"/>
-          <rect x="52" y="30" width="22" height="14" rx="2" style="fill:var(--bg-surface);stroke:var(--fg);stroke-width:2"/>
-          <line x1="6" y1="46" x2="74" y2="46" style="stroke:var(--fg);stroke-width:2"/>
-        </svg>
-        <div class="principle-kicker">// 01</div>
-        <div class="principle-title">Build</div>
-        <div class="principle-sub">small, sturdy, in public</div>
+  {startHere.length > 0 && (
+    <section id="start" class="max-w-5xl mx-auto px-4 sm:px-6 pt-12 sm:pt-16 scroll-mt-24">
+      <div class="mb-6 sm:mb-8" data-anim="section-head">
+        <span class="section-label mb-2 reveal-soft block">// start here</span>
+        <h2 class="font-bold reveal-soft reveal-pop" style="font-size:clamp(30px,4vw,44px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1.02">
+          New here? Start with these.
+        </h2>
+        <p class="mt-3 text-[15px] reveal-soft" style="color:var(--fg-mid);max-width:520px">
+          Three pieces that capture how this site thinks about quality — one essay, one comparison, one on testing AI.
+        </p>
       </div>
 
-      <!-- EVAL -->
-      <div class="principle-card reveal stagger-2">
-        <svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <line x1="10" y1="14" x2="10" y2="46" style="stroke:var(--fg);stroke-width:2"/>
-          <line x1="10" y1="46" x2="72" y2="46" style="stroke:var(--fg);stroke-width:2"/>
-          <rect x="18" y="30" width="8" height="14" style="fill:none;stroke:var(--fg);stroke-width:2"/>
-          <rect x="30" y="22" width="8" height="22" style="fill:var(--accent);stroke:var(--fg);stroke-width:2"/>
-          <rect x="42" y="26" width="8" height="18" style="fill:none;stroke:var(--fg);stroke-width:2"/>
-          <rect class="pr-pulse" x="54" y="18" width="8" height="26" style="fill:var(--accent);stroke:var(--fg);stroke-width:2"/>
-          <polyline class="pr-check" points="46,10 52,16 64,4"
-                    style="fill:none;stroke:var(--accent-text);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:32;stroke-dashoffset:32"/>
-        </svg>
-        <div class="principle-kicker">// 02</div>
-        <div class="principle-title">Eval</div>
-        <div class="principle-sub">measure before you ship</div>
-      </div>
-
-      <!-- SHIP -->
-      <div class="principle-card reveal stagger-3">
-        <svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect x="6"  y="22" width="20" height="16" rx="2" style="fill:var(--bg-surface);stroke:var(--fg);stroke-width:2"/>
-          <rect class="pr-pulse" x="30" y="22" width="20" height="16" rx="2" style="fill:var(--accent);stroke:var(--fg);stroke-width:2"/>
-          <line class="pr-flow" x1="50" y1="30" x2="64" y2="30" style="stroke:var(--fg);stroke-width:2;stroke-dasharray:4 3"/>
-          <polygon points="64,24 74,30 64,36" style="fill:var(--accent-text)"/>
-          <line x1="6"  y1="46" x2="74" y2="46" style="stroke:var(--fg);stroke-width:2;stroke-dasharray:4 3"/>
-        </svg>
-        <div class="principle-kicker">// 03</div>
-        <div class="principle-title">Ship</div>
-        <div class="principle-sub">production &gt; prototype</div>
-      </div>
-
-    </div>
-  </section>
+      <ol class="start-list" data-anim="row-list">
+        {startHere.map((item, i) => (
+          <li class="start-item group">
+            <span class="start-index" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+            <div class="start-body">
+              <span class="start-kicker">{item.kicker}</span>
+              <h3 class="start-title">
+                <a href={item.href} class="stretched-link">{item.title}</a>
+              </h3>
+              {item.blurb && <p class="start-blurb">{item.blurb}</p>}
+            </div>
+            <span class="start-meta">
+              <span class="start-min">{item.minutes} min</span>
+              <span class="start-read" aria-hidden="true">Read →</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )}
 
   <!-- ═══════════════════════════════════════════
-       RECENT ARTICLES
+       REVIEWS & COMPARISONS — the pillar
        ═══════════════════════════════════════════ -->
-  <section id="articles" class="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16 scroll-mt-24">
+  <section id="reviews" class="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
     <div class="glow-sep mb-8 sm:mb-10"></div>
 
-    <div class="flex items-end justify-between mb-6 sm:mb-8">
+    <div class="flex items-end justify-between gap-4 mb-6 sm:mb-8">
       <div data-anim="section-head">
-        <span class="section-label mb-2 reveal-soft block">// articles</span>
-        <h2 class="font-bold reveal-soft reveal-pop" style="font-size:clamp(32px,4vw,44px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1">Recent Articles</h2>
+        <span class="section-label mb-2 reveal-soft block">// reviews &amp; comparisons</span>
+        <h2 class="font-bold reveal-soft reveal-pop" style="font-size:clamp(30px,4vw,44px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1.02">
+          Tool reviews that pick a side.
+        </h2>
+        <p class="mt-3 text-[15px] reveal-soft" style="color:var(--fg-mid);max-width:520px">
+          Honest, independent comparisons of the tools QA and engineering teams actually ship with — scored, opinionated, and updated as the tools change.
+        </p>
       </div>
-      <a href="/blog" class="font-mono text-[11px] transition-opacity duration-200 hover:opacity-70" style="color:var(--accent-text)">
-        All articles →
+      <a href="/reviews" class="font-mono text-[11px] whitespace-nowrap transition-opacity duration-200 hover:opacity-70 shrink-0 pb-1" style="color:var(--accent-text)">
+        All reviews →
       </a>
     </div>
 
-    {posts.length === 0 ? (
-      <p class="font-mono text-sm" style="color:var(--fg-muted)">No posts yet.</p>
-    ) : (
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-anim="card-grid">
-        {posts.map((post, i) => <BlogCard {post} animate stagger={Math.min(i + 1, 4) as 1|2|3|4} />)}
-      </div>
-    )}
-  </section>
-
-  <!-- ═══════════════════════════════════════════
-       FEATURED REVIEW
-       ═══════════════════════════════════════════ -->
-  {featuredReview && (
-    <section class="max-w-5xl mx-auto px-4 sm:px-6 pb-12 sm:pb-16" aria-label="Featured comparison">
-      <div class="glow-sep mb-8 sm:mb-10"></div>
-
-      <div class="flex items-end justify-between mb-6 sm:mb-8">
-        <div data-anim="section-head">
-          <span class="section-label mb-2 reveal-soft block">// featured comparison</span>
-          <h2 class="font-bold reveal-soft reveal-pop" style="font-size:clamp(32px,4vw,44px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1">
-            Head-to-head
-          </h2>
-        </div>
-        <a href="/reviews" class="font-mono text-[11px] transition-opacity duration-200 hover:opacity-70" style="color:var(--accent-text)">
-          All reviews →
-        </a>
-      </div>
-
+    {featuredReview && (
       <a
         href={`/reviews/${featuredReview.slug}`}
-        class="featured-review-card card-brutal group block relative overflow-hidden reveal"
+        class="featured-review-card card-brutal group block relative overflow-hidden reveal mb-5 sm:mb-6"
         style="background:var(--bg-card)"
         data-anim="featured"
       >
@@ -219,7 +203,7 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
               <span
                 class="font-mono text-[10px] px-[10px] py-[3px] rounded-[3px] font-bold"
                 style="background:var(--accent);color:var(--on-accent);letter-spacing:0.05em"
-              >VS</span>
+              >FLAGSHIP</span>
               {(featuredReview.data.tools ?? []).map((t, i) => (
                 <>
                   {i > 0 && <span class="font-mono text-[10px]" style="color:var(--fg-muted)">vs</span>}
@@ -248,8 +232,40 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
           </div>
         </div>
       </a>
-    </section>
-  )}
+    )}
+
+    {otherReviews.length > 0 && (
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-anim="card-grid">
+        {otherReviews.map((review, i) => (
+          <ReviewCard {review} animate stagger={Math.min(i + 1, 4) as 1|2|3|4} />
+        ))}
+      </div>
+    )}
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       THE STANDARD — why a review here is trustworthy
+       ═══════════════════════════════════════════ -->
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 pb-12 sm:pb-16" aria-label="What makes this site different">
+    <div class="glow-sep mb-8 sm:mb-10"></div>
+
+    <div class="mb-6 sm:mb-8" data-anim="section-head">
+      <span class="section-label mb-2 reveal-soft block">// the standard</span>
+      <h2 class="font-bold reveal-soft reveal-pop" style="font-size:clamp(28px,3.6vw,40px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1.04">
+        What makes a review here worth trusting.
+      </h2>
+    </div>
+
+    <div class="why-strip" data-anim="card-grid">
+      {why.map((w, i) => (
+        <div class={`why-card reveal stagger-${i + 1}`}>
+          <div class="why-index">{w.n}</div>
+          <div class="why-title">{w.title}</div>
+          <p class="why-sub">{w.sub}</p>
+        </div>
+      ))}
+    </div>
+  </section>
 
   <!-- ═══════════════════════════════════════════
        COMMUNITY
@@ -261,7 +277,6 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
       class="card-brutal community-card relative overflow-hidden p-6 sm:p-8"
       style="background:var(--bg-card)"
     >
-      <!-- Decorative accent glow in the top-right -->
       <div
         aria-hidden="true"
         class="absolute pointer-events-none"
@@ -275,21 +290,21 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
           <h2
             class="font-bold mb-3 reveal-soft reveal-pop"
             style="font-size:clamp(26px,3.6vw,38px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1.08"
-          >Build alongside other QA &amp; AI engineers</h2>
+          >A quiet room for serious quality work.</h2>
           <p
-            class="text-[16px] leading-[1.55] max-w-[560px] reveal-soft"
+            class="text-[16px] leading-[1.6] max-w-[560px] reveal-soft"
             style="color:var(--fg-mid)"
           >
-            I run a Stoat channel where I share works-in-progress, swap tooling
-            notes, and answer questions from people moving from QA into AI
-            product work. Pull up a chair — it's quiet, useful, and zero noise.
+            A small Stoat channel for QA and AI engineers who like their
+            discussion practical and low-volume — tooling deep-dives, eval
+            strategy, and honest answers about doing quality work in the AI
+            era. No noise, no growth-hacking. Just useful.
           </p>
 
-          <!-- Trio of fine-print value props -->
           <ul class="mt-4 flex flex-wrap gap-x-5 gap-y-2 font-mono text-[11px]" style="color:var(--fg-muted)">
-            <li><span style="color:var(--accent-text);font-weight:700">·</span> Tool deep-dives</li>
-            <li><span style="color:var(--accent-text);font-weight:700">·</span> Code review threads</li>
-            <li><span style="color:var(--accent-text);font-weight:700">·</span> Career questions, answered</li>
+            <li><span style="color:var(--accent-text);font-weight:700">·</span> Tooling deep-dives</li>
+            <li><span style="color:var(--accent-text);font-weight:700">·</span> Eval &amp; testing strategy</li>
+            <li><span style="color:var(--accent-text);font-weight:700">·</span> Career questions, answered straight</li>
           </ul>
         </div>
 
@@ -310,108 +325,307 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
   </section>
 
   <!-- ═══════════════════════════════════════════
-       NOW — single-line status sticker
+       FOLLOW THE WORK — LinkedIn-first conversion band
        ═══════════════════════════════════════════ -->
-  <section class="max-w-5xl mx-auto px-4 sm:px-6 pb-16" aria-label="Currently">
-    <div class="now-card reveal" data-anim="featured">
-      <div class="now-kicker">
-        <span class="now-dot" aria-hidden="true"></span>
-        <span class="now-label">// now</span>
-        <time class="now-date">{now.date}</time>
-      </div>
-      <div class="now-rows">
-        <div class="now-row">
-          <span class="now-tag">building</span>
-          <span class="now-text">{now.building}</span>
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 pb-12 sm:pb-16" aria-label="Follow the work">
+    <div class="glow-sep mb-8 sm:mb-10"></div>
+
+    <div class="follow-card card-brutal p-6 sm:p-8" style="background:var(--bg-card)" data-anim="featured">
+      <div class="follow-grid">
+        <div>
+          <span class="section-label mb-3 block">// follow the work</span>
+          <h2
+            class="font-bold mb-3"
+            style="font-size:clamp(24px,3.2vw,34px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1.1"
+          >Most of these ideas start on LinkedIn.</h2>
+          <p class="text-[15px] leading-[1.6] mb-5" style="color:var(--fg-mid);max-width:520px">
+            I post short, practical takes on testing tools, evals, and quality a
+            few times a week. The ones worth keeping grow into the reviews and
+            essays here — so following is the easiest way to get the thinking as
+            it forms.
+          </p>
+
+          <ul class="follow-topics" aria-label="What I write about">
+            {writesAbout.map((t) => <li>{t}</li>)}
+          </ul>
         </div>
-        <div class="now-row">
-          <span class="now-tag">shipping</span>
-          <span class="now-text">{now.shipping}</span>
+
+        <div class="follow-actions">
+          <a
+            href={LINKEDIN_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn-primary inline-flex items-center justify-center gap-2 font-bold text-sm px-6 h-12 rounded-[4px] w-full"
+          >
+            Follow on LinkedIn
+            <span aria-hidden="true">↗</span>
+          </a>
+          <div class="follow-secondary">
+            <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" class="ghost-btn inline-flex items-center justify-center font-bold text-[13px] px-4 h-10 rounded-[4px]">GitHub ↗</a>
+            <a href={BLUESKY_URL} target="_blank" rel="noopener noreferrer" class="ghost-btn inline-flex items-center justify-center font-bold text-[13px] px-4 h-10 rounded-[4px]">Bluesky ↗</a>
+            <a href="/rss.xml" class="ghost-btn inline-flex items-center justify-center font-bold text-[13px] px-4 h-10 rounded-[4px]">RSS →</a>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
+  <!-- ═══════════════════════════════════════════
+       LATEST WRITING
+       ═══════════════════════════════════════════ -->
+  <section id="articles" class="max-w-5xl mx-auto px-4 sm:px-6 pb-16 scroll-mt-24">
+    <div class="glow-sep mb-8 sm:mb-10"></div>
+
+    <div class="flex items-end justify-between mb-6 sm:mb-8">
+      <div data-anim="section-head">
+        <span class="section-label mb-2 reveal-soft block">// writing</span>
+        <h2 class="font-bold reveal-soft reveal-pop" style="font-size:clamp(30px,4vw,44px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1">Latest writing</h2>
+      </div>
+      <a href="/blog" class="font-mono text-[11px] transition-opacity duration-200 hover:opacity-70" style="color:var(--accent-text)">
+        All articles →
+      </a>
+    </div>
+
+    {posts.length === 0 ? (
+      <p class="font-mono text-sm" style="color:var(--fg-muted)">No posts yet.</p>
+    ) : (
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-anim="card-grid">
+        {posts.map((post, i) => <BlogCard {post} animate stagger={Math.min(i + 1, 4) as 1|2|3|4} />)}
+      </div>
+    )}
+  </section>
+
 </Base>
 
 <style>
-  .principles-strip {
+  /* ───────────────────────────────────────────────────────────
+     START HERE — editorial numbered list
+     ─────────────────────────────────────────────────────────── */
+  .start-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 2px solid var(--fg);
+  }
+  .start-item {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 18px;
+    padding: 20px 6px;
+    border-bottom: 2px solid var(--border);
+    transition: background 0.15s ease, padding 0.15s ease;
+  }
+  .start-item:hover { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+  .start-index {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: 1;
+    color: var(--accent-text);
+    letter-spacing: -0.02em;
+    opacity: 0.85;
+  }
+  .start-body { min-width: 0; }
+  .start-kicker {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--fg-muted);
+    margin-bottom: 4px;
+  }
+  .start-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(19px, 2.4vw, 24px);
+    line-height: 1.18;
+    letter-spacing: -0.01em;
+    color: var(--fg);
+    transition: color 0.15s ease;
+  }
+  .start-item:hover .start-title { color: var(--accent-text); }
+  .start-blurb {
+    margin-top: 6px;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--fg-mid);
+    max-width: 60ch;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .start-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    white-space: nowrap;
+    padding-top: 3px;
+  }
+  .start-min { color: var(--fg-muted); letter-spacing: 0.04em; }
+  .start-read { color: var(--accent-text); font-weight: 700; transition: transform 0.15s ease; }
+  .start-item:hover .start-read { transform: translateX(3px); }
+  @media (max-width: 640px) {
+    .start-item { grid-template-columns: auto minmax(0, 1fr); gap: 14px; padding: 18px 2px; }
+    .start-meta { grid-column: 2; flex-direction: row; align-items: center; gap: 10px; margin-top: 2px; }
+  }
+
+  /* ───────────────────────────────────────────────────────────
+     THE STANDARD — three editorial value cards
+     ─────────────────────────────────────────────────────────── */
+  .why-strip {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
   }
-  .principle-card {
+  .why-card {
     border: 2px solid var(--fg);
     border-radius: 4px;
     background: var(--bg-card);
     box-shadow: 4px 4px 0 var(--fg);
-    padding: 14px 16px 12px;
+    padding: 22px 20px 20px;
     transition: transform 160ms ease, box-shadow 160ms ease;
   }
-  .principle-card:hover {
+  .why-card:hover {
     transform: translate(-2px, -2px);
     box-shadow: 6px 6px 0 var(--fg);
   }
-  .principle-card:hover .pr-pulse  { animation-duration: 1.2s; }
-  .principle-card:hover .pr-flow   { animation-duration: 0.7s; }
-
-  /* Ambient principle-strip animation grammar */
-  .pr-pulse {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: pr-pulse 2.6s ease-in-out infinite;
-  }
-  @keyframes pr-pulse {
-    0%, 100% { transform: scale(1);    opacity: 1; }
-    50%      { transform: scale(1.06); opacity: 0.82; }
-  }
-  .pr-check { animation: pr-draw 3.6s ease-in-out infinite; }
-  @keyframes pr-draw {
-    0%       { stroke-dashoffset: 32; }
-    40%, 70% { stroke-dashoffset: 0;  }
-    100%     { stroke-dashoffset: 32; }
-  }
-  .pr-flow { animation: pr-flow 1.4s linear infinite; }
-  @keyframes pr-flow {
-    to { stroke-dashoffset: -14; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .pr-pulse, .pr-check, .pr-flow,
-    .principle-card { animation: none !important; transition: none !important; }
-    .pr-check { stroke-dashoffset: 0; }
-  }
-  .principle-card svg {
-    display: block;
-    width: 64px;
-    height: 48px;
-    margin-bottom: 6px;
-  }
-  .principle-kicker {
+  .why-index {
     font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--fg-muted);
-    letter-spacing: 0.08em;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-text);
+    letter-spacing: 0.12em;
+    margin-bottom: 14px;
   }
-  .principle-title {
+  .why-index::before { content: '// '; color: var(--fg-muted); }
+  .why-title {
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 22px;
+    font-size: 21px;
+    line-height: 1.15;
     color: var(--fg);
-    line-height: 1.1;
-    margin-top: 2px;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
   }
-  .principle-sub {
+  .why-sub {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--fg-mid);
+  }
+  @media (max-width: 760px) {
+    .why-strip { grid-template-columns: 1fr; gap: 10px; }
+    .why-card { padding: 18px 16px; }
+  }
+
+  /* ───────────────────────────────────────────────────────────
+     FOLLOW THE WORK — LinkedIn conversion band
+     ─────────────────────────────────────────────────────────── */
+  .follow-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 28px;
+    align-items: center;
+  }
+  .follow-topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .follow-topics li {
     font-family: var(--font-mono);
     font-size: 11px;
     color: var(--fg-mid);
-    margin-top: 4px;
+    border: 1.5px solid var(--border-mid);
+    background: var(--bg-page);
+    padding: 4px 10px;
+    border-radius: 3px;
+    letter-spacing: 0.03em;
   }
-  @media (max-width: 700px) {
-    .principles-strip {
-      grid-template-columns: 1fr;
-      gap: 10px;
-    }
-    .principle-card { padding: 12px 14px; }
+  .follow-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .follow-secondary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  @media (max-width: 760px) {
+    .follow-grid { grid-template-columns: 1fr; gap: 22px; }
+  }
+
+  /* Parallax target: smooth GPU-friendly transform */
+  .hero-text-parallax {
+    will-change: transform, opacity;
+  }
+
+  /* ───────────────────────────────────────────────────────────
+     HERO — status chip, title animation, stats strip, scroll cue
+     ─────────────────────────────────────────────────────────── */
+  .hero-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px 6px 10px;
+    border: 1.5px solid var(--fg);
+    border-radius: 4px;
+    background: var(--bg-card);
+    box-shadow: 3px 3px 0 var(--fg);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--fg-mid);
+  }
+  .hero-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 0 var(--accent-glow);
+    animation: hero-status-pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes hero-status-pulse {
+    0%, 100% { transform: scale(1);   box-shadow: 0 0 0 0   var(--accent-glow); }
+    50%      { transform: scale(1.2); box-shadow: 0 0 0 10px transparent; }
+  }
+  .hero-status-label { font-weight: 500; }
+
+  /* Title — line-by-line slide-up on initial load */
+  .hero-title {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-width: 100%;
+  }
+  .hero-title-line {
+    display: block;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    opacity: 0;
+    transform: translateY(18px);
+    animation: hero-title-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @media (max-width: 400px) {
+    .hero-title { letter-spacing: -0.02em; }
+  }
+  .hero-title-line:nth-of-type(1) { animation-delay: 0.10s; }
+  .hero-title-line:nth-of-type(2) { animation-delay: 0.30s; }
+  .hero-title-accent { color: var(--accent-text); }
+  @keyframes hero-title-in {
+    to { opacity: 1; transform: translateY(0); }
   }
 
   /* ───────────────────────────────────────────────────────────
@@ -435,7 +649,7 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
     border-right: 2px solid var(--fg);
     overflow: hidden;
   }
-  .featured-review-art .review-art {
+  .featured-review-art :global(.review-art) {
     border: none;
     border-radius: 0;
     width: 100%;
@@ -460,200 +674,7 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
     .featured-review-body { padding: 22px 22px; }
   }
 
-  /* ───────────────────────────────────────────────────────────
-     NOW STATUS STICKER — single-line "currently" card
-     ─────────────────────────────────────────────────────────── */
-  .now-card {
-    position: relative;
-    border: 2px solid var(--fg);
-    border-radius: 4px;
-    background: var(--bg-card);
-    box-shadow: 4px 4px 0 var(--fg);
-    padding: 16px 22px;
-    display: flex;
-    align-items: center;
-    gap: 26px;
-    flex-wrap: wrap;
-  }
-  .now-kicker {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-  }
-  .now-dot {
-    width: 9px;
-    height: 9px;
-    background: var(--accent);
-    border-radius: 50%;
-    border: 1.5px solid var(--fg);
-    animation: now-dot-pulse 1.8s ease-in-out infinite;
-  }
-  @keyframes now-dot-pulse {
-    0%, 100% { transform: scale(1);     box-shadow: 0 0 0 0 var(--accent-glow); }
-    50%      { transform: scale(1.18);  box-shadow: 0 0 0 8px transparent; }
-  }
-  .now-label {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--accent-text);
-    letter-spacing: 0.06em;
-  }
-  .now-date {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--fg-muted);
-    letter-spacing: 0.04em;
-  }
-  .now-rows {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-  .now-row {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    min-width: 0;
-  }
-  .now-tag {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--fg-muted);
-    flex-shrink: 0;
-    min-width: 64px;
-  }
-  .now-text {
-    font-family: var(--font-sans);
-    font-size: 14px;
-    color: var(--fg);
-    line-height: 1.5;
-  }
-  @media (max-width: 640px) {
-    .now-card { gap: 14px; padding: 14px 18px; }
-    .now-tag  { min-width: 52px; }
-  }
-
-  /* Parallax target: smooth GPU-friendly transform */
-  .hero-text-parallax {
-    will-change: transform, opacity;
-  }
-
-  /* ───────────────────────────────────────────────────────────
-     HERO — status chip, title animation, stats strip, scroll cue
-     ─────────────────────────────────────────────────────────── */
-  .hero-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px 6px 10px;
-    border: 1.5px solid var(--fg);
-    border-radius: 4px;
-    background: var(--bg-card);
-    box-shadow: 3px 3px 0 var(--fg);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    color: var(--fg);
-  }
-  .hero-status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 0 0 var(--accent-glow);
-    animation: hero-status-pulse 1.8s ease-in-out infinite;
-  }
-  @keyframes hero-status-pulse {
-    0%, 100% { transform: scale(1);   box-shadow: 0 0 0 0   var(--accent-glow); }
-    50%      { transform: scale(1.2); box-shadow: 0 0 0 10px transparent; }
-  }
-  .hero-status-label {
-    font-weight: 700;
-    color: var(--accent-text);
-    text-transform: uppercase;
-  }
-  .hero-status-sep   { color: var(--fg-muted); }
-  .hero-status-meta  { color: var(--fg-mid); }
-
-  /* Title — word-by-word slide-up on initial load */
-  .hero-title {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0 14px;
-  }
-  .hero-title-word, .hero-title-arrow {
-    display: inline-block;
-    opacity: 0;
-    transform: translateY(18px);
-    animation: hero-title-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  }
-  .hero-title-word:nth-of-type(1) { animation-delay: 0.10s; }
-  .hero-title-arrow              { animation-delay: 0.35s; color: var(--accent-text); }
-  .hero-title-word-accent        { animation-delay: 0.55s; }
-  @keyframes hero-title-in {
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @media (max-width: 640px) {
-    .hero-title { gap: 0 10px; }
-  }
-
-  /* Stats strip — mono labels stacked under a thin top rule */
-  .hero-stats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    border-top: 1.5px dashed var(--border-mid);
-    padding-top: 14px;
-    max-width: 480px;
-  }
-  .hero-stat {
-    flex: 1 1 auto;
-    min-width: 90px;
-    padding-right: 22px;
-    border-right: 1.5px dashed var(--border);
-    margin-right: 22px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .hero-stat:last-child {
-    border-right: none;
-    padding-right: 0;
-    margin-right: 0;
-  }
-  .hero-stat-value {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 20px;
-    color: var(--accent-text);
-    line-height: 1;
-    letter-spacing: -0.01em;
-    text-transform: lowercase;
-  }
-  .hero-stat-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--fg-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-  @media (max-width: 640px) {
-    .hero-stats { padding-top: 12px; }
-    .hero-stat  { min-width: 76px; padding-right: 14px; margin-right: 14px; }
-    .hero-stat-value { font-size: 17px; }
-  }
-
-  /* Scroll cue — pinned to bottom of hero, subtle bounce, fades on scroll */
+  /* Scroll cue — pinned to bottom of hero, subtle bounce */
   .hero-scroll-cue {
     position: absolute;
     left: 50%;
@@ -685,7 +706,6 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
     animation: hero-scroll-bounce 2.2s ease-in-out infinite;
   }
   .hero-scroll-cue-arrow svg { width: 100%; height: 100%; display: block; }
-  /* The dot inside the mouse-glyph "scrolls" down inside the rectangle */
   .hero-scroll-cue-arrow line {
     animation: hero-scroll-dot 1.6s ease-in-out infinite;
   }
@@ -704,17 +724,17 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
 
   @media (prefers-reduced-motion: reduce) {
     .hero-text-parallax { transform: none !important; opacity: 1 !important; }
-    .now-dot, .hero-status-dot,
+    .hero-status-dot,
     .hero-scroll-cue-arrow, .hero-scroll-cue-arrow line,
-    .hero-title-word, .hero-title-arrow { animation: none !important; }
-    .hero-title-word, .hero-title-arrow { opacity: 1; transform: none; }
+    .hero-title-line { animation: none !important; }
+    .hero-title-line { opacity: 1; transform: none; }
+    .why-card, .start-item, .featured-review-card { transition: none !important; }
   }
 </style>
 
 <script>
   // Hero text parallax — text drifts up at 0.22× scroll speed, capped at 80px.
-  // Opacity floor of 0.85 so the hero never goes dim enough to look "ghosted";
-  // we just want a subtle parallax depth cue, not a full fade-out.
+  // Opacity floor of 0.85 so the hero never goes dim enough to look "ghosted".
   (() => {
     type W = Window & { __heroParallaxBound?: boolean };
     const w = window as W;
@@ -741,9 +761,6 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
       }, { passive: true });
     }
 
-    // Always re-apply on (re)mount so a freshly-rendered hero gets the right
-    // values — this catches view-transition navigations where the parent DOM
-    // is new but the bound scroll listener already exists.
     apply();
     document.addEventListener('astro:page-load', apply);
   })();
