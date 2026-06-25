@@ -1,0 +1,54 @@
+---
+import GuidePost from '../../layouts/GuidePost.astro';
+import GuideCard from '../../components/GuideCard.astro';
+import { getCollection } from 'astro:content';
+import { readingTime } from '../../lib/reading-time';
+
+export async function getStaticPaths() {
+  const guides = await getCollection('guides-en', ({ data }) => !data.draft);
+  return guides.map((guide) => ({
+    params: { slug: guide.slug },
+    props: { guide },
+  }));
+}
+
+const { guide } = Astro.props;
+const { Content } = await guide.render();
+const minutes = readingTime(guide.body);
+
+// "Next in this pathway" — same pathway, higher order, then anything in the
+// same level. Surfaces up to 2 so the reader always has a next step.
+const all = await getCollection('guides-en', ({ data }) => !data.draft);
+const samePathway = all
+  .filter((g) => g.slug !== guide.slug && g.data.pathway === guide.data.pathway)
+  .sort((a, b) => a.data.order - b.data.order);
+const sameLevel = all
+  .filter((g) => g.slug !== guide.slug && g.data.level === guide.data.level && g.data.pathway !== guide.data.pathway)
+  .sort((a, b) => a.data.order - b.data.order);
+const next = [...samePathway, ...sameLevel].slice(0, 2);
+---
+
+<GuidePost
+  title={guide.data.title}
+  description={guide.data.description}
+  date={guide.data.date}
+  updated={guide.data.updated}
+  tags={guide.data.tags}
+  level={guide.data.level}
+  pathway={guide.data.pathway}
+  est={guide.data.est}
+  prerequisites={guide.data.prerequisites}
+  readingTimeMin={minutes}
+  slug={guide.slug}
+>
+  <Content />
+
+  {next.length > 0 && (
+    <aside class="not-prose mt-16 pt-10" style="border-top:2px solid var(--fg)">
+      <span class="section-label mb-5 block">// next in the guidebook</span>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {next.map((g) => <GuideCard guide={g} showArt={false} />)}
+      </div>
+    </aside>
+  )}
+</GuidePost>

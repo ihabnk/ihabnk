@@ -1,0 +1,209 @@
+---
+import Base from '../layouts/Base.astro';
+import { lessons } from '../data/lessons';
+
+// The "Getting into QA" pathway is now an ordered series of interactive
+// lessons. The first is featured; the rest form the numbered path below.
+const beginnerLessons = lessons
+  .filter((l) => l.level === 'beginner')
+  .sort((a, b) => a.order - b.order);
+
+const featured = beginnerLessons[0];
+const steps = beginnerLessons.slice(1).map((l) => ({
+  title: l.title,
+  href: `/learn/${l.slug}`,
+  est: `${l.est} · Interactive`,
+  live: true,
+}));
+
+const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/01KRX7GT1KB53TTBX7BTKZ4529';
+---
+
+<Base
+  title="Start in QA"
+  description="New to software quality? Start here. A clear, ordered path into QA — no bootcamp, no certifications, just what to learn and in what order."
+>
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+
+    <div class="glow-sep mb-10"></div>
+
+    <header class="mb-10" data-anim="section-head">
+      <span class="section-label mb-2 reveal-soft block">// new to qa</span>
+      <h1
+        class="font-bold reveal-soft reveal-pop"
+        style="font-size:clamp(34px,5.5vw,58px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.015em;line-height:1.02"
+      >New to QA? Start right here.</h1>
+      <p
+        class="mt-5 text-[18px] leading-[1.6] reveal-soft"
+        style="color:var(--fg-mid);font-family:var(--font-sans)"
+      >
+        You don't need a degree, a bootcamp, or a stack of certifications to get into
+        software quality. You need to learn how systems fail — in the right order. This
+        is that path, start to finish.
+      </p>
+    </header>
+
+    <!-- Featured interactive lesson -->
+    {featured && (
+      <a href={`/learn/${featured.slug}`} class="lesson-promo card-brutal group" data-anim="featured">
+        <div class="lesson-promo-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5,3 19,12 5,21" style="fill:currentColor;stroke:none" />
+          </svg>
+        </div>
+        <div class="lesson-promo-body">
+          <span class="lesson-promo-tag">Start here · Interactive · {featured.est}</span>
+          <h2 class="lesson-promo-title">{featured.title}</h2>
+          <p class="lesson-promo-desc">{featured.intro}</p>
+        </div>
+        <span class="lesson-promo-cta" aria-hidden="true">Start →</span>
+      </a>
+    )}
+
+    <!-- The path -->
+    <section class="mb-14">
+      <span class="section-label mb-5 block">// then keep going</span>
+      <ol class="path-list" data-anim="row-list">
+        {steps.map((step, i) => (
+          <li class="path-step group">
+            <a href={step.href} class="stretched-link"></a>
+            <span class="path-num" aria-hidden="true">{String(i + 2).padStart(2, '0')}</span>
+            <span class="path-body">
+              <span class="path-title">{step.title}</span>
+              <span class="path-est">{step.est}</span>
+            </span>
+            <span class="path-arrow" aria-hidden="true">Start →</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <!-- After the basics -->
+    <section class="mb-14">
+      <div class="card-brutal p-6 sm:p-7" style="background:var(--bg-card)" data-anim="featured">
+        <h2 class="font-bold mb-2" style="font-size:clamp(22px,3vw,28px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em">
+          Once the basics click
+        </h2>
+        <p class="text-[15px] leading-[1.65] mb-5" style="color:var(--fg-mid)">
+          When the fundamentals feel solid, the Guidebook's intermediate track takes you
+          into API testing, automation, and test strategy — and the reviews help you pick
+          the right tools without the marketing.
+        </p>
+        <div class="flex flex-wrap gap-3">
+          <a href="/guides" class="btn-primary inline-flex items-center gap-2 font-bold text-sm px-6 h-11 rounded-[4px]">
+            Open the Guidebook →
+          </a>
+          <a href="/reviews" class="ghost-btn inline-flex items-center gap-2 font-bold text-sm px-6 h-11 rounded-[4px]">
+            Browse reviews
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Community -->
+    <section>
+      <div class="glow-sep mb-8"></div>
+      <h2 class="font-bold mb-2" style="font-size:clamp(20px,2.6vw,26px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em">
+        Don't learn alone
+      </h2>
+      <p class="text-[15px] leading-[1.65] mb-4" style="color:var(--fg-mid);max-width:560px">
+        Getting into QA is a lot easier with people a few steps ahead of you. The community
+        is quiet, practical, and happy to answer beginner questions without the gatekeeping.
+      </p>
+      <a
+        href={STOAT_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="font-mono text-[12px] font-bold inline-flex items-center gap-2 transition-opacity duration-200 hover:opacity-70"
+        style="color:var(--accent-text)"
+      >
+        Join the channel ↗
+      </a>
+    </section>
+
+  </div>
+</Base>
+
+<style>
+  .lesson-promo {
+    display: flex; align-items: center; gap: 18px;
+    padding: 20px 22px; margin-bottom: 36px; text-decoration: none;
+    background: var(--bg-card);
+  }
+  .lesson-promo-icon {
+    flex-shrink: 0; width: 48px; height: 48px; display: grid; place-items: center;
+    border: 2px solid var(--fg); border-radius: 50%; background: var(--accent);
+    color: var(--on-accent); box-shadow: 2px 2px 0 var(--fg);
+  }
+  .lesson-promo-icon svg { width: 20px; height: 20px; margin-left: 2px; }
+  .lesson-promo-body { flex: 1; min-width: 0; }
+  .lesson-promo-tag {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-text);
+  }
+  .lesson-promo-title {
+    font-family: var(--font-display); font-weight: 700; font-size: clamp(20px, 3vw, 26px);
+    line-height: 1.1; letter-spacing: -0.01em; color: var(--fg); margin: 4px 0 6px;
+  }
+  .lesson-promo-desc { font-family: var(--font-sans); font-size: 14px; line-height: 1.5; color: var(--fg-mid); margin: 0; }
+  .lesson-promo-cta {
+    flex-shrink: 0; font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+    color: var(--accent-text); transition: transform 0.15s ease;
+  }
+  .lesson-promo:hover .lesson-promo-cta { transform: translateX(3px); }
+  @media (max-width: 560px) {
+    .lesson-promo { flex-wrap: wrap; gap: 14px; }
+    .lesson-promo-cta { width: 100%; }
+  }
+
+  .path-list { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--fg); }
+  .path-step {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 6px;
+    border-bottom: 2px solid var(--border);
+    transition: background 0.15s ease;
+  }
+  .path-step:not(.path-step--soon):hover { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+  .path-num {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(24px, 4vw, 34px);
+    line-height: 1;
+    color: var(--accent-text);
+    letter-spacing: -0.02em;
+  }
+  .path-step--soon .path-num { color: var(--fg-muted); opacity: 0.6; }
+  .path-body { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .path-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(18px, 2.4vw, 22px);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--fg);
+    transition: color 0.15s ease;
+  }
+  .path-step:not(.path-step--soon):hover .path-title { color: var(--accent-text); }
+  .path-step--soon .path-title { color: var(--fg-muted); }
+  .path-est { font-family: var(--font-mono); font-size: 10px; color: var(--fg-muted); letter-spacing: 0.06em; text-transform: uppercase; }
+  .path-arrow { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent-text); white-space: nowrap; transition: transform 0.15s ease; }
+  .path-step:hover .path-arrow { transform: translateX(3px); }
+  .path-soon {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--fg-muted);
+    border: 1.5px solid var(--border-mid);
+    border-radius: 999px;
+    padding: 3px 8px;
+  }
+  @media (max-width: 560px) {
+    .path-step { grid-template-columns: auto 1fr auto; gap: 12px; padding: 16px 2px; }
+  }
+</style>

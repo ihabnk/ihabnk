@@ -16,6 +16,7 @@ const xmlEscape = (s: string) =>
 export const GET: APIRoute = async () => {
   const posts = await getCollection('blog-en', ({ data }) => !data.draft);
   const reviews = await getCollection('reviews-en', ({ data }) => !data.draft);
+  const guides = await getCollection('guides-en', ({ data }) => !data.draft);
 
   const items = [
     ...posts.map(p => ({
@@ -32,14 +33,21 @@ export const GET: APIRoute = async () => {
       date: r.data.updated ?? r.data.date,
       categories: r.data.tags ?? [],
     })),
+    ...guides.map(g => ({
+      title: g.data.title,
+      description: g.data.description ?? '',
+      link: `${SITE}/guides/${g.slug}`,
+      date: g.data.updated ?? g.data.date,
+      categories: g.data.tags ?? [],
+    })),
   ].sort((a, b) => b.date.valueOf() - a.date.valueOf());
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>ihabnk — articles &amp; reviews</title>
+    <title>ihabnk — guides, reviews &amp; articles</title>
     <link>${SITE}</link>
-    <description>QA Engineer turned AI Product builder. Notes on AI quality, evals, and product engineering.</description>
+    <description>Guides, independent tool reviews, and field notes for software quality engineers — testing, automation, evals, and AI-assisted quality.</description>
     <language>en</language>
     <atom:link href="${SITE}/rss.xml" rel="self" type="application/rss+xml" />
 ${items

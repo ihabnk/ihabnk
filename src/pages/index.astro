@@ -4,14 +4,24 @@ import HeroVisual from '../components/HeroVisual.astro';
 import BlogCard from '../components/BlogCard.astro';
 import ReviewCard from '../components/ReviewCard.astro';
 import ReviewArt from '../components/ReviewArt.astro';
-import { readingTime } from '../lib/reading-time';
+import GuideCard from '../components/GuideCard.astro';
 import { getCollection } from 'astro:content';
 
 const allPosts = await getCollection('blog-en', ({ data }) => !data.draft);
 const allReviews = await getCollection('reviews-en', ({ data }) => !data.draft);
+const allGuides = await getCollection('guides-en', ({ data }) => !data.draft);
 
 const posts = allPosts
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
+
+// Guidebook spotlight — earliest guides across levels (beginner first) so the
+// home page shows the path starts with the absolute fundamentals.
+const levelRank = { beginner: 0, intermediate: 1, advanced: 2 } as const;
+const guidebookSpotlight = [...allGuides]
+  .sort((a, b) =>
+    (levelRank[a.data.level] - levelRank[b.data.level]) || (a.data.order - b.data.order),
+  )
   .slice(0, 3);
 
 // Flagship comparison for the reviews pillar — newest featured comparison,
@@ -28,24 +38,30 @@ const otherReviews = allReviews
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 3);
 
-// Curated on-ramp: three pieces that capture what the site is about. Mixed
-// essay + review so a first-time reader sees both pillars immediately.
-const pick = (coll: typeof allPosts | typeof allReviews, slug: string) =>
-  coll.find((e) => e.slug === slug);
-
-const startHere = [
-  { e: pick(allPosts, 'why-quality-is-the-bottleneck'), base: '/blog',    kicker: 'The thesis' },
-  { e: pick(allReviews, 'selenium-vs-playwright'),       base: '/reviews', kicker: 'Flagship comparison' },
-  { e: pick(allPosts, 'evals-are-the-new-tests'),        base: '/blog',    kicker: 'AI quality' },
-]
-  .filter((x): x is { e: NonNullable<typeof x.e>; base: string; kicker: string } => Boolean(x.e))
-  .map((x) => ({
-    href: `${x.base}/${x.e.slug}`,
-    kicker: x.kicker,
-    title: x.e.data.title,
-    blurb: (x.e.data as { verdict?: string }).verdict ?? x.e.data.description ?? '',
-    minutes: readingTime(x.e.body),
-  }));
+// Choose your path — level-based entry points into the site.
+const paths = [
+  {
+    tag: 'New to QA',
+    quote: '“I want in, but I don’t know what to learn first.”',
+    desc: 'Start with the fundamentals — what the job really is, and the skills that actually get you hired.',
+    href: '/start',
+    cta: 'Start the basics',
+  },
+  {
+    tag: 'Growing in QA',
+    quote: '“I know the basics — now make me good.”',
+    desc: 'API testing, automation, CI/CD, and test strategy that holds up once it meets production.',
+    href: '/guides#intermediate',
+    cta: 'Level up',
+  },
+  {
+    tag: 'Advanced quality',
+    quote: '“Show me the hard, current stuff.”',
+    desc: 'Evals, AI-assisted testing, and designing quality strategy for a whole organization.',
+    href: '/guides#advanced',
+    cta: 'Go deeper',
+  },
+];
 
 const LINKEDIN_URL = 'https://linkedin.com/in/ihabnk';
 const GITHUB_URL   = 'https://github.com/ihabnk';
@@ -88,26 +104,27 @@ const why = [
     <div class="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
       <div class="max-w-[640px] hero-text-parallax" data-anim="hero-stagger">
 
-        <!-- Category chip: pulsing live dot + what this site is -->
+        <!-- Category chip: pulsing live dot + who this is for -->
         <div class="hero-status mb-5">
           <span class="hero-status-dot" aria-hidden="true"></span>
-          <span class="hero-status-label">A publication on software quality</span>
+          <span class="hero-status-label">Guides · reviews · field notes for quality engineers</span>
         </div>
 
-        <h1 class="font-bold leading-[1.02] mb-5 hero-title" style="font-size:clamp(32px,7vw,68px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.015em">
-          <span class="hero-title-line">The hard part was never building it.</span>
-          <span class="hero-title-line hero-title-accent">It's knowing it works.</span>
+        <h1 class="font-bold leading-[1.02] mb-5 hero-title" style="font-size:clamp(34px,7.4vw,72px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.015em">
+          <span class="hero-title-line">Get into QA.</span>
+          <span class="hero-title-line">Get good.</span>
+          <span class="hero-title-line hero-title-accent">Stay ahead.</span>
         </h1>
 
-        <p class="text-[17px] sm:text-[18px] leading-[1.6] mb-8 max-w-[540px]" style="color:var(--fg-mid)">
-          Independent tool reviews, head-to-head comparisons, and field notes
-          on testing, evals, and AI-assisted quality — for engineers who care
-          whether the thing actually holds up.
+        <p class="text-[17px] sm:text-[18px] leading-[1.6] mb-8 max-w-[560px]" style="color:var(--fg-mid)">
+          Structured guides, independent tool reviews, and honest field notes for
+          software quality engineers — whether you're writing your first test plan
+          or owning quality for a whole team.
         </p>
 
         <div class="flex flex-wrap gap-3">
-          <a href="#start" class="btn-primary inline-flex items-center gap-2 font-bold text-sm px-6 h-11 rounded-[4px]">
-            Start here
+          <a href="/guides" class="btn-primary inline-flex items-center gap-2 font-bold text-sm px-6 h-11 rounded-[4px]">
+            Start the guidebook
           </a>
           <a href="/reviews" class="ghost-btn inline-flex items-center gap-2 font-bold text-sm px-6 h-11 rounded-[4px]">
             Browse reviews
@@ -118,7 +135,7 @@ const why = [
     </div>
 
     <!-- Scroll cue -->
-    <a class="hero-scroll-cue" href="#start" aria-label="Scroll to start here">
+    <a class="hero-scroll-cue" href="#paths" aria-label="Choose your path">
       <span class="hero-scroll-cue-label">scroll</span>
       <span class="hero-scroll-cue-arrow" aria-hidden="true">
         <svg viewBox="0 0 16 24" xmlns="http://www.w3.org/2000/svg">
@@ -130,38 +147,61 @@ const why = [
   </section>
 
   <!-- ═══════════════════════════════════════════
-       START HERE — curated on-ramp
+       CHOOSE YOUR PATH — level-based entry points
        ═══════════════════════════════════════════ -->
-  {startHere.length > 0 && (
-    <section id="start" class="max-w-5xl mx-auto px-4 sm:px-6 pt-12 sm:pt-16 scroll-mt-24">
-      <div class="mb-6 sm:mb-8" data-anim="section-head">
-        <span class="section-label mb-2 reveal-soft block">// start here</span>
-        <h2 class="font-bold reveal-soft reveal-pop" style="font-size:clamp(30px,4vw,44px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1.02">
-          New here? Start with these.
-        </h2>
-        <p class="mt-3 text-[15px] reveal-soft" style="color:var(--fg-mid);max-width:520px">
-          Three pieces that capture how this site thinks about quality — one essay, one comparison, one on testing AI.
-        </p>
+  <section id="paths" class="max-w-5xl mx-auto px-4 sm:px-6 pt-12 sm:pt-16 scroll-mt-24">
+    <div class="mb-6 sm:mb-8" data-anim="section-head">
+      <span class="section-label mb-2 reveal-soft block">// choose your path</span>
+      <h2 class="font-bold reveal-soft reveal-pop" style="font-size:clamp(30px,4vw,44px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1.02">
+        Wherever you are with QA, there's a way in.
+      </h2>
+      <p class="mt-3 text-[15px] reveal-soft" style="color:var(--fg-mid);max-width:540px">
+        This site serves three stages of a quality-engineering career. Pick the one that sounds like you.
+      </p>
+    </div>
+
+    <div class="path-grid" data-anim="card-grid">
+      {paths.map((p) => (
+        <a href={p.href} class="path-card card-brutal group reveal" style="background:var(--bg-card)">
+          <span class="path-card-tag">{p.tag}</span>
+          <p class="path-card-quote">{p.quote}</p>
+          <p class="path-card-desc">{p.desc}</p>
+          <span class="path-card-cta">
+            {p.cta}
+            <span class="transition-transform duration-200 group-hover:translate-x-1">→</span>
+          </span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       THE GUIDEBOOK — spotlight on the learning path
+       ═══════════════════════════════════════════ -->
+  {guidebookSpotlight.length > 0 && (
+    <section id="guidebook" class="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16 scroll-mt-24">
+      <div class="glow-sep mb-8 sm:mb-10"></div>
+
+      <div class="flex items-end justify-between gap-4 mb-6 sm:mb-8">
+        <div data-anim="section-head">
+          <span class="section-label mb-2 reveal-soft block">// the guidebook</span>
+          <h2 class="font-bold reveal-soft reveal-pop" style="font-size:clamp(30px,4vw,44px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1.02">
+            A real path, not a reading list.
+          </h2>
+          <p class="mt-3 text-[15px] reveal-soft" style="color:var(--fg-mid);max-width:540px">
+            Ordered, opinionated guides built from production experience — so you always know what to learn next.
+          </p>
+        </div>
+        <a href="/guides" class="font-mono text-[11px] whitespace-nowrap transition-opacity duration-200 hover:opacity-70 shrink-0 pb-1" style="color:var(--accent-text)">
+          Open the Guidebook →
+        </a>
       </div>
 
-      <ol class="start-list" data-anim="row-list">
-        {startHere.map((item, i) => (
-          <li class="start-item group">
-            <span class="start-index" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-            <div class="start-body">
-              <span class="start-kicker">{item.kicker}</span>
-              <h3 class="start-title">
-                <a href={item.href} class="stretched-link">{item.title}</a>
-              </h3>
-              {item.blurb && <p class="start-blurb">{item.blurb}</p>}
-            </div>
-            <span class="start-meta">
-              <span class="start-min">{item.minutes} min</span>
-              <span class="start-read" aria-hidden="true">Read →</span>
-            </span>
-          </li>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-anim="card-grid">
+        {guidebookSpotlight.map((g, i) => (
+          <GuideCard guide={g} animate stagger={Math.min(i + 1, 4) as 1|2|3|4} />
         ))}
-      </ol>
+      </div>
     </section>
   )}
 
@@ -399,82 +439,57 @@ const why = [
 
 <style>
   /* ───────────────────────────────────────────────────────────
-     START HERE — editorial numbered list
+     CHOOSE YOUR PATH — three level cards
      ─────────────────────────────────────────────────────────── */
-  .start-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    border-top: 2px solid var(--fg);
-  }
-  .start-item {
-    position: relative;
+  .path-grid {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: start;
-    gap: 18px;
-    padding: 20px 6px;
-    border-bottom: 2px solid var(--border);
-    transition: background 0.15s ease, padding 0.15s ease;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
   }
-  .start-item:hover { background: color-mix(in srgb, var(--accent) 7%, transparent); }
-  .start-index {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: clamp(28px, 4vw, 40px);
-    line-height: 1;
-    color: var(--accent-text);
-    letter-spacing: -0.02em;
-    opacity: 0.85;
+  .path-card {
+    display: flex;
+    flex-direction: column;
+    padding: 22px 22px 20px;
+    text-decoration: none;
   }
-  .start-body { min-width: 0; }
-  .start-kicker {
-    display: block;
+  .path-card-tag {
     font-family: var(--font-mono);
     font-size: 10px;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: var(--fg-muted);
-    margin-bottom: 4px;
+    color: var(--accent-text);
+    margin-bottom: 14px;
   }
-  .start-title {
+  .path-card-quote {
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: clamp(19px, 2.4vw, 24px);
-    line-height: 1.18;
+    font-size: 20px;
+    line-height: 1.22;
     letter-spacing: -0.01em;
     color: var(--fg);
-    transition: color 0.15s ease;
+    margin-bottom: 10px;
   }
-  .start-item:hover .start-title { color: var(--accent-text); }
-  .start-blurb {
-    margin-top: 6px;
+  .path-card-desc {
     font-family: var(--font-sans);
     font-size: 14px;
     line-height: 1.55;
     color: var(--fg-mid);
-    max-width: 60ch;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    margin-bottom: 18px;
   }
-  .start-meta {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 6px;
+  .path-card-cta {
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     font-family: var(--font-mono);
-    font-size: 10px;
-    white-space: nowrap;
-    padding-top: 3px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent-text);
   }
-  .start-min { color: var(--fg-muted); letter-spacing: 0.04em; }
-  .start-read { color: var(--accent-text); font-weight: 700; transition: transform 0.15s ease; }
-  .start-item:hover .start-read { transform: translateX(3px); }
-  @media (max-width: 640px) {
-    .start-item { grid-template-columns: auto minmax(0, 1fr); gap: 14px; padding: 18px 2px; }
-    .start-meta { grid-column: 2; flex-direction: row; align-items: center; gap: 10px; margin-top: 2px; }
+  @media (max-width: 760px) {
+    .path-grid { grid-template-columns: 1fr; gap: 10px; }
+    .path-card { padding: 20px 18px 18px; }
   }
 
   /* ───────────────────────────────────────────────────────────
@@ -622,7 +637,8 @@ const why = [
     .hero-title { letter-spacing: -0.02em; }
   }
   .hero-title-line:nth-of-type(1) { animation-delay: 0.10s; }
-  .hero-title-line:nth-of-type(2) { animation-delay: 0.30s; }
+  .hero-title-line:nth-of-type(2) { animation-delay: 0.26s; }
+  .hero-title-line:nth-of-type(3) { animation-delay: 0.42s; }
   .hero-title-accent { color: var(--accent-text); }
   @keyframes hero-title-in {
     to { opacity: 1; transform: translateY(0); }

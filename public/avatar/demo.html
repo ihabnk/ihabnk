@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Assistant Avatar — demo</title>
+<style>
+  /* ---------- page chrome (demo only) ---------- */
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(120% 120% at 50% 0%, #fbf4ea 0%, #f3e7d6 60%, #ecdcc6 100%);
+    color: #4a3526; padding: 40px 20px;
+  }
+  .wrap { width: 100%; max-width: 460px; display: flex; flex-direction: column; align-items: center; gap: 26px; }
+  .stage { display: grid; place-items: center; padding: 26px 40px;
+    border-radius: 28px; background: #fffaf3; border: 1px solid #ead9c4;
+    box-shadow: 0 18px 40px -22px rgba(120, 70, 40, 0.4); }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  button.s {
+    font: 600 13px/1 ui-monospace, monospace; letter-spacing: .03em; cursor: pointer;
+    padding: 9px 14px; border-radius: 999px; color: #8a4f33;
+    background: #fff6ec; border: 1px solid #e7c8ad; transition: background .15s, transform .1s, border-color .15s;
+  }
+  button.s:hover { background: #fdebd9; border-color: #df8160; }
+  button.s:active { transform: translateY(1px); }
+  button.s[aria-pressed="true"] { background: #df8160; color: #fff; border-color: #c25c3c; }
+
+  .chat { width: 100%; }
+  .chat label { font: 600 11px/1 ui-monospace, monospace; text-transform: uppercase; letter-spacing: .12em; opacity: .55; }
+  .chat-input { display: flex; gap: 8px; margin-top: 8px; }
+  .chat-input input {
+    flex: 1; padding: 11px 14px; border-radius: 12px; color: #3d2a1e; font-size: 14px;
+    background: #fffaf3; border: 1px solid #e7c8ad; outline: none;
+  }
+  .chat-input input:focus { border-color: #df8160; }
+  .chat-input button { padding: 0 16px; border-radius: 12px; cursor: pointer; font-weight: 700; color: #fff; background: #df8160; border: none; }
+  .hint { font-size: 12px; opacity: .55; text-align: center; max-width: 38ch; }
+
+  /* ============================================================
+     AVATAR STYLES (copy of avatar.css — keeps this file standalone)
+     ============================================================ */
+  .av-root {
+    --av-body-top:#f7cbb4; --av-body-mid:#df8160; --av-body-bot:#c25c3c;
+    --av-ink:#3d2a1e; --av-spark:#ffe2c2; --av-size:180px;
+    display:inline-block; width:var(--av-size); height:auto; line-height:0;
+  }
+  .av-svg { width:100%; height:auto; display:block; overflow:visible; }
+  .av-shadow{fill:rgba(0,0,0,0.14)} .av-gloss{pointer-events:none}
+  .av-eye{fill:var(--av-ink);transform-box:fill-box;transform-origin:center;transition:transform 90ms ease}
+  .av-glint{fill:#fff;opacity:.55}
+  .av-eyes-happy path{fill:none;stroke:var(--av-ink);stroke-width:4.2;stroke-linecap:round}
+  .av-mouth{fill:var(--av-ink)} .av-mouth.m-rest{fill:none;stroke:var(--av-ink);stroke-width:4;stroke-linecap:round}
+  .av-spark{fill:var(--av-spark)}
+  .av-float{transform-box:fill-box;transform-origin:center bottom}
+  .av-tilt{transform-box:fill-box;transform-origin:center bottom;transition:transform .32s cubic-bezier(.22,1,.36,1)}
+  .av-breathe{transform-box:fill-box;transform-origin:center bottom}
+  .av-eyes{transform-box:fill-box;transform-origin:center;transition:transform .25s ease}
+  .av-eyes-happy{opacity:0} .av-mouth{opacity:0} .av-mouth.m-rest{opacity:1} .av-burst{opacity:0}
+  .av-float{animation:av-float 4s ease-in-out infinite}
+  .av-breathe{animation:av-breathe 4s ease-in-out infinite}
+  .av-spark{animation:av-twinkle 3s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+  .av-root.is-blink .av-eye{transform:scaleY(.12)}
+  .av-root[data-state="listening"] .av-tilt{transform:rotate(-7deg)}
+  .av-root[data-state="listening"] .av-eyes{transform:scale(1.14)}
+  .av-root[data-state="listening"] .av-spark{animation-duration:1.4s}
+  .av-root[data-state="thinking"] .av-eyes{transform:translate(2px,-4px)}
+  .av-root[data-state="thinking"] .av-float{animation-duration:5.5s}
+  .av-think-orbit{transform-box:view-box;transform-origin:80px 78px}
+  .av-root[data-state="thinking"] .av-think-orbit{animation:av-orbit 2.6s linear infinite}
+  .av-root[data-state="talking"] .m-rest{opacity:0}
+  .av-root[data-state="talking"][data-mouth="0"] .m-rest{opacity:1}
+  .av-root[data-state="talking"][data-mouth="1"] .m-mid{opacity:1}
+  .av-root[data-state="talking"][data-mouth="2"] .m-open{opacity:1}
+  .av-root[data-state="celebrating"] .av-eyes{opacity:0}
+  .av-root[data-state="celebrating"] .av-eyes-happy{opacity:1}
+  .av-root[data-state="celebrating"] .m-rest{opacity:0}
+  .av-root[data-state="celebrating"] .m-grin{opacity:1}
+  .av-root[data-state="celebrating"] .av-float{animation:av-bounce .7s cubic-bezier(.22,1,.36,1) infinite}
+  .av-root[data-state="celebrating"] .av-burst{opacity:1}
+  .av-root[data-state="celebrating"] .av-burst .av-spark{animation:av-pop .9s ease-in-out infinite}
+  .av-burst .b2{animation-delay:.15s!important} .av-burst .b3{animation-delay:.3s!important}
+  @keyframes av-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  @keyframes av-breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(.985,1.03)}}
+  @keyframes av-twinkle{0%,100%{transform:scale(1) rotate(0);opacity:.95}50%{transform:scale(.55) rotate(45deg);opacity:.5}}
+  @keyframes av-orbit{to{transform:rotate(360deg)}}
+  @keyframes av-bounce{0%{transform:translateY(0)}32%{transform:translateY(-13px)}64%{transform:translateY(0)}82%{transform:translateY(-4px)}100%{transform:translateY(0)}}
+  @keyframes av-pop{0%,100%{transform:scale(.3);opacity:0}50%{transform:scale(1.1);opacity:1}}
+  @media (prefers-reduced-motion: reduce){
+    .av-float,.av-breathe,.av-spark,.av-think-orbit,.av-eye,
+    .av-root[data-state="celebrating"] .av-float,.av-burst .av-spark{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="stage"><div id="avatar-root"></div></div>
+
+    <div class="row" id="controls">
+      <button class="s" data-state="idle" aria-pressed="true">idle</button>
+      <button class="s" data-state="listening">listening</button>
+      <button class="s" data-state="thinking">thinking</button>
+      <button class="s" data-state="talking">talking</button>
+      <button class="s" data-state="celebrating">celebrating</button>
+    </div>
+
+    <div class="chat">
+      <label for="msg">Try the chat flow</label>
+      <div class="chat-input">
+        <input id="msg" type="text" placeholder="Type a message, then Send…" autocomplete="off" />
+        <button id="send">Send</button>
+      </div>
+      <p class="hint">Typing → listening · sending → thinking → talking → celebrating → idle</p>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       AVATAR WIDGET (copy of avatar.js — keeps this file standalone)
+       ============================================================ -->
+  <script>
+  (function (global) {
+    'use strict';
+    var STATES = ['idle','listening','thinking','talking','celebrating'];
+    var SPARK = 'M0 -7 C1.6 -2 2 -2 7 0 C2 2 1.6 2 0 7 C-1.6 2 -2 2 -7 0 C-2 -2 -1.6 -2 0 -7 Z';
+    var SVG = [
+      '<svg class="av-svg" viewBox="0 0 160 168" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">',
+      '<defs>',
+      '<linearGradient id="avBody" x1="0" y1="0" x2="0" y2="1">',
+      '<stop offset="0%" style="stop-color:var(--av-body-top)"/>',
+      '<stop offset="52%" style="stop-color:var(--av-body-mid)"/>',
+      '<stop offset="100%" style="stop-color:var(--av-body-bot)"/>',
+      '</linearGradient>',
+      '<radialGradient id="avGloss" cx="50%" cy="30%" r="62%">',
+      '<stop offset="0%" stop-color="#fff" stop-opacity="0.38"/>',
+      '<stop offset="60%" stop-color="#fff" stop-opacity="0.05"/>',
+      '<stop offset="100%" stop-color="#fff" stop-opacity="0"/>',
+      '</radialGradient>',
+      '</defs>',
+      '<ellipse class="av-shadow" cx="80" cy="152" rx="40" ry="6"/>',
+      '<g class="av-float"><g class="av-tilt">',
+      '<g class="av-think-orbit"><path class="av-spark" d="' + SPARK + '" transform="translate(118 40)"/></g>',
+      '<g class="av-breathe">',
+      '<rect class="av-body" x="28" y="26" width="104" height="100" rx="46" ry="48" fill="url(#avBody)"/>',
+      '<rect class="av-gloss" x="28" y="26" width="104" height="100" rx="46" ry="48" fill="url(#avGloss)"/>',
+      '<g class="av-eyes">',
+      '<ellipse class="av-eye" cx="62" cy="78" rx="6.5" ry="8.5"/>',
+      '<ellipse class="av-eye" cx="98" cy="78" rx="6.5" ry="8.5"/>',
+      '<circle class="av-glint" cx="64" cy="75" r="1.8"/>',
+      '<circle class="av-glint" cx="100" cy="75" r="1.8"/>',
+      '</g>',
+      '<g class="av-eyes-happy"><path d="M54 80 q8 -9 16 0"/><path d="M90 80 q8 -9 16 0"/></g>',
+      '<path class="av-mouth m-rest" d="M68 95 q12 9 24 0"/>',
+      '<path class="av-mouth m-mid"  d="M72 94 q8 5 16 0 q-8 2 -16 0 z"/>',
+      '<path class="av-mouth m-open" d="M71 93 q9 11 18 0 q-9 6 -18 0 z"/>',
+      '<path class="av-mouth m-grin" d="M64 92 q16 15 32 0 q-16 8 -32 0 z"/>',
+      '</g>',
+      '<g class="av-burst">',
+      '<path class="av-spark b1" d="' + SPARK + '" transform="translate(36 56) scale(0.8)"/>',
+      '<path class="av-spark b2" d="' + SPARK + '" transform="translate(126 60)"/>',
+      '<path class="av-spark b3" d="' + SPARK + '" transform="translate(120 104) scale(0.7)"/>',
+      '</g>',
+      '</g></g></svg>'
+    ].join('');
+    var el=null,state='idle',blinkTimer=null,talkTimer=null;
+    var mql = global.matchMedia ? global.matchMedia('(prefers-reduced-motion: reduce)') : {matches:false};
+    function reduced(){return !!mql.matches;}
+    function scheduleBlink(){clearTimeout(blinkTimer);if(!el||reduced())return;
+      blinkTimer=setTimeout(function(){if(!el)return;
+        if(state!=='celebrating'){el.classList.add('is-blink');setTimeout(function(){el&&el.classList.remove('is-blink');},120);}
+        scheduleBlink();},2400+Math.random()*3600);}
+    function startTalking(){clearInterval(talkTimer);if(reduced()){el.setAttribute('data-mouth','0');return;}
+      var i=0,frames=['0','1','2','1'];el.setAttribute('data-mouth',frames[0]);
+      talkTimer=setInterval(function(){i=(i+1)%frames.length;el.setAttribute('data-mouth',frames[i]);},150);}
+    function stopTalking(){clearInterval(talkTimer);talkTimer=null;if(el)el.removeAttribute('data-mouth');}
+    function mount(t){var n=typeof t==='string'?document.querySelector(t):t;
+      if(!n)throw new Error('avatar.mount: target not found');if(el)destroy();
+      el=n;el.classList.add('av-root');el.setAttribute('role','img');el.innerHTML=SVG;
+      setState('idle');scheduleBlink();
+      if(mql.addEventListener)mql.addEventListener('change',onMotion);return api;}
+    function onMotion(){scheduleBlink();if(state==='talking')startTalking();}
+    function setState(s){if(!el)return api;if(STATES.indexOf(s)===-1)throw new Error('unknown state '+s);
+      state=s;el.setAttribute('data-state',s);el.setAttribute('aria-label','Assistant avatar — '+s);
+      if(s==='talking')startTalking();else stopTalking();return api;}
+    function destroy(){clearTimeout(blinkTimer);clearInterval(talkTimer);blinkTimer=talkTimer=null;
+      if(mql.removeEventListener)mql.removeEventListener('change',onMotion);
+      if(el){el.classList.remove('av-root','is-blink');el.removeAttribute('data-state');
+        el.removeAttribute('data-mouth');el.removeAttribute('role');el.removeAttribute('aria-label');el.innerHTML='';}
+      el=null;state='idle';}
+    var api={mount:mount,setState:setState,destroy:destroy,states:STATES.slice()};
+    global.avatar=api;
+  })(window);
+  </script>
+
+  <!-- ============================================================
+       DEMO WIRING — controls + simulated chat events
+       ============================================================ -->
+  <script>
+    avatar.mount('#avatar-root');
+
+    var btns = document.querySelectorAll('#controls .s');
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        avatar.setState(b.dataset.state);
+        btns.forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      });
+    });
+
+    var input = document.getElementById('msg');
+    var send  = document.getElementById('send');
+    var typingTimer;
+
+    input.addEventListener('input', function () {
+      avatar.setState('listening');
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(function () {
+        if (document.activeElement !== input || !input.value) avatar.setState('idle');
+      }, 1500);
+    });
+
+    function sendMessage() {
+      if (!input.value.trim()) return;
+      input.value = '';
+      avatar.setState('thinking');                                   // AI generating
+      setTimeout(function () {
+        avatar.setState('talking');                                  // response streams
+        setTimeout(function () {
+          avatar.setState('celebrating');                            // task done
+          setTimeout(function () { avatar.setState('idle'); }, 1800);
+        }, 2200);
+      }, 1400);
+    }
+    send.addEventListener('click', sendMessage);
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') sendMessage(); });
+  </script>
+</body>
+</html>

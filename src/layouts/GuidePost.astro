@@ -1,0 +1,213 @@
+---
+import Base from './Base.astro';
+import ArticleArt from '../components/ArticleArt.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  date: Date;
+  updated?: Date;
+  tags?: string[];
+  level: 'beginner' | 'intermediate' | 'advanced';
+  pathway?: string;
+  est?: string;
+  prerequisites?: string[];
+  readingTimeMin?: number;
+  slug: string;
+}
+
+const {
+  title, description, date, updated, level, pathway,
+  est, prerequisites = [], readingTimeMin, slug,
+} = Astro.props;
+
+const levelLabel = { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' }[level];
+const updatedStr = (updated ?? date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+const estLabel = est ?? (readingTimeMin !== undefined ? `${readingTimeMin} min read` : undefined);
+---
+
+<Base
+  {title}
+  {description}
+  article={{ published: date, modified: updated, schemaType: 'Article' }}
+>
+
+  <div
+    id="reading-progress"
+    class="fixed left-0 right-0 h-[3px] z-40 scale-x-0 transition-none"
+    style="top:calc(64px + env(safe-area-inset-top, 0px));transform-origin:left;background:var(--accent)"
+    aria-hidden="true"
+  ></div>
+
+  <div class="article-col">
+
+    <!-- Top row: back to guidebook -->
+    <div class="flex items-center justify-between flex-wrap gap-3 mb-6">
+      <a
+        href="/guides"
+        class="ghost-btn group inline-flex items-center gap-2 font-mono text-[12px] px-4 h-10 rounded-[4px]"
+      >
+        <span class="transition-transform duration-200 group-hover:-translate-x-0.5">←</span>
+        Guidebook
+      </a>
+      <span class:list={['guide-level-badge', `guide-level-badge--${level}`]}>
+        <span class="guide-level-dot" aria-hidden="true"></span>
+        {levelLabel}
+      </span>
+    </div>
+
+    <header class="mb-12">
+      <ArticleArt slug={slug} variant="hero" />
+
+      <div class="article-kicker">{pathway ? `${pathway} · Guide` : 'Guide'}</div>
+
+      <h1 class="article-headline">{title}</h1>
+
+      {description && <p class="article-dek">{description}</p>}
+
+      <div class="article-meta">
+        <span class="author">Ihab NK</span>
+        <span class="dot"></span>
+        <span>{levelLabel} guide</span>
+        {estLabel && (<><span class="dot"></span><span>{estLabel}</span></>)}
+        <span class="dot"></span>
+        <span>Updated {updatedStr}</span>
+      </div>
+
+      {prerequisites.length > 0 && (
+        <div class="guide-prereq">
+          <span class="guide-prereq-label">Before you start</span>
+          <ul>
+            {prerequisites.map((p) => <li>{p}</li>)}
+          </ul>
+        </div>
+      )}
+    </header>
+
+    <div id="article-body" class="article-body prose max-w-none" data-anim="prose">
+      <slot />
+    </div>
+
+    <footer class="mt-16 pt-8" style="border-top:2px solid var(--fg)">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <a
+          href="/guides"
+          class="group inline-flex items-center gap-2 font-mono text-sm transition-colors duration-200"
+          style="color:var(--fg-muted)"
+        >
+          <span class="transition-transform duration-200 group-hover:-translate-x-0.5">←</span>
+          Back to the Guidebook
+        </a>
+        <a
+          href="/#community"
+          class="font-mono text-[12px] font-bold transition-opacity duration-200 hover:opacity-70"
+          style="color:var(--accent-text)"
+        >
+          Working through this? Talk it through →
+        </a>
+      </div>
+    </footer>
+
+  </div>
+
+</Base>
+
+<style>
+  .guide-level-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 5px 11px 5px 10px;
+    border-radius: 4px;
+    border: 1.5px solid var(--fg);
+    background: var(--bg-page);
+    color: var(--fg);
+    box-shadow: 2px 2px 0 var(--fg);
+  }
+  .guide-level-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--fg-muted); }
+  .guide-level-badge--beginner { background: var(--accent); color: var(--on-accent); }
+  .guide-level-badge--beginner .guide-level-dot    { background: var(--on-accent); }
+  .guide-level-badge--intermediate .guide-level-dot { background: var(--accent); }
+  .guide-level-badge--advanced .guide-level-dot     { background: var(--fg); }
+
+  .guide-prereq {
+    margin-top: 24px;
+    border: 2px solid var(--fg);
+    border-radius: 4px;
+    background: var(--bg-card);
+    box-shadow: 3px 3px 0 var(--fg);
+    padding: 16px 20px;
+  }
+  .guide-prereq-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent-text);
+    margin-bottom: 8px;
+  }
+  .guide-prereq ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .guide-prereq li {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--fg-mid);
+    padding-left: 18px;
+    position: relative;
+  }
+  .guide-prereq li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent-text);
+    font-weight: 700;
+  }
+</style>
+
+<script>
+  // Reading progress + prose reveal tagging (mirrors BlogPost.astro).
+  (() => {
+    type W = Window & { __guidePostInited?: boolean; __guideProseTaggerBound?: boolean };
+    const w = window as W;
+
+    const tagProseReveal = () => {
+      const body = document.getElementById('article-body');
+      if (!body) return;
+      body.querySelectorAll('p, ul, ol, h2, h3, h4, blockquote, figure, img, hr, pre').forEach((el) => el.classList.add('reveal-soft'));
+      body.querySelectorAll('h2').forEach((el) => el.classList.add('reveal-pop'));
+      body.querySelectorAll('blockquote').forEach((el) => el.classList.add('reveal-tilt'));
+      body.querySelectorAll('figure, img, hr, pre').forEach((el) => el.classList.add('reveal-drift'));
+    };
+
+    tagProseReveal();
+    if (!w.__guideProseTaggerBound) {
+      w.__guideProseTaggerBound = true;
+      document.addEventListener('astro:page-load', tagProseReveal);
+      document.addEventListener('astro:after-swap', tagProseReveal);
+    }
+
+    if (w.__guidePostInited) return;
+    w.__guidePostInited = true;
+
+    window.addEventListener('scroll', () => {
+      const bar = document.getElementById('reading-progress');
+      if (!bar) return;
+      const doc = document.documentElement;
+      const total = doc.scrollHeight - doc.clientHeight;
+      bar.style.transform = `scaleX(${total > 0 ? window.scrollY / total : 0})`;
+    }, { passive: true });
+  })();
+</script>

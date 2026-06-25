@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import { lessons } from '../data/lessons';
 
 const SITE = 'https://ihabnk.org';
 
@@ -8,8 +9,9 @@ const SITE = 'https://ihabnk.org';
 export const GET: APIRoute = async () => {
   const posts = await getCollection('blog-en', ({ data }) => !data.draft);
   const reviews = await getCollection('reviews-en', ({ data }) => !data.draft);
+  const guides = await getCollection('guides-en', ({ data }) => !data.draft);
 
-  const staticPages = ['/', '/blog', '/reviews', '/about'];
+  const staticPages = ['/', '/start', '/guides', '/reviews', '/blog', '/about'];
 
   const lastmod = (d: Date) => d.toISOString().split('T')[0];
 
@@ -17,6 +19,8 @@ export const GET: APIRoute = async () => {
     ...staticPages.map(p => ({ loc: p })),
     ...posts.map(p => ({ loc: `/blog/${p.slug}`, lastmod: lastmod(p.data.date) })),
     ...reviews.map(r => ({ loc: `/reviews/${r.slug}`, lastmod: lastmod(r.data.updated ?? r.data.date) })),
+    ...guides.map(g => ({ loc: `/guides/${g.slug}`, lastmod: lastmod(g.data.updated ?? g.data.date) })),
+    ...lessons.map(l => ({ loc: `/learn/${l.slug}` })),
   ];
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>

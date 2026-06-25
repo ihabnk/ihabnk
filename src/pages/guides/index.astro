@@ -1,0 +1,283 @@
+---
+import Base from '../../layouts/Base.astro';
+import GuideCard from '../../components/GuideCard.astro';
+import { getCollection } from 'astro:content';
+import { lessons } from '../../data/lessons';
+
+const guides = await getCollection('guides-en', ({ data }) => !data.draft);
+const posts = await getCollection('blog-en', ({ data }) => !data.draft);
+
+const lessonsByLevel = (lvl: 'beginner' | 'intermediate' | 'advanced') =>
+  lessons.filter((l) => l.level === lvl).sort((a, b) => a.order - b.order);
+const beginnerLessons = lessonsByLevel('beginner');
+
+const byLevel = (lvl: 'beginner' | 'intermediate' | 'advanced') =>
+  guides
+    .filter((g) => g.data.level === lvl)
+    .sort((a, b) => a.data.order - b.data.order);
+
+const beginner = byLevel('beginner');
+const intermediate = byLevel('intermediate');
+const advanced = byLevel('advanced');
+
+// Cross-listed reading for tracks that are still filling in — keeps every
+// level useful even before its guides are all written.
+const findPost = (slug: string) => posts.find((p) => p.slug === slug);
+const advancedReading = [
+  'evals-are-the-new-tests',
+  'why-quality-is-the-bottleneck',
+  'ai-changing-qa-role',
+]
+  .map(findPost)
+  .filter((p): p is NonNullable<typeof p> => Boolean(p))
+  .map((p) => ({ href: `/blog/${p.slug}`, title: p.data.title, blurb: p.data.description ?? '' }));
+
+const tracks = [
+  {
+    id: 'beginner',
+    label: 'New to QA',
+    title: 'Start from zero',
+    desc: 'No prior testing experience needed. These are interactive lessons — learn by doing, with instant feedback at every step.',
+    guides: beginner,
+    reading: [],
+    lessons: beginnerLessons,
+  },
+  {
+    id: 'intermediate',
+    label: 'Growing in QA',
+    title: 'Get genuinely good',
+    desc: 'You know the basics — now build real depth in API testing, automation, CI/CD, and test strategy that survives contact with production.',
+    guides: intermediate,
+    reading: [],
+  },
+  {
+    id: 'advanced',
+    label: 'Advanced quality',
+    title: 'Modern quality engineering',
+    desc: 'The current, harder edge: evals, AI-assisted testing, and designing quality strategy for a whole organization.',
+    guides: advanced,
+    reading: advancedReading,
+  },
+];
+---
+
+<Base
+  title="Guides"
+  description="A structured guidebook for software quality engineers — from getting into QA to designing quality strategy for a whole org."
+>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+
+    <div class="glow-sep mb-10"></div>
+
+    <header class="mb-12" data-anim="section-head">
+      <span class="section-label mb-2 reveal-soft block">// the guidebook</span>
+      <h1
+        class="font-bold reveal-soft reveal-pop"
+        style="font-size:clamp(34px,5vw,56px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.015em;line-height:1"
+      >A real path, not a reading list.</h1>
+      <p
+        class="mt-5 max-w-[640px] text-[17px] leading-[1.6] reveal-soft"
+        style="color:var(--fg-mid);font-family:var(--font-sans)"
+      >
+        Most QA advice is scattered across threads and outdated posts. The Guidebook is
+        the opposite: ordered, opinionated, and built from production experience — so you
+        always know what to learn next. Pick the track that matches where you are.
+      </p>
+
+      <!-- Quick jump -->
+      <nav class="mt-6 flex flex-wrap gap-2" aria-label="Jump to level">
+        {tracks.map((t) => (
+          <a href={`#${t.id}`} class="track-jump">{t.label}</a>
+        ))}
+      </nav>
+    </header>
+
+    {tracks.map((track) => (
+      <section id={track.id} class="mb-14 scroll-mt-24">
+        <div class="track-head" data-anim="section-head">
+          <span class="section-label mb-2 reveal-soft block">// {track.label.toLowerCase()}</span>
+          <h2
+            class="font-bold reveal-soft reveal-pop"
+            style="font-size:clamp(26px,3.4vw,38px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1.05"
+          >{track.title}</h2>
+          <p class="mt-3 max-w-[600px] text-[15px] leading-[1.6] reveal-soft" style="color:var(--fg-mid)">
+            {track.desc}
+          </p>
+        </div>
+
+        {track.lessons && track.lessons.length > 0 && (
+          <div class="track-lessons mt-6" data-anim="row-list">
+            {track.lessons.map((l, i) => (
+              <a href={`/learn/${l.slug}`} class="track-lesson group">
+                <span class="track-lesson-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20" /></svg>
+                </span>
+                <span class="track-lesson-body">
+                  <span class="track-lesson-tag">Lesson {i + 1} · Interactive · {l.est}</span>
+                  <span class="track-lesson-title">{l.title}</span>
+                  <span class="track-lesson-desc">{l.intro}</span>
+                </span>
+                <span class="track-lesson-cta" aria-hidden="true">{i === 0 ? 'Start →' : 'Open →'}</span>
+              </a>
+            ))}
+          </div>
+        )}
+
+        {track.guides.length > 0 && (
+          <div class="mt-8">
+            {track.lessons && track.lessons.length > 0 && (
+              <p class="font-mono text-[11px] mb-3" style="color:var(--fg-muted)">
+                Prefer to read? Long-form guides cover the same ground in depth:
+              </p>
+            )}
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-anim="card-grid">
+              {track.guides.map((g, i) => (
+                <GuideCard guide={g} animate stagger={Math.min(i + 1, 4) as 1|2|3|4} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {track.reading.length > 0 && (
+          <div class="mt-6">
+            {track.guides.length > 0 && (
+              <p class="font-mono text-[11px] mb-3" style="color:var(--fg-muted)">
+                More guides in progress. In the meantime, the deeper thinking lives in these essays:
+              </p>
+            )}
+            {track.guides.length === 0 && (
+              <p class="font-mono text-[11px] mb-3" style="color:var(--fg-muted)">
+                Dedicated guides are in progress. The thinking already lives in these essays:
+              </p>
+            )}
+            <ul class="reading-list" data-anim="row-list">
+              {track.reading.map((r) => (
+                <li class="reading-item group">
+                  <a href={r.href} class="stretched-link"></a>
+                  <span class="reading-title">{r.title}</span>
+                  {r.blurb && <span class="reading-blurb">{r.blurb}</span>}
+                  <span class="reading-arrow" aria-hidden="true">Read →</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {track.guides.length === 0 && track.reading.length === 0 && (
+          <p class="mt-6 font-mono text-sm" style="color:var(--fg-muted)">Guides for this track are coming soon.</p>
+        )}
+      </section>
+    ))}
+
+    <!-- Footer CTA -->
+    <div class="glow-sep mb-10"></div>
+    <div class="guides-cta card-brutal" style="background:var(--bg-card)">
+      <div>
+        <h2 class="font-bold mb-2" style="font-size:clamp(22px,3vw,30px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em">
+          Not sure where you fit?
+        </h2>
+        <p class="text-[15px] leading-[1.6]" style="color:var(--fg-mid);max-width:460px">
+          If you're new to quality engineering, start at the beginning — the first guide assumes nothing.
+        </p>
+      </div>
+      <a href="/start" class="btn-primary inline-flex items-center gap-2 font-bold text-sm px-6 h-12 rounded-[4px] shrink-0">
+        New to QA? Start here →
+      </a>
+    </div>
+
+  </div>
+</Base>
+
+<style>
+  .track-jump {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--fg-mid);
+    border: 1.5px solid var(--border-mid);
+    background: var(--bg-card);
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: border-color 0.15s ease, color 0.15s ease, transform 0.12s ease;
+  }
+  .track-jump:hover {
+    border-color: var(--accent);
+    color: var(--accent-text);
+    transform: translateY(-1px);
+  }
+
+  .track-lessons { display: flex; flex-direction: column; gap: 10px; }
+  .track-lesson {
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px 18px; text-decoration: none;
+    border: 2px solid var(--fg); border-radius: 5px; background: var(--bg-card);
+    box-shadow: 4px 4px 0 var(--fg);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .track-lesson:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--fg); }
+  .track-lesson-icon {
+    flex-shrink: 0; width: 40px; height: 40px; display: grid; place-items: center;
+    border: 2px solid var(--fg); border-radius: 50%; background: var(--accent); color: var(--on-accent);
+  }
+  .track-lesson-icon svg { width: 16px; height: 16px; margin-left: 2px; fill: currentColor; }
+  .track-lesson-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .track-lesson-tag { font-family: var(--font-mono); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--accent-text); }
+  .track-lesson-title { font-family: var(--font-display); font-weight: 700; font-size: 19px; letter-spacing: -0.01em; color: var(--fg); }
+  .track-lesson-desc { font-family: var(--font-sans); font-size: 13px; line-height: 1.45; color: var(--fg-mid); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  @media (max-width: 560px) { .track-lesson-desc { -webkit-line-clamp: 3; } }
+  .track-lesson-cta { margin-left: auto; flex-shrink: 0; font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--accent-text); transition: transform 0.15s ease; }
+  .track-lesson:hover .track-lesson-cta { transform: translateX(3px); }
+
+  .reading-list { list-style: none; margin: 0; padding: 0; border-top: 1.5px solid var(--border); }
+  .reading-item {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "title arrow" "blurb arrow";
+    gap: 2px 16px;
+    align-items: center;
+    padding: 16px 4px;
+    border-bottom: 1.5px solid var(--border);
+    transition: background 0.15s ease;
+  }
+  .reading-item:hover { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+  .reading-title {
+    grid-area: title;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.01em;
+    color: var(--fg);
+    transition: color 0.15s ease;
+  }
+  .reading-item:hover .reading-title { color: var(--accent-text); }
+  .reading-blurb {
+    grid-area: blurb;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--fg-mid);
+    max-width: 60ch;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .reading-arrow {
+    grid-area: arrow;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-text);
+    white-space: nowrap;
+    transition: transform 0.15s ease;
+  }
+  .reading-item:hover .reading-arrow { transform: translateX(3px); }
+
+  .guides-cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 24px 28px;
+  }
+</style>
