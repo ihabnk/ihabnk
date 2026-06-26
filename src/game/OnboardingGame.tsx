@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion, MotionConfig, useReducedMotion } from 'framer-motion';
 import './onboarding.css';
 import { DAYS, getDay } from '../data/onboarding';
 import { useGame } from './useGame';
@@ -23,18 +23,21 @@ export default function OnboardingGame() {
   const { progress, hydrated, completeDay, isUnlocked, isDone } = useGame();
   const [activeDay, setActiveDay] = useState<number | null>(null);
   const [mentor, setMentor] = useState<MentorState>('idle');
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ label: string; xp: number } | null>(null);
   const reduce = useReducedMotion();
 
   const [startStep, setStartStep] = useState(0); // deep-link: 0=intro, k=scene index k-1
+  const [startPick, setStartPick] = useState<number | null>(null);
 
-  // Deep-link support: ?day=N (&step=K) opens a day directly (resume / share / preview).
+  // Deep-link support: ?day=N (&step=K&pick=I) opens a day directly (resume / share / preview).
   useEffect(() => {
     if (!hydrated) return;
     const q = new URLSearchParams(location.search);
     const n = Number.parseInt(q.get('day') ?? '', 10);
     if (!Number.isNaN(n) && hasContent(n)) {
       setStartStep(Number.parseInt(q.get('step') ?? '0', 10) || 0);
+      const pk = q.get('pick');
+      setStartPick(pk != null ? Number.parseInt(pk, 10) : null);
       setActiveDay(n);
     }
   }, [hydrated]);
@@ -51,8 +54,8 @@ export default function OnboardingGame() {
 
   const finishDay = (d: Day, gained: number) => {
     completeDay(d.n, gained, d.skill.id);
-    setToast(d.skill.label);
-    window.setTimeout(() => setToast(null), 3200);
+    setToast({ label: d.skill.label, xp: gained });
+    window.setTimeout(() => setToast(null), 3400);
     if (hasContent(d.n + 1) && (d.n + 1 === 1 || true)) setActiveDay(d.n + 1);
     else setActiveDay(null);
   };
@@ -60,6 +63,7 @@ export default function OnboardingGame() {
   const transition = reduce ? { duration: 0 } : { duration: 0.3, ease: [0.22, 1, 0.36, 1] as const };
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="qg-root">
       <GameHUD
         completed={progress.completedDays.length}
@@ -71,7 +75,7 @@ export default function OnboardingGame() {
       <AnimatePresence>
         {toast && (
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-            <SkillToast label={toast} />
+            <SkillToast label={toast.label} xp={toast.xp} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -109,6 +113,7 @@ export default function OnboardingGame() {
                   key={day.n}
                   day={day}
                   startStep={startStep}
+                  startPick={startPick}
                   onMentor={setMentor}
                   onExit={() => setActiveDay(null)}
                   onComplete={(gained) => finishDay(day, gained)}
@@ -120,6 +125,7 @@ export default function OnboardingGame() {
         )}
       </AnimatePresence>
     </div>
+    </MotionConfig>
   );
 }
 
@@ -127,19 +133,25 @@ export default function OnboardingGame() {
 type Stage = 'intro' | 'scene' | 'recap';
 
 function DayPlayer({
-  day, startStep = 0, onMentor, onExit, onComplete, transition,
+  day, startStep = 0, startPick = null, onMentor, onExit, onComplete, transition,
 }: {
   day: Day;
   startStep?: number;
+  startPick?: number | null;
   onMentor: (s: MentorState) => void;
   onExit: () => void;
   onComplete: (gained: number) => void;
   transition: { duration: number; ease?: readonly number[] };
 }) {
+  const startIdx = startStep > 0 ? Math.min(startStep - 1, day.scenes.length - 1) : 0;
+  const seeded = startStep > 0 && startPick != null;
+  const seededScene = day.scenes[startIdx];
   const [stage, setStage] = useState<Stage>(startStep > 0 ? 'scene' : 'intro');
-  const [sceneIdx, setSceneIdx] = useState(startStep > 0 ? Math.min(startStep - 1, day.scenes.length - 1) : 0);
-  const [picked, setPicked] = useState<Record<number, number>>({});
-  const [gained, setGained] = useState(0);
+  const [sceneIdx, setSceneIdx] = useState(startIdx);
+  const [picked, setPicked] = useState<Record<number, number>>(seeded ? { [startIdx]: startPick! } : {});
+  const [gained, setGained] = useState(
+    seeded && seededScene?.kind === 'choice' ? (seededScene.options[startPick!]?.confidence ?? 0) : 0,
+  );
 
   const scene = day.scenes[sceneIdx];
   const lastContentDay = day.n + 1 > Math.max(...DAYS.map((d) => d.n));
@@ -187,6 +199,7 @@ function DayPlayer({
 
         {stage === 'scene' && scene?.kind === 'choice' && (
           <ChoiceScene
+            dayN={day.n}
             prompt={scene.prompt}
             subtitle={scene.subtitle}
             options={scene.options}
