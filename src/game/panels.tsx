@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import type { Choice, Day } from './types';
+import type { Choice, Day, MentorState, Scene } from './types';
 import { TOTAL_DAYS } from './types';
+
+type TaskScn = Extract<Scene, { kind: 'task' }>;
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 
@@ -158,6 +160,134 @@ export function ChoiceScene({
             </div>
             <p className="qg-outcome-text">{chosen.feedback}</p>
             <button className="qg-btn qg-btn-primary" onClick={onContinue}>{isLast ? 'Wrap up the day →' : 'Continue →'}</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ── Interactive task (explore reveal / multi-select) ──────────── */
+export function TaskScene({
+  dayN, task, onResolve, onContinue, onMentor,
+}: {
+  dayN: number; task: TaskScn;
+  onResolve: (gained: number) => void; onContinue: () => void; onMentor: (s: MentorState) => void;
+}) {
+  const reduce = useReducedMotion();
+  const [open, setOpen] = useState<Set<number>>(new Set());
+  const [sel, setSel] = useState<Set<number>>(new Set());
+  const [resolved, setResolved] = useState(false);
+  const [gain, setGain] = useState(0);
+  const [strong, setStrong] = useState(true);
+
+  const need = task.variant === 'explore' ? (task.minReveal ?? task.items.length) : 0;
+
+  const openCard = (i: number) => {
+    if (resolved) return;
+    setOpen((prev) => {
+      if (prev.has(i)) return prev;
+      const next = new Set(prev).add(i);
+      if (next.size >= need) { setResolved(true); setGain(task.xp); setStrong(true); onResolve(task.xp); onMentor('success'); }
+      else onMentor('speaking');
+      return next;
+    });
+  };
+
+  const toggleSel = (i: number) => {
+    if (resolved) return;
+    setSel((prev) => { const n = new Set(prev); n.has(i) ? n.delete(i) : n.add(i); return n; });
+  };
+
+  const submit = () => {
+    if (resolved || sel.size === 0) return;
+    const wrong = [...sel].filter((i) => !task.items[i].correct).length;
+    const missed = task.items.filter((it, i) => it.correct && !sel.has(i)).length;
+    const perfect = wrong === 0 && missed === 0;
+    const g = perfect ? task.xp : Math.max(3, Math.round(task.xp * 0.5));
+    setResolved(true); setGain(g); setStrong(perfect); onResolve(g); onMentor(perfect ? 'success' : 'caution');
+  };
+
+  const selClass = (i: number) => {
+    const it = task.items[i];
+    if (!resolved) return sel.has(i) ? 'is-sel' : '';
+    if (it.correct && sel.has(i)) return 'is-correct';
+    if (it.correct && !sel.has(i)) return 'is-missed';
+    if (!it.correct && sel.has(i)) return 'is-wrong';
+    return 'is-dim';
+  };
+
+  return (
+    <div className="qg-card qg-scenario">
+      <div className="qg-scenario-head">
+        <span className="qg-decision-pill"><span className="qg-decision-dot" aria-hidden="true" />{task.variant === 'explore' ? 'Explore' : 'Hands-on'}</span>
+        <span className="qg-scenario-ctx">Day {dayN} · task</span>
+      </div>
+      <p className="qg-prompt">{task.prompt}</p>
+      {task.subtitle && <p className="qg-subtitle">{task.subtitle}</p>}
+
+      {task.variant === 'explore' && (
+        <>
+          <div className="qg-explore">
+            {task.items.map((it, i) => {
+              const o = open.has(i);
+              return (
+                <motion.button key={i} className={`qg-explore-card ${o ? 'is-open' : ''}`} onClick={() => openCard(i)}
+                  whileHover={o || reduce ? undefined : { y: -2 }} whileTap={reduce ? undefined : { scale: 0.99 }}>
+                  <span className="qg-explore-top">
+                    <span className="qg-explore-label">{it.label}</span>
+                    <span className="qg-explore-plus" aria-hidden="true">{o ? '✓' : '+'}</span>
+                  </span>
+                  <AnimatePresence initial={false}>
+                    {o && it.note && (
+                      <motion.span className="qg-explore-note"
+                        initial={reduce ? false : { opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
+                        {it.note}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </motion.button>
+              );
+            })}
+          </div>
+          {!resolved && <p className="qg-task-progress">Opened {open.size} of {need}</p>}
+        </>
+      )}
+
+      {task.variant === 'select' && (
+        <>
+          <div className="qg-select">
+            {task.items.map((it, i) => (
+              <button key={i} className={`qg-selectable ${selClass(i)}`} disabled={resolved} onClick={() => toggleSel(i)}
+                aria-pressed={sel.has(i)}>
+                <span className="qg-check" aria-hidden="true">
+                  {resolved ? (it.correct ? '✓' : sel.has(i) ? '✕' : '') : (sel.has(i) ? '✓' : '')}
+                </span>
+                <span>{it.label}</span>
+              </button>
+            ))}
+          </div>
+          {!resolved && (
+            <div className="qg-task-actions">
+              <button className="qg-btn qg-btn-primary" disabled={sel.size === 0} onClick={submit}>Confirm selection</button>
+            </div>
+          )}
+        </>
+      )}
+
+      <AnimatePresence>
+        {resolved && (
+          <motion.div className={`qg-outcome is-${strong ? 'strong' : 'partial'}`}
+            initial={reduce ? { opacity: 1 } : { opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 26 }}>
+            <div className="qg-outcome-head">
+              <span className="qg-outcome-glyph" aria-hidden="true">{strong ? '✓' : '◑'}</span>
+              <span className="qg-outcome-verdict">{strong ? 'Well done' : 'Close — worth a review'}</span>
+              <motion.span className="qg-outcome-xp" initial={reduce ? false : { scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 18, delay: 0.1 }}>+{gain} XP</motion.span>
+            </div>
+            <p className="qg-outcome-text">{task.done}</p>
+            <button className="qg-btn qg-btn-primary" onClick={onContinue}>Continue →</button>
           </motion.div>
         )}
       </AnimatePresence>

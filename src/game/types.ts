@@ -1,7 +1,15 @@
 /** Shared types for the QA onboarding game ("The First 30 Days"). */
 
 export type MentorState =
-  | 'idle' | 'welcome' | 'hint' | 'success' | 'concern' | 'celebrate';
+  | 'idle' | 'welcome' | 'speaking' | 'hint' | 'success' | 'concern' | 'caution' | 'recap' | 'celebrate';
+
+export interface TaskItem {
+  label: string;
+  /** explore: short note revealed on tap. */
+  note?: string;
+  /** select: whether this belongs in the correct set. */
+  correct?: boolean;
+}
 
 export interface Skill {
   id: string;
@@ -19,6 +27,19 @@ export interface Choice {
 
 export type Scene =
   | { kind: 'mentor'; text: string; mentor?: MentorState }
+  | {
+      kind: 'task';
+      variant: 'explore' | 'select';
+      prompt: string;
+      subtitle?: string;
+      items: TaskItem[];
+      /** explore: how many items must be opened to proceed (defaults to all). */
+      minReveal?: number;
+      /** XP awarded on completing the task (select scales by correctness). */
+      xp: number;
+      /** Mentor line shown once the task is done. */
+      done: string;
+    }
   | { kind: 'choice'; prompt: string; subtitle?: string; options: Choice[] };
 
 export interface Day {

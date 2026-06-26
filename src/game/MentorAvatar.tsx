@@ -10,14 +10,23 @@ const SPARK = 'M0 -7 C1.6 -2 2 -2 7 0 C2 2 1.6 2 0 7 C-1.6 2 -2 2 -7 0 C-2 -2 -1
  */
 export default function MentorAvatar({ state = 'idle', size = 96 }: { state?: MentorState; size?: number }) {
   const reduce = useReducedMotion();
+  const EASE = [0.22, 1, 0.36, 1] as const;
 
-  // a small physical reaction layered on top of the CSS expression
-  const react =
-    reduce ? {} :
-    state === 'success' || state === 'welcome' ? { y: [0, -10, 0] } :
-    state === 'celebrate' ? { y: [0, -12, 0, -5, 0] } :
-    state === 'concern' ? { x: [0, -3, 3, -2, 0] } :
-    { y: 0 };
+  // A small physical reaction layered on top of the CSS expression.
+  const motionFor = (): { animate: Record<string, unknown>; transition: Record<string, unknown> } => {
+    if (reduce) return { animate: {}, transition: { duration: 0 } };
+    switch (state) {
+      case 'welcome':
+      case 'success':   return { animate: { y: [0, -10, 0] }, transition: { duration: 0.5, ease: EASE } };
+      case 'recap':     return { animate: { y: [0, -8, 0] }, transition: { duration: 0.55, ease: EASE } };
+      case 'celebrate': return { animate: { y: [0, -12, 0, -5, 0] }, transition: { duration: 0.7, ease: EASE } };
+      case 'concern':
+      case 'caution':   return { animate: { x: [0, -3, 3, -2, 0] }, transition: { duration: 0.4 } };
+      case 'speaking':  return { animate: { y: [0, -2.5, 0] }, transition: { duration: 1.1, repeat: Infinity, ease: 'easeInOut' } };
+      default:          return { animate: { y: 0 }, transition: { duration: 0.3 } };
+    }
+  };
+  const { animate, transition } = motionFor();
 
   return (
     <motion.div
@@ -25,8 +34,8 @@ export default function MentorAvatar({ state = 'idle', size = 96 }: { state?: Me
       data-state={state}
       style={{ width: size, height: size * 1.05 }}
       aria-hidden="true"
-      animate={react}
-      transition={{ duration: state === 'celebrate' ? 0.7 : 0.5, ease: [0.22, 1, 0.36, 1] }}
+      animate={animate}
+      transition={transition}
     >
       <svg viewBox="0 0 160 168" xmlns="http://www.w3.org/2000/svg">
         <rect className="qg-shadow" x="31" y="27" width="104" height="104" rx="22" />
@@ -45,6 +54,7 @@ export default function MentorAvatar({ state = 'idle', size = 96 }: { state?: Me
               <path className="qg-eye-happy" d="M61 70 q19 -17 38 0" />
               <path className="qg-mouth m-rest" d="M70 100 q10 7 20 0" />
               <path className="qg-mouth m-grin" d="M67 97 q13 12 26 0 q-13 7 -26 0 z" />
+              <path className="qg-mouth m-frown" d="M70 104 q10 -7 20 0" />
               <path className="qg-mouth m-frown" d="M70 103 q10 -7 20 0" />
             </g>
             <g className="qg-burst">

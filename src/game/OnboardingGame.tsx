@@ -6,14 +6,17 @@ import { useGame } from './useGame';
 import type { Day, MentorState } from './types';
 import MentorAvatar from './MentorAvatar';
 import DayMap from './DayMap';
-import { GameHUD, DayIntroCard, MentorBeat, ChoiceScene, DayRecapCard, SkillToast } from './panels';
+import { GameHUD, DayIntroCard, MentorBeat, ChoiceScene, TaskScene, DayRecapCard, SkillToast } from './panels';
 
 const CAPTION: Record<MentorState, string> = {
   idle: 'Take your time.',
   welcome: "Let's get started.",
-  hint: 'Here’s a nudge…',
+  speaking: 'Here’s the brief…',
+  hint: 'Give it a try.',
   success: 'Nice — strong call.',
   concern: 'Hmm — let’s rethink that.',
+  caution: 'Not quite — worth another look.',
+  recap: 'Great progress today.',
   celebrate: 'That’s the way!',
 };
 
@@ -21,26 +24,18 @@ const hasContent = (n: number) => DAYS.some((d) => d.n === n);
 
 export default function OnboardingGame() {
   const { progress, hydrated, completeDay, isUnlocked, isDone } = useGame();
-  const [activeDay, setActiveDay] = useState<number | null>(null);
+
+  // Deep-link support: ?day=N (&step=K&pick=I) opens a day on first paint
+  // (resume / share / preview) — avoids a map→day transition flash.
+  const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
+  const dlDay = (() => { const n = Number.parseInt(params.get('day') ?? '', 10); return !Number.isNaN(n) && hasContent(n) ? n : null; })();
+
+  const [activeDay, setActiveDay] = useState<number | null>(dlDay);
   const [mentor, setMentor] = useState<MentorState>('idle');
   const [toast, setToast] = useState<{ label: string; xp: number } | null>(null);
   const reduce = useReducedMotion();
-
-  const [startStep, setStartStep] = useState(0); // deep-link: 0=intro, k=scene index k-1
-  const [startPick, setStartPick] = useState<number | null>(null);
-
-  // Deep-link support: ?day=N (&step=K&pick=I) opens a day directly (resume / share / preview).
-  useEffect(() => {
-    if (!hydrated) return;
-    const q = new URLSearchParams(location.search);
-    const n = Number.parseInt(q.get('day') ?? '', 10);
-    if (!Number.isNaN(n) && hasContent(n)) {
-      setStartStep(Number.parseInt(q.get('step') ?? '0', 10) || 0);
-      const pk = q.get('pick');
-      setStartPick(pk != null ? Number.parseInt(pk, 10) : null);
-      setActiveDay(n);
-    }
-  }, [hydrated]);
+  const [startStep] = useState(() => Number.parseInt(params.get('step') ?? '0', 10) || 0);
+  const [startPick] = useState<number | null>(() => { const p = params.get('pick'); return p != null ? Number.parseInt(p, 10) : null; });
 
   const day = activeDay ? getDay(activeDay) : null;
   const current = useMemo(() => {
@@ -149,6 +144,7 @@ function DayPlayer({
   const [stage, setStage] = useState<Stage>(startStep > 0 ? 'scene' : 'intro');
   const [sceneIdx, setSceneIdx] = useState(startIdx);
   const [picked, setPicked] = useState<Record<number, number>>(seeded ? { [startIdx]: startPick! } : {});
+  const [taskDone, setTaskDone] = useState<Record<number, boolean>>({});
   const [gained, setGained] = useState(
     seeded && seededScene?.kind === 'choice' ? (seededScene.options[startPick!]?.confidence ?? 0) : 0,
   );
@@ -156,16 +152,24 @@ function DayPlayer({
   const scene = day.scenes[sceneIdx];
   const lastContentDay = day.n + 1 > Math.max(...DAYS.map((d) => d.n));
 
-  // Drive the mentor's expression from the current stage/scene.
+  // Drive the mentor's expression from the current stage/scene. Tasks own
+  // their own success/caution on resolve (so we don't override them here).
   useEffect(() => {
     if (stage === 'intro') return onMentor('welcome');
-    if (stage === 'recap') return onMentor('celebrate');
+    if (stage === 'recap') return onMentor('recap');
     if (!scene) return;
-    if (scene.kind === 'mentor') return onMentor(scene.mentor ?? 'hint');
+    if (scene.kind === 'mentor') return onMentor(scene.mentor ?? 'speaking');
+    if (scene.kind === 'task') { if (!taskDone[sceneIdx]) onMentor('hint'); return; }
     const p = picked[sceneIdx];
     if (p === undefined) return onMentor('idle');
-    onMentor(day.scenes[sceneIdx].kind === 'choice' && (day.scenes[sceneIdx] as any).options[p].best ? 'success' : 'concern');
-  }, [stage, sceneIdx, picked, scene, onMentor, day]);
+    onMentor(scene.kind === 'choice' && scene.options[p].best ? 'success' : 'caution');
+  }, [stage, sceneIdx, picked, taskDone, scene, onMentor, day]);
+
+  const resolveTask = (g: number) => {
+    if (taskDone[sceneIdx]) return;
+    setTaskDone((m) => ({ ...m, [sceneIdx]: true }));
+    setGained((x) => x + g);
+  };
 
   const advance = () => {
     if (sceneIdx + 1 < day.scenes.length) setSceneIdx((i) => i + 1);
@@ -195,6 +199,10 @@ function DayPlayer({
 
         {stage === 'scene' && scene?.kind === 'mentor' && (
           <MentorBeat text={scene.text} onContinue={advance} />
+        )}
+
+        {stage === 'scene' && scene?.kind === 'task' && (
+          <TaskScene dayN={day.n} task={scene} onMentor={onMentor} onResolve={resolveTask} onContinue={advance} />
         )}
 
         {stage === 'scene' && scene?.kind === 'choice' && (

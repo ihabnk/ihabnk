@@ -3,12 +3,13 @@ import type { Day } from '../game/types';
 /**
  * "The First 30 Days" — a narrative QA onboarding simulator.
  *
- * Days 1–3 are fully written. The remaining days follow the same shape and
- * can be appended without touching the engine or components. Designed so the
- * 30-day arc can later extend to 60/90 by adding more entries.
+ * Each day follows a 5-beat flow: mentor brief → interactive task →
+ * decision → feedback → recap. Days 1–3 are fully written; the shape
+ * extends to 30/60/90 by appending entries — no engine changes needed.
  *
- * Confidence (XP) per choice: ~12 best, ~6 reasonable, ~3 weak — always
- * positive to keep beginners motivated; the feedback teaches regardless.
+ * Confidence (XP): choices ~12 best / ~6 partial / ~3 weak; tasks award a
+ * flat amount (select scales by correctness). Always positive — the feedback
+ * teaches regardless, keeping beginners motivated.
  */
 export const DAYS: Day[] = [
   {
@@ -22,55 +23,43 @@ export const DAYS: Day[] = [
     scenes: [
       {
         kind: 'mentor',
-        mentor: 'welcome',
-        text: "There's no pressure to find bugs today. The best testers start by understanding what 'good' even means here. Let me ask you a couple of things the way your new teammates might.",
+        mentor: 'speaking',
+        text: "First, let's get clear on what the job actually is — because it's bigger than 'find bugs'. Here's a quick warm-up.",
       },
       {
-        kind: 'choice',
-        prompt: 'A teammate jokes: “QA just clicks around to find bugs, right?” What’s the most accurate way to think about your role?',
-        options: [
-          {
-            text: 'Pretty much — my job is to click everything and report what breaks.',
-            confidence: 4,
-            feedback: 'Finding breakage matters, but that framing is too small. Clicking around is a tool, not the mission.',
-          },
-          {
-            text: "I'm the user's advocate — I make sure the product does what people need, and I find where it won't.",
-            best: true,
-            confidence: 12,
-            feedback: 'Exactly. Quality is about protecting the people who rely on the product. Bugs are just one way that protection shows up.',
-          },
-          {
-            text: 'I approve releases and block bad code from shipping.',
-            confidence: 3,
-            feedback: 'Careful — QA as a gatekeeper creates an us-vs-them dynamic. You inform decisions and surface risk; the team ships together.',
-          },
+        kind: 'task',
+        variant: 'select',
+        prompt: 'Tap everything that’s genuinely part of your role as a quality engineer.',
+        subtitle: 'Select all that apply, then confirm.',
+        xp: 10,
+        done: 'That’s the shape of the role: advocate, investigate, understand — not gatekeep or rubber-stamp.',
+        items: [
+          { label: 'Advocate for the people who use the product', correct: true },
+          { label: 'Investigate where the product fails real users', correct: true },
+          { label: 'Understand how the product is actually used', correct: true },
+          { label: 'Personally approve every line of code' },
+          { label: 'Act as the gate that blocks the team from shipping' },
         ],
       },
       {
-        kind: 'mentor',
-        mentor: 'hint',
-        text: "Good instinct. One more — your manager asks what you'll focus on this first week. They're not testing you; they genuinely want to know where you'll start.",
-      },
-      {
         kind: 'choice',
-        prompt: 'As a brand-new QA, what’s the smartest first move this week?',
+        prompt: 'Your manager asks what you’ll focus on this first week. What’s the smartest move?',
         options: [
           {
             text: 'File as many bugs as possible to prove my value fast.',
             confidence: 3,
-            feedback: 'Tempting, but noisy. A pile of shallow bugs from someone who doesn’t yet understand the product erodes trust more than it builds it.',
+            feedback: 'Tempting, but noisy. Shallow bugs from someone still learning the product erode trust more than they build it.',
           },
           {
-            text: 'Learn the product and how real users actually use it before judging anything.',
+            text: 'Learn the product and how real users use it before judging anything.',
             best: true,
             confidence: 12,
             feedback: 'Yes. You can’t spot what’s wrong until you understand what’s intended. Context first, critique second.',
           },
           {
-            text: 'Rewrite the team’s existing test cases to my standard.',
+            text: 'Rewrite the team’s existing test cases to my own standard.',
             confidence: 2,
-            feedback: 'Way too soon. You’d be changing things you don’t understand yet — and stepping on the team before you’ve earned context.',
+            feedback: 'Far too soon — you’d be changing things you don’t understand yet, and stepping on the team before earning context.',
           },
         ],
       },
@@ -93,64 +82,39 @@ export const DAYS: Day[] = [
     scenes: [
       {
         kind: 'mentor',
-        mentor: 'welcome',
-        text: "Open the app like a brand-new user would. The goal is to know the product's shape: what it's for, and the paths people take through it.",
+        mentor: 'speaking',
+        text: "Don't read the code yet. Walk the product like a new user would. Open each area below and see what it's for — exploration is a real testing skill.",
       },
       {
-        kind: 'choice',
-        prompt: 'You open Northwind for the first time. What gets you to a useful mental model fastest?',
-        options: [
-          {
-            text: 'Read through the entire codebase first.',
-            confidence: 3,
-            feedback: 'Code can come later. It’s slow, and it tells you how it’s built — not how it’s used or what it’s for.',
-          },
-          {
-            text: 'Walk the core journeys end-to-end: sign up → create a task → complete it.',
-            best: true,
-            confidence: 12,
-            feedback: 'Perfect. Following real user journeys reveals the product’s purpose and its critical paths in minutes.',
-          },
-          {
-            text: 'Open every settings toggle and flip them one by one.',
-            confidence: 5,
-            feedback: 'You’ll learn some edges, but settings are the periphery. Start with the journeys that define what the product is.',
-          },
+        kind: 'task',
+        variant: 'explore',
+        prompt: 'Explore Northwind. Open each area to learn what it does.',
+        subtitle: 'Tap every card to continue.',
+        xp: 8,
+        done: 'Now the product’s shape is in your head — and you can already feel which parts matter most.',
+        items: [
+          { label: 'Dashboard', note: 'Where a user lands — an overview of their tasks and what’s due.' },
+          { label: 'Create task', note: 'The starting point of real work: a user adds something they need to track.' },
+          { label: 'Assign', note: 'Hand a task to a teammate — this is where collaboration happens.' },
+          { label: 'Complete', note: 'Mark work as done. The payoff moment the whole app exists for.' },
+          { label: 'Settings', note: 'Profile and preferences — useful, but on the edge of the product, not its core.' },
         ],
       },
       {
-        kind: 'mentor',
-        mentor: 'hint',
-        text: "Now that you've walked through it, let's sharpen the idea of a *critical path* — the flow that matters most to protect.",
-      },
-      {
         kind: 'choice',
-        prompt: 'Spot the critical path: which flow, if broken, would hurt Northwind’s users the most?',
-        subtitle: 'It’s a task-management app for teams.',
+        prompt: 'Spot the critical path: which flow, if broken, would hurt users the most?',
+        subtitle: 'Think about what Northwind is fundamentally for.',
         options: [
-          {
-            text: 'Changing the account avatar color.',
-            confidence: 3,
-            feedback: 'Nice-to-have. If this broke, almost no one’s work would be blocked.',
-          },
-          {
-            text: 'Creating, assigning, and completing a task.',
-            best: true,
-            confidence: 12,
-            feedback: 'That’s the heart of the product. If this breaks, the app fails at its core job — this is where your attention belongs first.',
-          },
-          {
-            text: 'Viewing the “About this app” page.',
-            confidence: 2,
-            feedback: 'Lowest stakes on the list. Informational, and no real user task depends on it.',
-          },
+          { text: 'Changing the account avatar colour.', confidence: 3, feedback: 'Nice-to-have. If this broke, almost no one’s work would be blocked.' },
+          { text: 'Creating, assigning, and completing a task.', best: true, confidence: 12, feedback: 'That’s the heart of the product. If this breaks, the app fails at its core job — protect it first.' },
+          { text: 'Viewing the “About this app” page.', confidence: 2, feedback: 'Lowest stakes here — informational, and no real user task depends on it.' },
         ],
       },
     ],
     recap: [
       'Map a product by walking its real user journeys, not its code.',
+      'Exploration is a genuine testing skill — it builds the mental model.',
       'The critical path is the flow that hurts users most if it breaks.',
-      'Focus your attention where the product does its core job.',
     ],
   },
 
@@ -161,68 +125,41 @@ export const DAYS: Day[] = [
     title: 'Notice what feels off',
     goal: 'Train the instinct for issues, not just outright breakage.',
     skill: { id: 'critical-observation', label: 'Critical Observation' },
-    intro: "Day three. You know the map — now we sharpen your eyes. The best testers notice what feels *off*, long before something is obviously broken.",
+    intro: "Day three. You know the map — now we sharpen your eyes. The best testers notice what feels off, long before something is obviously broken.",
     scenes: [
       {
         kind: 'mentor',
-        mentor: 'welcome',
-        text: "Not every problem throws an error. Some of the worst ones look like they 'work'. Let's practice spotting those.",
+        mentor: 'speaking',
+        text: "Not every problem throws an error. Some of the worst ones look like they 'work'. Let's practice catching those.",
       },
       {
         kind: 'choice',
-        prompt: 'You save a task. The data saves correctly — but the app gives no message, no checkmark, nothing. Is this a bug?',
+        prompt: 'You save a task. The data saves correctly — but the app shows no message, no checkmark, nothing. Is this a bug?',
         options: [
-          {
-            text: 'No. It saved, so technically it works.',
-            confidence: 4,
-            feedback: 'Technically the data is fine — but “technically works” isn’t the bar. The user can’t tell it worked.',
-          },
-          {
-            text: 'Yes — silent success confuses users and erodes trust, even when the data is correct.',
-            best: true,
-            confidence: 12,
-            feedback: 'Exactly. Missing feedback is a real usability bug. People re-click, double-save, or assume it failed. Trust is part of quality.',
-          },
-          {
-            text: 'Only if a user actually complains about it.',
-            confidence: 3,
-            feedback: 'Waiting for complaints means shipping the problem. Your job is to catch it before users have to.',
-          },
+          { text: 'No — it saved, so technically it works.', confidence: 4, feedback: '“Technically works” isn’t the bar. The user can’t tell it worked, so they’ll doubt it.' },
+          { text: 'Yes — silent success confuses users and erodes trust, even when the data is fine.', best: true, confidence: 12, feedback: 'Exactly. Missing feedback is a real usability bug: people re-click, double-save, or assume failure. Trust is part of quality.' },
+          { text: 'Only if a user actually complains about it.', confidence: 3, feedback: 'Waiting for complaints means shipping the problem. Catch it before users have to.' },
         ],
       },
       {
-        kind: 'mentor',
-        mentor: 'hint',
-        text: "That's the instinct — judge the experience, not just the outcome. One more, about what's *missing* rather than what's wrong.",
-      },
-      {
-        kind: 'choice',
-        prompt: 'A new “Delete task” feature works perfectly. What would a careful tester most likely flag?',
-        subtitle: 'Think about what the team might have forgotten.',
-        options: [
-          {
-            text: 'There’s no confirmation step before a task is permanently deleted.',
-            best: true,
-            confidence: 12,
-            feedback: 'Spot on. “It works” isn’t enough when the action is destructive. One stray tap shouldn’t cost someone their work.',
-          },
-          {
-            text: 'The delete button could be a louder shade of red.',
-            confidence: 5,
-            feedback: 'Polish, not protection. Colour helps, but it won’t save a user who taps it by accident.',
-          },
-          {
-            text: 'It’s missing a delete animation.',
-            confidence: 2,
-            feedback: 'Cosmetic. A missing safeguard is far more important than a missing flourish.',
-          },
+        kind: 'task',
+        variant: 'select',
+        prompt: 'A new “Delete task” feature works perfectly. Tap everything a careful tester would insist on before shipping it.',
+        subtitle: 'Select all that truly matter.',
+        xp: 10,
+        done: 'Destructive actions need safeguards, not just polish — you flagged the things that actually protect users.',
+        items: [
+          { label: 'A confirmation step before a task is permanently deleted', correct: true },
+          { label: 'An undo / “recently deleted” safety net', correct: true },
+          { label: 'A louder shade of red on the button' },
+          { label: 'A fancy delete animation' },
         ],
       },
     ],
     recap: [
       'A feature can “work” and still be a real bug — judge the experience.',
-      'Silent success (no feedback) breaks user trust.',
-      'For destructive actions, ask what safeguard the team forgot.',
+      'Silent success (no feedback) quietly breaks user trust.',
+      'For destructive actions, safeguards matter more than polish.',
     ],
   },
 ];
