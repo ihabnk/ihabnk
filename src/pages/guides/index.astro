@@ -105,6 +105,20 @@ const tracks = [
           </p>
         </div>
 
+        {track.id === 'beginner' && (
+          <a href="/learn/qa-onboarding" class="track-lesson track-lesson--game group mt-6">
+            <span class="track-lesson-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20" /></svg>
+            </span>
+            <span class="track-lesson-body">
+              <span class="track-lesson-tag">★ The game · 30 days</span>
+              <span class="track-lesson-title">The First 30 Days — onboarding game</span>
+              <span class="track-lesson-desc">Play through your first month as a junior QA engineer, guided by a mentor.</span>
+            </span>
+            <span class="track-lesson-cta" aria-hidden="true">Play →</span>
+          </a>
+        )}
+
         {track.lessons && track.lessons.length > 0 && (
           <div class="track-lessons mt-6" data-anim="row-list">
             {track.lessons.map((l, i) => (
@@ -205,6 +219,7 @@ const tracks = [
     transform: translateY(-1px);
   }
 
+  .track-lesson--game { background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, var(--bg-card)), var(--bg-card)); }
   .track-lessons { display: flex; flex-direction: column; gap: 10px; }
   .track-lesson {
     display: flex; align-items: center; gap: 16px;
