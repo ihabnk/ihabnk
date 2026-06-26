@@ -22,7 +22,7 @@ import Avatar from './Avatar.astro';
   </div>
 
   <button class="pal-btn" id="pal-btn" type="button" aria-label="Open the site assistant" aria-expanded="false">
-    <Avatar class="pal-avatar" state="idle" size={50} />
+    <Avatar class="pal-avatar" state="idle" size={58} />
   </button>
 </div>
 
@@ -49,17 +49,16 @@ import Avatar from './Avatar.astro';
     pointer-events: auto;
     display: grid;
     place-items: center;
-    padding: 6px;
-    background: var(--bg-card);
-    border: 2px solid var(--fg);
-    border-radius: 14px;
-    box-shadow: 4px 4px 0 var(--fg);
+    padding: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
     cursor: pointer;
-    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    transition: transform 0.15s ease;
   }
-  .pal-btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--fg); }
-  .pal-btn:active { transform: translate(0, 0); box-shadow: 2px 2px 0 var(--fg); }
-  .pal-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .pal-btn:hover { transform: translateY(-3px); }
+  .pal-btn:active { transform: translateY(0); }
+  .pal-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 12px; }
 
   .pal-bubble {
     pointer-events: auto;

@@ -29,11 +29,13 @@ const SPARK = 'M0 -7 C1.6 -2 2 -2 7 0 C2 2 1.6 2 0 7 C-1.6 2 -2 2 -7 0 C-2 -2 -1
         <g class="av-breathe">
           <rect class="av-body" x="28" y="22" width="104" height="104" rx="22" />
 
-          <!-- single white eye -->
+          <!-- single white eye (pupil + glint move together, always) -->
           <g class="av-eye">
             <ellipse class="av-eyeball" cx="80" cy="66" rx="18" ry="19" />
-            <circle class="av-pupil" cx="80" cy="68" r="8" />
-            <circle class="av-glint" cx="84" cy="62" r="2.6" />
+            <g class="av-pupil">
+              <circle class="av-pupil-dot" cx="80" cy="68" r="8" />
+              <circle class="av-glint" cx="84" cy="62" r="2.6" />
+            </g>
           </g>
           <!-- happy arc eye -->
           <path class="av-eye-happy" d="M61 70 q19 -17 38 0" />
@@ -61,7 +63,10 @@ const SPARK = 'M0 -7 C1.6 -2 2 -2 7 0 C2 2 1.6 2 0 7 C-1.6 2 -2 2 -7 0 C-2 -2 -1
   .av-shadow  { fill: var(--fg); }
   .av-body    { fill: var(--accent); stroke: var(--fg); stroke-width: 2.5; }
   .av-eyeball { fill: #fff; stroke: var(--fg); stroke-width: 2; }
-  .av-pupil   { fill: var(--on-accent); transform-box: fill-box; transform-origin: center; transition: transform 0.25s ease; }
+  .av-pupil   { transform-box: fill-box; transform-origin: center; animation: av-look 5s ease-in-out infinite; transition: transform 0.12s ease; }
+  /* while following the cursor, JS drives the pupil via inline transform */
+  .qa-bot.is-tracking .av-pupil { animation: none; }
+  .av-pupil-dot { fill: var(--on-accent); }
   .av-glint   { fill: #fff; }
   .av-eye-happy { fill: none; stroke: var(--on-accent); stroke-width: 5; stroke-linecap: round; }
   .av-mouth   { fill: var(--on-accent); }
@@ -88,8 +93,8 @@ const SPARK = 'M0 -7 C1.6 -2 2 -2 7 0 C2 2 1.6 2 0 7 C-1.6 2 -2 2 -7 0 C-2 -2 -1
   /* TALK */
   .qa-bot[data-state="talk"] .m-rest { animation: av-chatter 0.42s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
 
-  /* THINK */
-  .qa-bot[data-state="think"] .av-pupil { transform: translate(2px, -5px); }
+  /* THINK — pupil holds a deliberate upward glance (overrides the idle scan) */
+  .qa-bot[data-state="think"] .av-pupil { animation: none; transform: translate(2px, -6px); transition: transform 0.25s ease; }
   .qa-bot[data-state="think"] .av-think-orbit { animation: av-orbit 2.6s linear infinite; }
   .qa-bot[data-state="think"] .av-tilt { animation: av-wobble 2s ease-in-out infinite; }
   .av-think-orbit { transform-box: view-box; transform-origin: 80px 68px; }
@@ -115,6 +120,7 @@ const SPARK = 'M0 -7 C1.6 -2 2 -2 7 0 C2 2 1.6 2 0 7 C-1.6 2 -2 2 -7 0 C-2 -2 -1
   @keyframes av-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(0.99, 1.025); } }
   @keyframes av-twinkle { 0%, 100% { transform: scale(1) rotate(0); opacity: 0.95; } 50% { transform: scale(0.55) rotate(45deg); opacity: 0.5; } }
   @keyframes av-blink   { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.12); } }
+  @keyframes av-look    { 0%, 16% { transform: translate(0, 0); } 24%, 40% { transform: translate(5px, -2px); } 48%, 62% { transform: translate(-5px, 1px); } 70%, 84% { transform: translate(2px, 3px); } 92%, 100% { transform: translate(0, 0); } }
   @keyframes av-chatter { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.4); } }
   @keyframes av-orbit   { to { transform: rotate(360deg); } }
   @keyframes av-wobble  { 0%, 100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } }
@@ -125,3 +131,68 @@ const SPARK = 'M0 -7 C1.6 -2 2 -2 7 0 C2 2 1.6 2 0 7 C-1.6 2 -2 2 -7 0 C-2 -2 -1
     .qa-bot *, .qa-bot { animation: none !important; transition: none !important; }
   }
 </style>
+
+<script>
+  // Eyes follow the cursor while it moves; after a short idle the pupil
+  // returns to its natural "look around" scan (CSS av-look). Handles every
+  // .qa-bot on the page (lesson companion + site pal), and stays out of the
+  // way of the think/happy/celebrate states.
+  (() => {
+    const w = window as Window & { __avatarEyes?: boolean };
+    if (w.__avatarEyes) return;
+    w.__avatarEyes = true;
+
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    let curX = 0, curY = 0, queued = false;
+    let idleTimer: number | undefined;
+
+    const eligible = (bot: HTMLElement) => {
+      const s = bot.dataset.state;
+      if (s === 'think' || s === 'happy' || s === 'celebrate') return false;
+      if (bot.closest('.is-hidden')) return false;
+      return bot.getClientRects().length > 0;
+    };
+
+    const update = () => {
+      queued = false;
+      document.querySelectorAll<HTMLElement>('.qa-bot').forEach((bot) => {
+        const svg = bot.querySelector('svg');
+        const pupil = bot.querySelector<SVGElement>('.av-pupil');
+        if (!svg || !pupil) return;
+        if (!eligible(bot)) {
+          if (pupil.style.transform) pupil.style.transform = '';
+          bot.classList.remove('is-tracking');
+          return;
+        }
+        const r = svg.getBoundingClientRect();
+        if (!r.width) return;
+        const scale = r.width / 160;            // viewBox is 160 wide
+        const eyeX = r.left + 80 * scale;       // eye center in viewBox units
+        const eyeY = r.top + 66 * scale;
+        const dx = curX - eyeX, dy = curY - eyeY;
+        const d = Math.hypot(dx, dy) || 1;
+        const reach = Math.min(d, 160) / 160;   // ease in over ~160px
+        const tx = (dx / d) * 5 * reach;        // clamp within the eyeball
+        const ty = (dy / d) * 4 * reach;
+        bot.classList.add('is-tracking');
+        pupil.style.transform = `translate(${tx}px, ${ty}px)`;
+      });
+    };
+
+    const release = () => {
+      document.querySelectorAll<HTMLElement>('.qa-bot').forEach((bot) => {
+        bot.classList.remove('is-tracking');
+        const pupil = bot.querySelector<SVGElement>('.av-pupil');
+        if (pupil) pupil.style.transform = '';
+      });
+    };
+
+    window.addEventListener('pointermove', (e) => {
+      if (reduce.matches || e.pointerType === 'touch') return;
+      curX = e.clientX; curY = e.clientY;
+      if (!queued) { queued = true; requestAnimationFrame(update); }
+      clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(release, 2600); // resume the scan when idle
+    }, { passive: true });
+  })();
+</script>
