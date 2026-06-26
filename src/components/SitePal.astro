@@ -1,0 +1,202 @@
+---
+/**
+ * SitePal — a site-wide "visitor pal". The amber mascot lives fixed in the
+ * corner of every page, gives a contextual one-time greeting per session, and
+ * opens a small quick-help panel on click. Persists across view transitions.
+ *
+ * It hides itself on /learn/* (the lesson player already has its own
+ * companion) to avoid two avatars on screen.
+ */
+import Avatar from './Avatar.astro';
+---
+
+<div id="site-pal" class="site-pal" transition:persist>
+  <div class="pal-bubble" id="pal-bubble" role="dialog" aria-label="Site assistant" hidden>
+    <button class="pal-close" id="pal-close" type="button" aria-label="Dismiss">×</button>
+    <p class="pal-msg" id="pal-msg">Hi! I'm Bit. Need a hand getting around?</p>
+    <nav class="pal-links" aria-label="Quick links">
+      <a href="/start">New to QA? Start here →</a>
+      <a href="/guides">Open the Guidebook →</a>
+      <a href="/reviews">Browse reviews →</a>
+    </nav>
+  </div>
+
+  <button class="pal-btn" id="pal-btn" type="button" aria-label="Open the site assistant" aria-expanded="false">
+    <Avatar class="pal-avatar" state="idle" size={58} />
+  </button>
+</div>
+
+<style>
+  .site-pal {
+    position: fixed;
+    right: max(16px, env(safe-area-inset-right));
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    z-index: 8000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+    pointer-events: none; /* children re-enable; keeps the empty column click-through */
+  }
+  .site-pal.is-hidden { display: none; }
+
+  /* Shift above the TTS bar when it's active on article pages */
+  body:has(.tts-bar.active) .site-pal {
+    bottom: calc(var(--tts-bar-offset, 96px) + 14px);
+  }
+
+  .pal-btn {
+    pointer-events: auto;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .pal-btn:hover { transform: translateY(-3px); }
+  .pal-btn:active { transform: translateY(0); }
+  .pal-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 12px; }
+
+  .pal-bubble {
+    pointer-events: auto;
+    position: relative;
+    max-width: 260px;
+    background: var(--bg-card);
+    border: 2px solid var(--fg);
+    border-radius: 12px;
+    box-shadow: 4px 4px 0 var(--fg);
+    padding: 14px 16px 15px;
+    animation: pal-pop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: bottom right;
+  }
+  .pal-bubble[hidden] { display: none; }
+  /* tail pointing down toward the button */
+  .pal-bubble::after {
+    content: '';
+    position: absolute;
+    right: 22px; bottom: -9px;
+    width: 14px; height: 14px;
+    background: var(--bg-card);
+    border-right: 2px solid var(--fg);
+    border-bottom: 2px solid var(--fg);
+    transform: rotate(45deg);
+  }
+  @keyframes pal-pop { from { opacity: 0; transform: scale(0.85) translateY(6px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+  .pal-close {
+    position: absolute;
+    top: 6px; right: 8px;
+    width: 22px; height: 22px;
+    border: none; background: none; cursor: pointer;
+    font-size: 18px; line-height: 1; color: var(--fg-muted);
+    border-radius: 5px; transition: color 0.15s ease, background 0.15s ease;
+  }
+  .pal-close:hover { color: var(--pop-red); background: var(--accent-chip); }
+
+  .pal-msg {
+    margin: 0 0 10px;
+    padding-right: 14px;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--fg);
+  }
+  .pal-links { display: flex; flex-direction: column; gap: 7px; }
+  .pal-links a {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent-text);
+    text-decoration: none;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+  .pal-links a:hover { opacity: 0.75; transform: translateX(2px); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pal-bubble { animation: none; }
+    .pal-btn { transition: none; }
+  }
+</style>
+
+<script>
+  (() => {
+    const w = window as Window & { __palInit?: boolean };
+
+    const GREETINGS: Array<[RegExp, string]> = [
+      [/^\/start/,    "Smart move — the first lesson takes about five minutes."],
+      [/^\/guides/,   "Pick a track that fits where you are. I'll cheer you on."],
+      [/^\/reviews/,  "Hunting for the right tool? A comparison is a good place to start."],
+      [/^\/blog/,     "Enjoy the read — I'll be down here if you need me."],
+      [/^\/about/,    "Nice to meet you. 👋"],
+      [/^\/$/,        "Welcome! New to QA? I can point you the right way."],
+    ];
+    const DEFAULT_MSG = "Hi! I'm Bit. Need a hand getting around?";
+
+    const $ = (id: string) => document.getElementById(id);
+    let autoClose: number | undefined;
+
+    const setBot = (state: string) => {
+      const bot = document.querySelector<HTMLElement>('.pal-avatar');
+      if (bot) bot.dataset.state = state;
+    };
+
+    const msgFor = (path: string) => (GREETINGS.find(([re]) => re.test(path))?.[1]) ?? DEFAULT_MSG;
+
+    const open = (greet: boolean) => {
+      const bubble = $('pal-bubble'); const btn = $('pal-btn');
+      if (!bubble || !btn) return;
+      const msg = $('pal-msg');
+      if (msg) msg.textContent = msgFor(location.pathname);
+      bubble.hidden = false;
+      btn.setAttribute('aria-expanded', 'true');
+      setBot('happy');
+      window.setTimeout(() => setBot('idle'), 1600);
+      window.clearTimeout(autoClose);
+      if (greet) autoClose = window.setTimeout(close, 8000); // greetings self-dismiss
+    };
+
+    const close = () => {
+      const bubble = $('pal-bubble'); const btn = $('pal-btn');
+      window.clearTimeout(autoClose);
+      if (bubble) bubble.hidden = true;
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+      setBot('idle');
+    };
+
+    const isOpen = () => !$('pal-bubble')?.hidden;
+
+    const applyVisibility = () => {
+      const pal = $('site-pal');
+      if (!pal) return;
+      // Lesson pages already show a companion — hide the corner pal there.
+      pal.classList.toggle('is-hidden', location.pathname.startsWith('/learn'));
+    };
+
+    const maybeGreet = () => {
+      if (location.pathname.startsWith('/learn')) return;
+      if (sessionStorage.getItem('palGreeted') === '1') return;
+      sessionStorage.setItem('palGreeted', '1');
+      window.setTimeout(() => { if (!location.pathname.startsWith('/learn')) open(true); }, 1300);
+    };
+
+    const onLoad = () => { applyVisibility(); if (isOpen()) close(); maybeGreet(); };
+
+    if (!w.__palInit) {
+      w.__palInit = true;
+      // Delegated so handlers survive view-transition DOM swaps.
+      document.addEventListener('click', (e) => {
+        const t = e.target as HTMLElement;
+        if (t.closest('#pal-close')) { close(); return; }
+        if (t.closest('#pal-btn'))  { isOpen() ? close() : open(false); return; }
+        // click outside closes an open panel
+        if (isOpen() && !t.closest('#site-pal')) close();
+      });
+      document.addEventListener('astro:page-load', onLoad);
+    }
+
+    onLoad();
+  })();
+</script>
