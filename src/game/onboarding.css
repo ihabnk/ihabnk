@@ -272,3 +272,54 @@
   .qg-float, .qg-breathe, .qg-eyeball, .qg-spark, .qg-pupil, .qg-orbit, .qg-tilt, .qg-node-pulse, .qg-burst .qg-spark { animation: none !important; }
   .qg-hud-fill, .qg-opt, .qg-btn { transition: none !important; }
 }
+
+/* ── Mentor speech bubble (rail) ───────────────────────────────── */
+.qg-bubble { position: relative; max-width: 150px; font-family: var(--font-sans); font-size: 12.5px; line-height: 1.45;
+  color: var(--fg); background: var(--bg-card); border: 2px solid var(--fg); border-radius: 12px; box-shadow: 3px 3px 0 var(--fg);
+  padding: 10px 12px; text-align: center; }
+.qg-bubble::before { content: ''; position: absolute; top: -8px; left: 50%; transform: translateX(-50%) rotate(45deg);
+  width: 12px; height: 12px; background: var(--bg-card); border-left: 2px solid var(--fg); border-top: 2px solid var(--fg); }
+@media (max-width: 640px) { .qg-bubble { max-width: 240px; } .qg-bubble::before { left: 28px; } }
+
+/* ── Beat stepper ──────────────────────────────────────────────── */
+.qg-steps { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.qg-step { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); }
+.qg-step-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--bg-surface); border: 1.5px solid var(--border-mid); transition: background .25s ease, border-color .25s ease, transform .25s ease, box-shadow .25s ease; }
+.qg-step.is-done .qg-step-dot { background: var(--accent); border-color: var(--fg); }
+.qg-step.is-active .qg-step-dot { background: var(--accent); border-color: var(--fg); transform: scale(1.35); box-shadow: 0 0 0 3px var(--accent-chip); }
+.qg-step.is-active { color: var(--accent-text); font-weight: 700; }
+@media (max-width: 560px) { .qg-step-label { display: none; } .qg-step.is-active .qg-step-label { display: inline; } }
+
+/* ── On-demand hint ────────────────────────────────────────────── */
+.qg-hint-row { padding: 0 24px 18px; }
+.qg-hint-btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 12px; color: var(--fg-mid);
+  background: none; border: 1.5px dashed var(--border-mid); border-radius: 999px; padding: 7px 13px; cursor: pointer; transition: border-color .15s, color .15s; }
+.qg-hint-btn:hover { border-color: var(--accent); color: var(--accent-text); }
+.qg-hint-ic { display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--accent-chip); color: var(--accent-text); font-weight: 700; font-size: 11px; }
+
+/* ── Order task ────────────────────────────────────────────────── */
+.qg-order { padding: 16px 24px 6px; }
+.qg-order-seq { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.qg-slot { display: flex; align-items: center; gap: 12px; border: 2px dashed var(--border-mid); border-radius: 9px; background: var(--bg-page); padding: 12px 14px; min-height: 50px; transition: border-color .15s ease, background .15s ease; }
+.qg-slot.is-filled { border-style: solid; cursor: pointer; }
+.qg-slot.is-correct { border-style: solid; border-color: var(--accent); background: var(--accent-glow); }
+.qg-slot.is-wrong { border-style: solid; border-color: var(--pop-red); }
+.qg-slot-n { flex-shrink: 0; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 6px; background: var(--bg-surface); border: 1.5px solid var(--border-mid); font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--fg-mid); }
+.qg-slot.is-filled .qg-slot-n, .qg-slot.is-correct .qg-slot-n, .qg-slot.is-wrong .qg-slot-n { background: var(--accent); color: var(--on-accent); border-color: var(--fg); }
+.qg-slot-label { flex: 1; font-family: var(--font-sans); font-size: 15px; color: var(--fg); }
+.qg-slot:not(.is-filled):not(.is-correct):not(.is-wrong) .qg-slot-label { color: var(--fg-muted); }
+.qg-slot-mark { flex-shrink: 0; font-weight: 700; }
+.qg-slot.is-correct .qg-slot-mark { color: var(--accent-text); }
+.qg-slot.is-wrong .qg-slot-mark { color: var(--pop-red); }
+.qg-order-bank { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+.qg-chip-btn { font-family: var(--font-sans); font-size: 14.5px; color: var(--fg); background: var(--bg-card); border: 2px solid var(--fg); border-radius: 8px; box-shadow: 2px 2px 0 var(--fg); padding: 10px 14px; cursor: pointer; transition: background .15s ease, transform .1s ease; }
+.qg-chip-btn:hover { background: color-mix(in srgb, var(--accent) 14%, var(--bg-card)); }
+
+/* ── HUD pulse on XP gain ──────────────────────────────────────── */
+.qg-hud.is-bump { animation: qg-hudbump 0.6s ease; }
+@keyframes qg-hudbump { 0%, 100% { box-shadow: 4px 4px 0 var(--fg); } 40% { box-shadow: 4px 4px 0 var(--fg), 0 0 0 4px var(--accent-chip); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .qg-hud.is-bump { animation: none; }
+  .qg-step-dot { transition: none; }
+}

@@ -36,13 +36,57 @@ function AnimatedNumber({ value }: { value: number }) {
   return <>{shown}</>;
 }
 
+/* On-demand hint (the mentor delivers it in the rail speech bubble). */
+function HintRow({ onHint }: { onHint: () => void }) {
+  const [used, setUsed] = useState(false);
+  return (
+    <div className="qg-hint-row">
+      <button className="qg-hint-btn" onClick={() => { setUsed(true); onHint(); }}>
+        <span className="qg-hint-ic" aria-hidden="true">?</span>
+        {used ? 'Bit shared a hint →' : 'Ask Bit for a hint'}
+      </button>
+    </div>
+  );
+}
+
+/* Within-day beat stepper — shows the 5-beat learning structure. */
+export function DayProgress({ scenes, stage, sceneIdx }: { scenes: Scene[]; stage: 'intro' | 'scene' | 'recap'; sceneIdx: number }) {
+  const beats = scenes.map((s) =>
+    s.kind === 'mentor' ? 'Brief'
+      : s.kind === 'task' ? (s.variant === 'explore' ? 'Explore' : s.variant === 'order' ? 'Sequence' : 'Task')
+        : 'Decision');
+  beats.push('Recap');
+  const active = stage === 'recap' ? beats.length - 1 : sceneIdx;
+  return (
+    <div className="qg-steps" role="list" aria-label={`Beat ${active + 1} of ${beats.length}`}>
+      {beats.map((b, i) => (
+        <div key={i} role="listitem" className={`qg-step ${i < active ? 'is-done' : i === active ? 'is-active' : ''}`}>
+          <span className="qg-step-dot" aria-hidden="true" />
+          <span className="qg-step-label">{b}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ── World layer: HUD ──────────────────────────────────────────── */
 export function GameHUD({
   completed, confidence, streak, skills,
 }: { completed: number; confidence: number; streak: number; skills: number }) {
   const pct = Math.round((completed / TOTAL_DAYS) * 100);
+  const [bump, setBump] = useState(false);
+  const prevC = useRef(confidence);
+  useEffect(() => {
+    if (confidence > prevC.current) {
+      setBump(true);
+      const t = setTimeout(() => setBump(false), 700);
+      prevC.current = confidence;
+      return () => clearTimeout(t);
+    }
+    prevC.current = confidence;
+  }, [confidence]);
   return (
-    <div className="qg-hud">
+    <div className={`qg-hud ${bump ? 'is-bump' : ''}`}>
       <div className="qg-hud-meter">
         <div className="qg-hud-meter-top">
           <span className="qg-hud-label">Confidence</span>
@@ -90,10 +134,11 @@ export function MentorBeat({ text, onContinue }: { text: string; onContinue: () 
 
 /* ── Decision layer + outcome layer ────────────────────────────── */
 export function ChoiceScene({
-  dayN, prompt, subtitle, options, picked, onPick, onContinue, isLast,
+  dayN, prompt, subtitle, options, picked, onPick, onContinue, isLast, hasHint, onHint,
 }: {
   dayN: number; prompt: string; subtitle?: string; options: Choice[];
   picked: number | null; onPick: (i: number) => void; onContinue: () => void; isLast: boolean;
+  hasHint?: boolean; onHint?: () => void;
 }) {
   const reduce = useReducedMotion();
   const answered = picked !== null;
@@ -141,6 +186,8 @@ export function ChoiceScene({
         })}
       </motion.div>
 
+      {!answered && hasHint && onHint && <HintRow onHint={onHint} />}
+
       <AnimatePresence>
         {answered && chosen && tier && (
           <motion.div
@@ -167,21 +214,30 @@ export function ChoiceScene({
   );
 }
 
-/* ── Interactive task (explore reveal / multi-select) ──────────── */
+/* ── Interactive task (explore / multi-select / order) ─────────── */
 export function TaskScene({
-  dayN, task, onResolve, onContinue, onMentor,
+  dayN, task, onResolve, onContinue, onMentor, onHint,
 }: {
   dayN: number; task: TaskScn;
-  onResolve: (gained: number) => void; onContinue: () => void; onMentor: (s: MentorState) => void;
+  onResolve: (gained: number) => void; onContinue: () => void;
+  onMentor: (s: MentorState) => void; onHint?: () => void;
 }) {
   const reduce = useReducedMotion();
   const [open, setOpen] = useState<Set<number>>(new Set());
   const [sel, setSel] = useState<Set<number>>(new Set());
+  const [seq, setSeq] = useState<number[]>([]);
   const [resolved, setResolved] = useState(false);
   const [gain, setGain] = useState(0);
   const [strong, setStrong] = useState(true);
 
   const need = task.variant === 'explore' ? (task.minReveal ?? task.items.length) : 0;
+
+  // shuffled presentation order for the `order` task (stable per mount)
+  const [shuffled] = useState<number[]>(() => {
+    const arr = task.items.map((_, i) => i);
+    for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+    return arr;
+  });
 
   const openCard = (i: number) => {
     if (resolved) return;
@@ -208,6 +264,16 @@ export function TaskScene({
     setResolved(true); setGain(g); setStrong(perfect); onResolve(g); onMentor(perfect ? 'success' : 'caution');
   };
 
+  const place = (i: number) => { if (resolved || seq.includes(i)) return; setSeq((s) => [...s, i]); onMentor('speaking'); };
+  const unplace = (i: number) => { if (resolved) return; setSeq((s) => s.filter((x) => x !== i)); };
+  const submitOrder = () => {
+    if (resolved || seq.length !== task.items.length) return;
+    const right = seq.filter((v, idx) => v === idx).length; // items authored in correct order
+    const perfect = right === task.items.length;
+    const g = perfect ? task.xp : Math.max(3, Math.round(task.xp * (right / task.items.length)));
+    setResolved(true); setGain(g); setStrong(perfect); onResolve(g); onMentor(perfect ? 'success' : 'caution');
+  };
+
   const selClass = (i: number) => {
     const it = task.items[i];
     if (!resolved) return sel.has(i) ? 'is-sel' : '';
@@ -217,14 +283,50 @@ export function TaskScene({
     return 'is-dim';
   };
 
+  const headLabel = task.variant === 'explore' ? 'Explore' : task.variant === 'order' ? 'Sequence' : 'Hands-on';
+
   return (
     <div className="qg-card qg-scenario">
       <div className="qg-scenario-head">
-        <span className="qg-decision-pill"><span className="qg-decision-dot" aria-hidden="true" />{task.variant === 'explore' ? 'Explore' : 'Hands-on'}</span>
+        <span className="qg-decision-pill"><span className="qg-decision-dot" aria-hidden="true" />{headLabel}</span>
         <span className="qg-scenario-ctx">Day {dayN} · task</span>
       </div>
       <p className="qg-prompt">{task.prompt}</p>
       {task.subtitle && <p className="qg-subtitle">{task.subtitle}</p>}
+
+      {task.variant === 'order' && (
+        <div className="qg-order">
+          <ol className="qg-order-seq">
+            {Array.from({ length: task.items.length }).map((_, pos) => {
+              const it = seq[pos];
+              const cls = resolved ? (it === pos ? 'is-correct' : 'is-wrong') : (it != null ? 'is-filled' : '');
+              return (
+                <li key={pos} className={`qg-slot ${cls}`} onClick={() => it != null && unplace(it)}>
+                  <span className="qg-slot-n">{pos + 1}</span>
+                  <span className="qg-slot-label">{it != null ? task.items[it].label : 'Tap a step below…'}</span>
+                  {resolved && <span className="qg-slot-mark" aria-hidden="true">{it === pos ? '✓' : '✕'}</span>}
+                </li>
+              );
+            })}
+          </ol>
+          {!resolved && (
+            <div className="qg-order-bank">
+              {shuffled.filter((i) => !seq.includes(i)).map((i) => (
+                <motion.button key={i} className="qg-chip-btn" onClick={() => place(i)}
+                  whileHover={reduce ? undefined : { y: -2 }} whileTap={reduce ? undefined : { scale: 0.97 }}
+                  layout={!reduce}>
+                  {task.items[i].label}
+                </motion.button>
+              ))}
+            </div>
+          )}
+          {!resolved && (
+            <div className="qg-task-actions">
+              <button className="qg-btn qg-btn-primary" disabled={seq.length !== task.items.length} onClick={submitOrder}>Confirm order</button>
+            </div>
+          )}
+        </div>
+      )}
 
       {task.variant === 'explore' && (
         <>
@@ -274,6 +376,8 @@ export function TaskScene({
           )}
         </>
       )}
+
+      {!resolved && task.hint && onHint && <HintRow onHint={onHint} />}
 
       <AnimatePresence>
         {resolved && (

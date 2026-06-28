@@ -29,18 +29,22 @@ export type Scene =
   | { kind: 'mentor'; text: string; mentor?: MentorState }
   | {
       kind: 'task';
-      variant: 'explore' | 'select';
+      /** explore = tap to reveal; select = tap all that apply; order = sequence. */
+      variant: 'explore' | 'select' | 'order';
       prompt: string;
       subtitle?: string;
+      /** For `order`, author items in the CORRECT order (they’re shuffled in UI). */
       items: TaskItem[];
       /** explore: how many items must be opened to proceed (defaults to all). */
       minReveal?: number;
-      /** XP awarded on completing the task (select scales by correctness). */
+      /** XP awarded on completing the task (select/order scale by correctness). */
       xp: number;
       /** Mentor line shown once the task is done. */
       done: string;
+      /** Optional on-demand hint the mentor can offer. */
+      hint?: string;
     }
-  | { kind: 'choice'; prompt: string; subtitle?: string; options: Choice[] };
+  | { kind: 'choice'; prompt: string; subtitle?: string; options: Choice[]; hint?: string };
 
 export interface Day {
   n: number;
