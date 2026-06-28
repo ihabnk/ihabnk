@@ -323,3 +323,44 @@
   .qg-hud.is-bump { animation: none; }
   .qg-step-dot { transition: none; }
 }
+
+/* ── The Tester: character portrait ────────────────────────────── */
+.qg-portrait { display: grid; place-items: center; border: 2px solid var(--fg); border-radius: 12px; box-shadow: 3px 3px 0 var(--fg); color: #fff; font-family: var(--font-display); font-weight: 800; flex-shrink: 0; }
+
+/* ── Felt-status HUD ───────────────────────────────────────────── */
+.qg-hud { flex-wrap: wrap; }
+.qg-hud-day { display: flex; flex-direction: column; }
+.qg-hud-daynum { font-family: var(--font-display); font-weight: 800; font-size: 20px; color: var(--fg); line-height: 1; }
+.qg-hud-conf { display: flex; flex-direction: column; gap: 4px; align-items: center; margin: 0 auto; }
+.qg-pips { display: flex; gap: 4px; }
+.qg-pip { width: 18px; height: 8px; border-radius: 3px; background: var(--bg-surface); border: 1.5px solid var(--border-mid); transition: background .45s ease, border-color .45s ease; }
+.qg-pip.on { background: var(--accent); border-color: var(--fg); }
+.qg-hud-word { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--accent-text); }
+.qg-hud-people { display: flex; flex-direction: column; align-items: flex-end; }
+.qg-hud-peoplen { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--fg); }
+@media (max-width: 560px) { .qg-hud-conf { order: 3; flex-basis: 100%; align-items: flex-start; margin: 6px 0 0; } }
+
+/* ── Narration (inner voice) ───────────────────────────────────── */
+.qg-narration-text { font-family: var(--font-sans); font-style: italic; font-size: 18px; line-height: 1.7; color: var(--fg-mid); margin: 0 0 20px; }
+
+/* ── Dialogue with a colleague ─────────────────────────────────── */
+.qg-dialogue-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.qg-dialogue-name { display: block; font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--fg); line-height: 1.1; }
+.qg-dialogue-role { font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); text-transform: uppercase; letter-spacing: .06em; }
+.qg-said { font-family: var(--font-sans); font-size: 16px; line-height: 1.6; color: var(--fg); background: var(--bg-page); border: 2px solid var(--fg); border-radius: 12px; padding: 14px 16px; }
+.qg-said--them { border-top-left-radius: 3px; }
+.qg-replies { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.qg-reply { display: flex; align-items: center; gap: 12px; text-align: left; width: 100%; border: 2px solid var(--border-mid); border-radius: 9px; background: var(--bg-card); padding: 13px 15px; cursor: pointer; font-family: var(--font-sans); font-size: 15.5px; color: var(--fg); transition: border-color .15s, background .15s, opacity .2s; }
+.qg-reply:hover:not(:disabled) { border-color: var(--accent); }
+.qg-reply:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-chip); }
+.qg-reply:disabled { cursor: default; }
+.qg-reply.is-picked { border-color: var(--accent); background: var(--accent-glow); }
+.qg-reply.is-dim { opacity: .5; }
+.qg-reply-you { flex-shrink: 0; font-family: var(--font-mono); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--fg-muted); border: 1.5px solid var(--border-mid); border-radius: 5px; padding: 3px 7px; }
+.qg-dialogue-out { margin-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+.qg-dialogue-note { font-family: var(--font-mono); font-size: 12px; color: var(--fg-muted); margin: 0; }
+.qg-dialogue-learn { font-size: 14.5px; line-height: 1.6; color: var(--fg); background: var(--accent-glow); border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; padding: 12px 14px; margin: 0; }
+.qg-learn-tag { display: block; font-family: var(--font-mono); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--accent-text); margin-bottom: 4px; }
+
+/* ── Journal recap ─────────────────────────────────────────────── */
+.qg-journal-label { display: block; font-family: var(--font-mono); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--fg-muted); margin: 6px 0 8px; }

@@ -1,18 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import type { Choice, Day, MentorState, Scene } from './types';
-import { TOTAL_DAYS } from './types';
+import { TOTAL_DAYS, confidenceWord, confidenceLevel } from './types';
+import { character } from './cast';
+import CharacterPortrait from './CharacterPortrait';
 
 type TaskScn = Extract<Scene, { kind: 'task' }>;
+type DialogueScn = Extract<Scene, { kind: 'dialogue' }>;
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 
 type Tier = 'strong' | 'partial' | 'risky';
 const tierOf = (c: Choice): Tier => (c.best ? 'strong' : c.confidence >= 4 ? 'partial' : 'risky');
 const TIER: Record<Tier, { label: string; glyph: string }> = {
-  strong: { label: 'Strong QA instinct', glyph: '✓' },
-  partial: { label: 'Partial reasoning', glyph: '◑' },
-  risky: { label: 'Risky mindset', glyph: '!' },
+  strong: { label: 'That’s the instinct.', glyph: '✓' },
+  partial: { label: 'Reasonable — but…', glyph: '◑' },
+  risky: { label: 'Worth a rethink.', glyph: '·' },
 };
 
 /* Count-up number that eases toward its target. */
@@ -69,11 +72,12 @@ export function DayProgress({ scenes, stage, sceneIdx }: { scenes: Scene[]; stag
   );
 }
 
-/* ── World layer: HUD ──────────────────────────────────────────── */
+/* ── World layer: felt status (no points/scores) ───────────────── */
 export function GameHUD({
-  completed, confidence, streak, skills,
-}: { completed: number; confidence: number; streak: number; skills: number }) {
-  const pct = Math.round((completed / TOTAL_DAYS) * 100);
+  dayN, week, confidence, met,
+}: { dayN: number; week?: string; confidence: number; met: number }) {
+  const word = confidenceWord(confidence);
+  const lvl = confidenceLevel(confidence);
   const [bump, setBump] = useState(false);
   const prevC = useRef(confidence);
   useEffect(() => {
@@ -87,21 +91,20 @@ export function GameHUD({
   }, [confidence]);
   return (
     <div className={`qg-hud ${bump ? 'is-bump' : ''}`}>
-      <div className="qg-hud-meter">
-        <div className="qg-hud-meter-top">
-          <span className="qg-hud-label">Confidence</span>
-          <span className="qg-hud-xp"><AnimatedNumber value={confidence} /> XP</span>
-        </div>
-        <div className="qg-hud-bar">
-          <motion.div className="qg-hud-fill" initial={false} animate={{ width: `${pct}%` }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }} />
-        </div>
-        <span className="qg-hud-sub">Day {Math.min(completed + 1, TOTAL_DAYS)} of {TOTAL_DAYS}</span>
+      <div className="qg-hud-day">
+        <span className="qg-hud-daynum">Day {dayN}</span>
+        <span className="qg-hud-sub">of {TOTAL_DAYS}{week ? ` · ${week}` : ''}</span>
       </div>
-      <div className="qg-hud-stats">
-        <motion.span key={streak} className="qg-chip" title="Day streak"
-          initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }}>🔥 {streak}</motion.span>
-        <motion.span key={skills} className="qg-chip" title="Skills unlocked"
-          initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }}>★ {skills}</motion.span>
+      <div className="qg-hud-conf">
+        <span className="qg-hud-label">Confidence</span>
+        <div className="qg-pips" aria-hidden="true">
+          {[1, 2, 3, 4, 5].map((i) => <span key={i} className={`qg-pip ${i <= lvl ? 'on' : ''}`} />)}
+        </div>
+        <span className="qg-hud-word">{word}</span>
+      </div>
+      <div className="qg-hud-people">
+        <span className="qg-hud-label">People</span>
+        <span className="qg-hud-peoplen">{met} met</span>
       </div>
     </div>
   );
@@ -199,11 +202,6 @@ export function ChoiceScene({
             <div className="qg-outcome-head">
               <span className="qg-outcome-glyph" aria-hidden="true">{TIER[tier].glyph}</span>
               <span className="qg-outcome-verdict">{TIER[tier].label}</span>
-              <motion.span className="qg-outcome-xp"
-                initial={reduce ? false : { scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 18, delay: 0.1 }}>
-                +{chosen.confidence} XP
-              </motion.span>
             </div>
             <p className="qg-outcome-text">{chosen.feedback}</p>
             <button className="qg-btn qg-btn-primary" onClick={onContinue}>{isLast ? 'Wrap up the day →' : 'Continue →'}</button>
@@ -386,9 +384,7 @@ export function TaskScene({
             transition={{ type: 'spring', stiffness: 300, damping: 26 }}>
             <div className="qg-outcome-head">
               <span className="qg-outcome-glyph" aria-hidden="true">{strong ? '✓' : '◑'}</span>
-              <span className="qg-outcome-verdict">{strong ? 'Well done' : 'Close — worth a review'}</span>
-              <motion.span className="qg-outcome-xp" initial={reduce ? false : { scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 18, delay: 0.1 }}>+{gain} XP</motion.span>
+              <span className="qg-outcome-verdict">{strong ? 'Nicely done.' : 'Close — worth another look.'}</span>
             </div>
             <p className="qg-outcome-text">{task.done}</p>
             <button className="qg-btn qg-btn-primary" onClick={onContinue}>Continue →</button>
@@ -399,24 +395,24 @@ export function TaskScene({
   );
 }
 
-/* ── Outcome layer: end-of-day recap ───────────────────────────── */
+/* ── End of day: a journal entry, not a scoreboard ─────────────── */
 export function DayRecapCard({
-  day, gained, onFinish, isLastContent,
-}: { day: Day; gained: number; onFinish: () => void; isLastContent: boolean }) {
+  day, onFinish, isLastContent,
+}: { day: Day; onFinish: () => void; isLastContent: boolean }) {
   return (
     <div className="qg-card qg-recap">
-      <span className="qg-kicker">Day {day.n} complete</span>
-      <h2 className="qg-recap-title">Nice work today.</h2>
+      <span className="qg-kicker">Day {day.n} · end of the day</span>
+      <h2 className="qg-recap-title">You head home, thinking it over.</h2>
       <motion.div className="qg-skill-unlock"
         initial={{ scale: 0.94, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 320, damping: 20, delay: 0.05 }}>
-        <span className="qg-skill-star">★</span>
+        <span className="qg-skill-star">✦</span>
         <div>
-          <span className="qg-skill-label">Skill unlocked</span>
+          <span className="qg-skill-label">You’re getting the hang of</span>
           <strong className="qg-skill-name">{day.skill.label}</strong>
         </div>
-        <span className="qg-skill-xp">+{gained} XP</span>
       </motion.div>
+      <span className="qg-journal-label">What clicked today</span>
       <ul className="qg-recap-list">
         {day.recap.map((r, i) => (
           <motion.li key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 + i * 0.08 }}>{r}</motion.li>
@@ -429,11 +425,87 @@ export function DayRecapCard({
   );
 }
 
-/* ── Skill toast ───────────────────────────────────────────────── */
-export function SkillToast({ label, xp }: { label: string; xp: number }) {
+/* ── Narration beat — the hero's inner voice ───────────────────── */
+export function NarrationCard({ text, onContinue }: { text: string; onContinue: () => void }) {
+  return (
+    <div className="qg-card qg-narration">
+      <p className="qg-narration-text">{text}</p>
+      <button className="qg-btn qg-btn-primary" onClick={onContinue}>Continue</button>
+    </div>
+  );
+}
+
+/* ── Dialogue with a colleague ─────────────────────────────────── */
+export function DialogueScene({
+  scene, onResolve, onMeet, onContinue, onMentor, isLast,
+}: {
+  scene: DialogueScn;
+  onResolve: (gained: number) => void; onMeet: (id: string) => void;
+  onContinue: () => void; onMentor: (s: MentorState, line?: string) => void; isLast: boolean;
+}) {
+  const reduce = useReducedMotion();
+  const c = character(scene.speaker);
+  const [picked, setPicked] = useState<number | null>(null);
+  const reply = picked !== null ? scene.replies[picked] : null;
+
+  useEffect(() => { onMeet(scene.speaker); }, [scene.speaker]);
+
+  const choose = (i: number) => {
+    if (picked !== null) return;
+    setPicked(i);
+    const r = scene.replies[i];
+    onResolve(r.best ? 14 : 6);
+    onMentor(r.best ? 'success' : 'speaking');
+  };
+
+  return (
+    <div className="qg-card qg-dialogue">
+      <div className="qg-dialogue-head">
+        <CharacterPortrait id={c.id} size={52} />
+        <div>
+          <span className="qg-dialogue-name">{c.name}</span>
+          <span className="qg-dialogue-role">{c.role}</span>
+        </div>
+      </div>
+
+      <div className="qg-said qg-said--them">{scene.line}</div>
+
+      <div className="qg-replies">
+        {scene.replies.map((r, i) => {
+          const cls = picked === null ? '' : i === picked ? 'is-picked' : 'is-dim';
+          return (
+            <motion.button key={i} className={`qg-reply ${cls}`} disabled={picked !== null} onClick={() => choose(i)}
+              whileHover={picked !== null || reduce ? undefined : { x: 3 }} whileTap={reduce ? undefined : { scale: 0.99 }}>
+              <span className="qg-reply-you" aria-hidden="true">You</span>
+              <span>{r.text}</span>
+            </motion.button>
+          );
+        })}
+      </div>
+
+      <AnimatePresence>
+        {reply && (
+          <motion.div className="qg-dialogue-out"
+            initial={reduce ? { opacity: 1 } : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 26 }}>
+            <div className="qg-said qg-said--them qg-said--reply"><strong>{c.name}:</strong> {reply.reply}</div>
+            {reply.note && <p className="qg-dialogue-note">{reply.note}</p>}
+            {scene.learn && (
+              <p className="qg-dialogue-learn"><span className="qg-learn-tag">Takeaway</span>{scene.learn}</p>
+            )}
+            <button className="qg-btn qg-btn-primary" onClick={onContinue}>{isLast ? 'Wrap up the day →' : 'Continue →'}</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ── Quiet acknowledgement toast (no points) ───────────────────── */
+export function SkillToast({ label }: { label: string }) {
   return (
     <div className="qg-toast">
-      <span className="qg-skill-star">★</span> Skill unlocked: <strong>{label}</strong> <span className="qg-toast-xp">+{xp} XP</span>
+      <span className="qg-skill-star">✦</span> You’re getting the hang of <strong>{label}</strong>
     </div>
   );
 }

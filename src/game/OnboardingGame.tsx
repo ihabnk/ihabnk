@@ -6,7 +6,7 @@ import { useGame } from './useGame';
 import type { Day, MentorState } from './types';
 import MentorAvatar from './MentorAvatar';
 import DayMap from './DayMap';
-import { GameHUD, DayIntroCard, MentorBeat, ChoiceScene, TaskScene, DayRecapCard, DayProgress, SkillToast } from './panels';
+import { GameHUD, DayIntroCard, MentorBeat, NarrationCard, ChoiceScene, TaskScene, DialogueScene, DayRecapCard, DayProgress, SkillToast } from './panels';
 
 const CAPTION: Record<MentorState, string> = {
   idle: 'Take your time.',
@@ -23,7 +23,7 @@ const CAPTION: Record<MentorState, string> = {
 const hasContent = (n: number) => DAYS.some((d) => d.n === n);
 
 export default function OnboardingGame() {
-  const { progress, hydrated, completeDay, isUnlocked, isDone } = useGame();
+  const { progress, hydrated, completeDay, meet, isUnlocked, isDone } = useGame();
 
   // Deep-link support: ?day=N (&step=K&pick=I) opens a day on first paint
   // (resume / share / preview) — avoids a map→day transition flash.
@@ -34,7 +34,7 @@ export default function OnboardingGame() {
   const [mentor, setMentor] = useState<MentorState>('idle');
   const [mentorLine, setMentorLine] = useState<string | null>(null);
   const handleMentor = useCallback((s: MentorState, line?: string) => { setMentor(s); setMentorLine(line ?? null); }, []);
-  const [toast, setToast] = useState<{ label: string; xp: number } | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
   const reduce = useReducedMotion();
   const [startStep] = useState(() => Number.parseInt(params.get('step') ?? '0', 10) || 0);
   const [startPick] = useState<number | null>(() => { const p = params.get('pick'); return p != null ? Number.parseInt(p, 10) : null; });
@@ -51,7 +51,7 @@ export default function OnboardingGame() {
 
   const finishDay = (d: Day, gained: number) => {
     completeDay(d.n, gained, d.skill.id);
-    setToast({ label: d.skill.label, xp: gained });
+    setToast(d.skill.label);
     window.setTimeout(() => setToast(null), 3400);
     if (hasContent(d.n + 1) && (d.n + 1 === 1 || true)) setActiveDay(d.n + 1);
     else setActiveDay(null);
@@ -63,16 +63,16 @@ export default function OnboardingGame() {
     <MotionConfig reducedMotion="user">
     <div className="qg-root">
       <GameHUD
-        completed={progress.completedDays.length}
+        dayN={day?.n ?? current}
+        week={(day ?? getDay(current))?.weekTitle}
         confidence={progress.confidence}
-        streak={progress.streak}
-        skills={progress.skills.length}
+        met={progress.met.length}
       />
 
       <AnimatePresence>
         {toast && (
           <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
-            <SkillToast label={toast.label} xp={toast.xp} />
+            <SkillToast label={toast} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -123,6 +123,7 @@ export default function OnboardingGame() {
                   startStep={startStep}
                   startPick={startPick}
                   onMentor={handleMentor}
+                  onMeet={meet}
                   onExit={() => setActiveDay(null)}
                   onComplete={(gained) => finishDay(day, gained)}
                   transition={transition}
@@ -141,12 +142,13 @@ export default function OnboardingGame() {
 type Stage = 'intro' | 'scene' | 'recap';
 
 function DayPlayer({
-  day, startStep = 0, startPick = null, onMentor, onExit, onComplete, transition,
+  day, startStep = 0, startPick = null, onMentor, onMeet, onExit, onComplete, transition,
 }: {
   day: Day;
   startStep?: number;
   startPick?: number | null;
   onMentor: (s: MentorState, line?: string) => void;
+  onMeet: (id: string) => void;
   onExit: () => void;
   onComplete: (gained: number) => void;
   transition: { duration: number; ease?: readonly number[] };
@@ -172,6 +174,8 @@ function DayPlayer({
     if (stage === 'recap') return onMentor('recap');
     if (!scene) return;
     if (scene.kind === 'mentor') return onMentor(scene.mentor ?? 'speaking');
+    if (scene.kind === 'narration') return onMentor('speaking');
+    if (scene.kind === 'dialogue') { if (!taskDone[sceneIdx]) onMentor('speaking'); return; }
     if (scene.kind === 'task') { if (!taskDone[sceneIdx]) onMentor('hint'); return; }
     const p = picked[sceneIdx];
     if (p === undefined) return onMentor('idle');
@@ -219,6 +223,15 @@ function DayPlayer({
           <MentorBeat text={scene.text} onContinue={advance} />
         )}
 
+        {stage === 'scene' && scene?.kind === 'narration' && (
+          <NarrationCard text={scene.text} onContinue={advance} />
+        )}
+
+        {stage === 'scene' && scene?.kind === 'dialogue' && (
+          <DialogueScene scene={scene} onMentor={onMentor} onMeet={onMeet}
+            onResolve={resolveTask} onContinue={advance} isLast={sceneIdx + 1 >= day.scenes.length} />
+        )}
+
         {stage === 'scene' && scene?.kind === 'task' && (
           <TaskScene dayN={day.n} task={scene} onMentor={onMentor} onResolve={resolveTask} onContinue={advance}
             onHint={hintText ? showHint : undefined} />
@@ -240,7 +253,7 @@ function DayPlayer({
         )}
 
         {stage === 'recap' && (
-          <DayRecapCard day={day} gained={gained} isLastContent={lastContentDay} onFinish={() => onComplete(gained)} />
+          <DayRecapCard day={day} isLastContent={lastContentDay} onFinish={() => onComplete(gained)} />
         )}
       </motion.div>
     </AnimatePresence>

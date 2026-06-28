@@ -22,16 +22,40 @@ export const DAYS: Day[] = [
     intro: "Welcome to Northwind. I'm Bit — I'll guide you through your first 30 days. Northwind makes a task-management app used by busy teams. Today is just orientation: let's get your head in the right place.",
     scenes: [
       {
-        kind: 'mentor',
-        mentor: 'speaking',
-        text: "First, let's get clear on what the job actually is — because it's bigger than 'find bugs'. Here's a quick warm-up.",
+        kind: 'narration',
+        text: "Your first morning at Northwind. Badge clipped on, coffee already going cold, heart going a little fast. You don't know anyone yet — or what you're actually supposed to do all day. Someone spots you by the door and walks over.",
+      },
+      {
+        kind: 'dialogue',
+        speaker: 'maya',
+        line: "Hi — you must be the new tester! I'm Maya, the PM. We're a small product team: I look after product, Idris leads a couple of devs, and Priya owns the backlog. You'll end up working with all of us. So… how are you feeling?",
+        replies: [
+          {
+            text: "Honestly? A bit lost — but keen to understand how it all fits together first.",
+            best: true,
+            reply: "That's exactly the right instinct. Curiosity beats confidence on day one. Stick with me and ask anything.",
+            note: 'Maya looks pleased you said it.',
+          },
+          {
+            text: "Ready to start finding bugs right away!",
+            reply: "Love the energy — but let's get you oriented first. You can't judge what you don't understand yet.",
+            note: 'A friendly nudge.',
+          },
+          {
+            text: "I'll keep my head down and figure it out myself.",
+            reply: "Please don't — around here, asking questions is the job, not a weakness. We'd much rather you ask.",
+            note: 'Noted, kindly.',
+          },
+        ],
+        learn: 'Teams usually split by role: a PM shapes product, a PO owns the backlog and priorities, and developers build. Knowing who owns what tells you who to talk to.',
       },
       {
         kind: 'task',
         variant: 'select',
-        prompt: 'Tap everything that’s genuinely part of your role as a quality engineer.',
+        prompt: 'Maya asks what you think your role really covers. Tap everything that’s genuinely part of it.',
         subtitle: 'Select all that apply, then confirm.',
         xp: 10,
+        hint: 'A tester protects users and informs the team — they don’t own the code or block it alone.',
         done: 'That’s the shape of the role: advocate, investigate, understand — not gatekeep or rubber-stamp.',
         items: [
           { label: 'Advocate for the people who use the product', correct: true },
@@ -39,29 +63,6 @@ export const DAYS: Day[] = [
           { label: 'Understand how the product is actually used', correct: true },
           { label: 'Personally approve every line of code' },
           { label: 'Act as the gate that blocks the team from shipping' },
-        ],
-      },
-      {
-        kind: 'choice',
-        prompt: 'Your manager asks what you’ll focus on this first week. What’s the smartest move?',
-        hint: 'You can’t judge what’s wrong with something you don’t understand yet.',
-        options: [
-          {
-            text: 'File as many bugs as possible to prove my value fast.',
-            confidence: 3,
-            feedback: 'Tempting, but noisy. Shallow bugs from someone still learning the product erode trust more than they build it.',
-          },
-          {
-            text: 'Learn the product and how real users use it before judging anything.',
-            best: true,
-            confidence: 12,
-            feedback: 'Yes. You can’t spot what’s wrong until you understand what’s intended. Context first, critique second.',
-          },
-          {
-            text: 'Rewrite the team’s existing test cases to my own standard.',
-            confidence: 2,
-            feedback: 'Far too soon — you’d be changing things you don’t understand yet, and stepping on the team before earning context.',
-          },
         ],
       },
     ],

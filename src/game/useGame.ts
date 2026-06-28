@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { GameProgress } from './types';
 
-const KEY = 'qa-onboarding-v1';
-const INITIAL: GameProgress = { completedDays: [], confidence: 0, streak: 0, skills: [] };
+const KEY = 'qa-onboarding-v2';
+const INITIAL: GameProgress = { completedDays: [], confidence: 0, streak: 0, skills: [], met: [] };
 
 function load(): GameProgress {
   try {
@@ -38,6 +38,10 @@ export function useGame() {
     });
   }, []);
 
+  const meet = useCallback((id: string) => {
+    setProgress((p) => (p.met.includes(id) ? p : { ...p, met: [...p.met, id] }));
+  }, []);
+
   const reset = useCallback(() => setProgress(INITIAL), []);
 
   const isUnlocked = useCallback(
@@ -46,5 +50,5 @@ export function useGame() {
   );
   const isDone = useCallback((n: number) => progress.completedDays.includes(n), [progress.completedDays]);
 
-  return { progress, hydrated, completeDay, reset, isUnlocked, isDone };
+  return { progress, hydrated, completeDay, meet, reset, isUnlocked, isDone };
 }
