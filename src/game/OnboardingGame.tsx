@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion, MotionConfig, useReducedMotion } from 'framer-motion';
 import './onboarding.css';
 import { DAYS, getDay } from '../data/onboarding';
@@ -6,7 +6,7 @@ import { useGame } from './useGame';
 import type { Day, MentorState } from './types';
 import MentorAvatar from './MentorAvatar';
 import DayMap from './DayMap';
-import { GameHUD, DayIntroCard, MentorBeat, ChoiceScene, TaskScene, DayRecapCard, SkillToast } from './panels';
+import { GameHUD, DayIntroCard, MentorBeat, ChoiceScene, TaskScene, DayRecapCard, DayProgress, SkillToast } from './panels';
 
 const CAPTION: Record<MentorState, string> = {
   idle: 'Take your time.',
@@ -32,6 +32,8 @@ export default function OnboardingGame() {
 
   const [activeDay, setActiveDay] = useState<number | null>(dlDay);
   const [mentor, setMentor] = useState<MentorState>('idle');
+  const [mentorLine, setMentorLine] = useState<string | null>(null);
+  const handleMentor = useCallback((s: MentorState, line?: string) => { setMentor(s); setMentorLine(line ?? null); }, []);
   const [toast, setToast] = useState<{ label: string; xp: number } | null>(null);
   const reduce = useReducedMotion();
   const [startStep] = useState(() => Number.parseInt(params.get('step') ?? '0', 10) || 0);
@@ -101,7 +103,18 @@ export default function OnboardingGame() {
             <div className="qg-stage">
               <aside className="qg-rail">
                 <MentorAvatar state={mentor} size={96} />
-                <span className="qg-caption">{CAPTION[mentor]}</span>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={mentorLine ?? mentor}
+                    className="qg-bubble"
+                    initial={{ opacity: 0, y: 6, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {mentorLine ?? CAPTION[mentor]}
+                  </motion.div>
+                </AnimatePresence>
               </aside>
               <div className="qg-scene-col">
                 <DayPlayer
@@ -109,7 +122,7 @@ export default function OnboardingGame() {
                   day={day}
                   startStep={startStep}
                   startPick={startPick}
-                  onMentor={setMentor}
+                  onMentor={handleMentor}
                   onExit={() => setActiveDay(null)}
                   onComplete={(gained) => finishDay(day, gained)}
                   transition={transition}
@@ -133,7 +146,7 @@ function DayPlayer({
   day: Day;
   startStep?: number;
   startPick?: number | null;
-  onMentor: (s: MentorState) => void;
+  onMentor: (s: MentorState, line?: string) => void;
   onExit: () => void;
   onComplete: (gained: number) => void;
   transition: { duration: number; ease?: readonly number[] };
@@ -182,15 +195,20 @@ function DayPlayer({
     setGained((g) => g + scene.options[i].confidence);
   };
 
+  const hintText = scene && (scene.kind === 'choice' || scene.kind === 'task') ? scene.hint : undefined;
+  const showHint = () => { if (hintText) onMentor('hint', hintText); };
+
   const sceneKey = `${stage}-${sceneIdx}-${picked[sceneIdx] ?? 'x'}`;
 
   return (
-    <AnimatePresence mode="wait">
+    <>
+      {stage !== 'intro' && <DayProgress scenes={day.scenes} stage={stage} sceneIdx={sceneIdx} />}
+      <AnimatePresence mode="wait">
       <motion.div
         key={sceneKey}
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0, x: 24 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -24 }}
         transition={transition}
       >
         {stage === 'intro' && (
@@ -202,7 +220,8 @@ function DayPlayer({
         )}
 
         {stage === 'scene' && scene?.kind === 'task' && (
-          <TaskScene dayN={day.n} task={scene} onMentor={onMentor} onResolve={resolveTask} onContinue={advance} />
+          <TaskScene dayN={day.n} task={scene} onMentor={onMentor} onResolve={resolveTask} onContinue={advance}
+            onHint={hintText ? showHint : undefined} />
         )}
 
         {stage === 'scene' && scene?.kind === 'choice' && (
@@ -215,6 +234,8 @@ function DayPlayer({
             onPick={pick}
             onContinue={advance}
             isLast={sceneIdx + 1 >= day.scenes.length}
+            hasHint={!!hintText}
+            onHint={showHint}
           />
         )}
 
@@ -223,5 +244,6 @@ function DayPlayer({
         )}
       </motion.div>
     </AnimatePresence>
+    </>
   );
 }

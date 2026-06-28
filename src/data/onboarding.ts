@@ -44,6 +44,7 @@ export const DAYS: Day[] = [
       {
         kind: 'choice',
         prompt: 'Your manager asks what you’ll focus on this first week. What’s the smartest move?',
+        hint: 'You can’t judge what’s wrong with something you don’t understand yet.',
         options: [
           {
             text: 'File as many bugs as possible to prove my value fast.',
@@ -101,13 +102,17 @@ export const DAYS: Day[] = [
         ],
       },
       {
-        kind: 'choice',
-        prompt: 'Spot the critical path: which flow, if broken, would hurt users the most?',
-        subtitle: 'Think about what Northwind is fundamentally for.',
-        options: [
-          { text: 'Changing the account avatar colour.', confidence: 3, feedback: 'Nice-to-have. If this broke, almost no one’s work would be blocked.' },
-          { text: 'Creating, assigning, and completing a task.', best: true, confidence: 12, feedback: 'That’s the heart of the product. If this breaks, the app fails at its core job — protect it first.' },
-          { text: 'Viewing the “About this app” page.', confidence: 2, feedback: 'Lowest stakes here — informational, and no real user task depends on it.' },
+        kind: 'task',
+        variant: 'order',
+        prompt: 'Put Northwind’s core task journey in the right order.',
+        subtitle: 'Tap the steps in sequence. This is the critical path you’ll protect most.',
+        xp: 12,
+        hint: 'Something has to exist before it can be handed off — and “done” always comes last.',
+        done: 'That sequence is the product’s critical path. If any step breaks, the app fails at its core job.',
+        items: [
+          { label: 'Create a task' },
+          { label: 'Assign it to a teammate' },
+          { label: 'Complete the task' },
         ],
       },
     ],
@@ -135,6 +140,7 @@ export const DAYS: Day[] = [
       {
         kind: 'choice',
         prompt: 'You save a task. The data saves correctly — but the app shows no message, no checkmark, nothing. Is this a bug?',
+        hint: 'Ask yourself: can the user tell what happened? Quality is about the experience, not just the data.',
         options: [
           { text: 'No — it saved, so technically it works.', confidence: 4, feedback: '“Technically works” isn’t the bar. The user can’t tell it worked, so they’ll doubt it.' },
           { text: 'Yes — silent success confuses users and erodes trust, even when the data is fine.', best: true, confidence: 12, feedback: 'Exactly. Missing feedback is a real usability bug: people re-click, double-save, or assume failure. Trust is part of quality.' },
