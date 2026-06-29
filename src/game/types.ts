@@ -57,6 +57,8 @@ export type Scene =
       learn?: string;
     }
   | { kind: 'narration'; text: string }
+  /** Cinematic cold-open (animated scene illustration + narration). */
+  | { kind: 'opening'; text: string }
   /** The "pull back" reveal — the hero finally sees the whole squad picture. */
   | { kind: 'squad'; text: string; caption?: string };
 

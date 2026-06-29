@@ -22,8 +22,8 @@ export const DAYS: Day[] = [
     intro: "Day 1 at Northwind. You can write a test case in your sleep — but you can't yet tell a PM from a PO, or work out where you even fit. Today isn't about bugs. It's about people, and finding your place among them.",
     scenes: [
       {
-        kind: 'narration',
-        text: "First morning. Badge on, coffee cooling, pulse a little quick. I know how to test — but everyone here moves to a rhythm I haven't learned. Who decides what we build? Who do I actually talk to? Right now it's all a blur. Someone's heading my way.",
+        kind: 'opening',
+        text: "First morning. Badge on, coffee cooling, pulse a little quick. You find the empty desk with your name on it, sit down, open the laptop… and just stare. You know how to test — but everyone here moves to a rhythm you haven't learned yet. Where do you even start? Then someone spots you and heads over.",
       },
       {
         kind: 'dialogue',

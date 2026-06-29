@@ -6,6 +6,7 @@ import { useGame } from './useGame';
 import type { Day, MentorState } from './types';
 import Bit from './Bit';
 import DayMap from './DayMap';
+import OpeningScene from './OpeningScene';
 import { GameHUD, DayIntroCard, MentorBeat, NarrationCard, ChoiceScene, TaskScene, DialogueScene, SquadReveal, DayRecapCard, DayProgress, SkillToast } from './panels';
 
 const CAPTION: Record<MentorState, string> = {
@@ -174,7 +175,7 @@ function DayPlayer({
     if (stage === 'recap') return onMentor('recap');
     if (!scene) return;
     if (scene.kind === 'mentor') return onMentor(scene.mentor ?? 'speaking');
-    if (scene.kind === 'narration') return onMentor('speaking');
+    if (scene.kind === 'narration' || scene.kind === 'opening') return onMentor('speaking');
     if (scene.kind === 'squad') return onMentor('recap');
     if (scene.kind === 'dialogue') { if (!taskDone[sceneIdx]) onMentor('speaking'); return; }
     if (scene.kind === 'task') { if (!taskDone[sceneIdx]) onMentor('hint'); return; }
@@ -222,6 +223,10 @@ function DayPlayer({
 
         {stage === 'scene' && scene?.kind === 'mentor' && (
           <MentorBeat text={scene.text} onContinue={advance} />
+        )}
+
+        {stage === 'scene' && scene?.kind === 'opening' && (
+          <OpeningScene text={scene.text} onContinue={advance} />
         )}
 
         {stage === 'scene' && scene?.kind === 'narration' && (

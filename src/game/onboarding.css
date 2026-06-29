@@ -375,3 +375,43 @@
 .qg-sm-label { fill: var(--fg); font-family: var(--font-display); font-weight: 700; font-size: 13px; }
 .qg-sm-sub { fill: var(--fg-muted); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.02em; }
 .qg-squad-cap { text-align: center; font-family: var(--font-sans); font-size: 14px; color: var(--fg-mid); margin: 4px 0 18px; }
+
+/* ── Day 1 cold-open scene ─────────────────────────────────────── */
+.qg-op-stage { border: 2px solid var(--fg); border-radius: 8px; overflow: hidden; box-shadow: 4px 4px 0 var(--fg); margin-bottom: 18px; background: var(--bg-surface); }
+.qg-op-svg { width: 100%; height: auto; display: block; }
+.qg-op-wall { fill: var(--bg-surface); }
+.qg-op-floor { fill: var(--bg-card); }
+.qg-op-window { fill: color-mix(in srgb, var(--accent) 24%, var(--bg-page)); stroke: var(--fg); stroke-width: 2; }
+.qg-op-glow { fill: var(--accent); opacity: 0.12; animation: qg-op-glow 5s ease-in-out infinite; }
+.qg-op-pane { stroke: var(--fg); stroke-width: 1.5; opacity: 0.6; }
+.qg-op-clock { fill: var(--bg-page); stroke: var(--fg); stroke-width: 2; }
+.qg-op-hand { stroke: var(--fg); stroke-width: 2; stroke-linecap: round; }
+.qg-op-deskbg { fill: var(--border-mid); opacity: 0.4; }
+.qg-op-desk { fill: var(--bg-page); stroke: var(--fg); stroke-width: 2; }
+.qg-op-leg { stroke: var(--fg); stroke-width: 3; stroke-linecap: round; }
+.qg-op-body { fill: var(--accent); stroke: var(--fg); stroke-width: 2; }
+.qg-op-head { fill: var(--accent); stroke: var(--fg); stroke-width: 2.5; }
+.qg-op-eye { fill: #fff; stroke: var(--fg); stroke-width: 1.5; transform-box: fill-box; transform-origin: center; animation: qg-op-blink2 4.6s ease-in-out infinite; }
+.qg-op-pupil { fill: var(--on-accent); }
+.qg-op-glint { fill: #fff; opacity: 0.7; }
+.qg-op-laptopbase { fill: var(--fg-mid); stroke: var(--fg); stroke-width: 2; }
+.qg-op-screen { fill: var(--fg); stroke: var(--fg); stroke-width: 2; }
+.qg-op-cursor { fill: var(--accent); animation: qg-op-cursor 1.1s steps(1) infinite; }
+.qg-op-screenlight { fill: var(--accent); opacity: 0.10; pointer-events: none; }
+.qg-op-coffee { fill: var(--bg-page); stroke: var(--fg); stroke-width: 2; }
+.qg-op-handle { fill: none; stroke: var(--fg); stroke-width: 2; }
+.qg-op-bubble { fill: var(--bg-page); stroke: var(--fg); stroke-width: 2; }
+.qg-op-q { fill: var(--accent-text); font-family: var(--font-display); font-weight: 800; font-size: 20px; }
+
+.qg-op-bob { transform-box: fill-box; transform-origin: center bottom; animation: qg-op-bob 3.6s ease-in-out infinite; }
+.qg-op-think { transform-box: fill-box; transform-origin: center bottom; animation: qg-op-float 3s ease-in-out infinite; }
+
+@keyframes qg-op-cursor { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes qg-op-blink2 { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+@keyframes qg-op-bob   { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2.5px); } }
+@keyframes qg-op-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes qg-op-glow  { 0%, 100% { opacity: 0.10; } 50% { opacity: 0.18; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .qg-op-glow, .qg-op-eye, .qg-op-cursor, .qg-op-bob, .qg-op-think { animation: none !important; }
+}

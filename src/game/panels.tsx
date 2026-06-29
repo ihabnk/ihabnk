@@ -58,6 +58,7 @@ export function DayProgress({ scenes, stage, sceneIdx }: { scenes: Scene[]; stag
   const beats = scenes.map((s) => {
     switch (s.kind) {
       case 'mentor': return 'Brief';
+      case 'opening': return 'Arrive';
       case 'narration': return 'Story';
       case 'dialogue': return 'Meet';
       case 'squad': return 'The picture';
