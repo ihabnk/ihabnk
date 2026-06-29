@@ -4,7 +4,7 @@ import './onboarding.css';
 import { DAYS, getDay } from '../data/onboarding';
 import { useGame } from './useGame';
 import type { Day, MentorState } from './types';
-import MentorAvatar from './MentorAvatar';
+import Bit from './Bit';
 import DayMap from './DayMap';
 import { GameHUD, DayIntroCard, MentorBeat, NarrationCard, ChoiceScene, TaskScene, DialogueScene, DayRecapCard, DayProgress, SkillToast } from './panels';
 
@@ -82,7 +82,7 @@ export default function OnboardingGame() {
           <motion.div key="map" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={transition}>
             <div className="qg-mapwrap">
               <div className="qg-mapintro">
-                <MentorAvatar state="welcome" size={104} />
+                <Bit state="welcome" size={104} />
                 <div>
                   <span className="qg-kicker">The First 30 Days</span>
                   <h1 className="qg-h1">Learn to think like a tester — one workday at a time.</h1>
@@ -102,7 +102,7 @@ export default function OnboardingGame() {
           <motion.div key={`day-${day.n}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={transition}>
             <div className="qg-stage">
               <aside className="qg-rail">
-                <MentorAvatar state={mentor} size={96} />
+                <Bit state={mentor} size={96} />
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={mentorLine ?? mentor}
