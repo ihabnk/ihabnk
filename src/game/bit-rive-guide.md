@@ -1,5 +1,9 @@
 # Bit as a Rive character
 
+> **Designers:** see **`bit-build-sheet.md`** for the full build spec (look,
+> palette, artboard, per-state motion, acceptance checklist). This file is the
+> short engineering contract.
+
 The game renders Bit through `Bit.tsx`, which uses the rich **Rive** character
 when `public/bit.riv` exists and otherwise falls back to the hand-built SVG
 (`MentorAvatar.tsx`). Nothing breaks without the asset — adding it is a pure
