@@ -6,7 +6,7 @@ import { useGame } from './useGame';
 import type { Day, MentorState } from './types';
 import Bit from './Bit';
 import DayMap from './DayMap';
-import { GameHUD, DayIntroCard, MentorBeat, NarrationCard, ChoiceScene, TaskScene, DialogueScene, DayRecapCard, DayProgress, SkillToast } from './panels';
+import { GameHUD, DayIntroCard, MentorBeat, NarrationCard, ChoiceScene, TaskScene, DialogueScene, SquadReveal, DayRecapCard, DayProgress, SkillToast } from './panels';
 
 const CAPTION: Record<MentorState, string> = {
   idle: 'Take your time.',
@@ -175,6 +175,7 @@ function DayPlayer({
     if (!scene) return;
     if (scene.kind === 'mentor') return onMentor(scene.mentor ?? 'speaking');
     if (scene.kind === 'narration') return onMentor('speaking');
+    if (scene.kind === 'squad') return onMentor('recap');
     if (scene.kind === 'dialogue') { if (!taskDone[sceneIdx]) onMentor('speaking'); return; }
     if (scene.kind === 'task') { if (!taskDone[sceneIdx]) onMentor('hint'); return; }
     const p = picked[sceneIdx];
@@ -225,6 +226,10 @@ function DayPlayer({
 
         {stage === 'scene' && scene?.kind === 'narration' && (
           <NarrationCard text={scene.text} onContinue={advance} />
+        )}
+
+        {stage === 'scene' && scene?.kind === 'squad' && (
+          <SquadReveal text={scene.text} caption={scene.caption} onContinue={advance} />
         )}
 
         {stage === 'scene' && scene?.kind === 'dialogue' && (

@@ -4,6 +4,7 @@ import type { Choice, Day, MentorState, Scene } from './types';
 import { TOTAL_DAYS, confidenceWord, confidenceLevel } from './types';
 import { character } from './cast';
 import CharacterPortrait from './CharacterPortrait';
+import SquadMap from './SquadMap';
 
 type TaskScn = Extract<Scene, { kind: 'task' }>;
 type DialogueScn = Extract<Scene, { kind: 'dialogue' }>;
@@ -54,10 +55,16 @@ function HintRow({ onHint }: { onHint: () => void }) {
 
 /* Within-day beat stepper — shows the 5-beat learning structure. */
 export function DayProgress({ scenes, stage, sceneIdx }: { scenes: Scene[]; stage: 'intro' | 'scene' | 'recap'; sceneIdx: number }) {
-  const beats = scenes.map((s) =>
-    s.kind === 'mentor' ? 'Brief'
-      : s.kind === 'task' ? (s.variant === 'explore' ? 'Explore' : s.variant === 'order' ? 'Sequence' : 'Task')
-        : 'Decision');
+  const beats = scenes.map((s) => {
+    switch (s.kind) {
+      case 'mentor': return 'Brief';
+      case 'narration': return 'Story';
+      case 'dialogue': return 'Meet';
+      case 'squad': return 'The picture';
+      case 'task': return s.variant === 'explore' ? 'Explore' : s.variant === 'order' ? 'Sequence' : 'Task';
+      default: return 'Decision';
+    }
+  });
   beats.push('Recap');
   const active = stage === 'recap' ? beats.length - 1 : sceneIdx;
   return (
@@ -431,6 +438,19 @@ export function NarrationCard({ text, onContinue }: { text: string; onContinue: 
     <div className="qg-card qg-narration">
       <p className="qg-narration-text">{text}</p>
       <button className="qg-btn qg-btn-primary" onClick={onContinue}>Continue</button>
+    </div>
+  );
+}
+
+/* ── The "pull back" reveal — the whole squad picture ──────────── */
+export function SquadReveal({ text, caption, onContinue }: { text: string; caption?: string; onContinue: () => void }) {
+  return (
+    <div className="qg-card qg-squad">
+      <span className="qg-kicker">The whole picture</span>
+      <p className="qg-narration-text">{text}</p>
+      <SquadMap />
+      {caption && <p className="qg-squad-cap">{caption}</p>}
+      <button className="qg-btn qg-btn-primary" onClick={onContinue}>Continue →</button>
     </div>
   );
 }

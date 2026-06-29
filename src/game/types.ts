@@ -56,7 +56,9 @@ export type Scene =
       /** the takeaway the moment teaches. */
       learn?: string;
     }
-  | { kind: 'narration'; text: string };
+  | { kind: 'narration'; text: string }
+  /** The "pull back" reveal — the hero finally sees the whole squad picture. */
+  | { kind: 'squad'; text: string; caption?: string };
 
 export interface Reply {
   text: string;

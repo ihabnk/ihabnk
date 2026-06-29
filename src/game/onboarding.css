@@ -364,3 +364,14 @@
 
 /* ── Journal recap ─────────────────────────────────────────────── */
 .qg-journal-label { display: block; font-family: var(--font-mono); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--fg-muted); margin: 6px 0 8px; }
+
+/* ── Squad map reveal (the "whole view") ───────────────────────── */
+.qg-squad .qg-narration-text { margin-bottom: 6px; }
+.qg-squadmap { width: 100%; max-width: 430px; height: auto; display: block; margin: 10px auto 4px; overflow: visible; }
+.qg-sm-link { stroke: var(--border-mid); stroke-width: 2.5; stroke-linecap: round; }
+.qg-sm-node { stroke: var(--fg); stroke-width: 2.5; }
+.qg-sm-node.is-you { stroke-width: 3; }
+.qg-sm-init { fill: #fff; font-family: var(--font-display); font-weight: 800; font-size: 18px; }
+.qg-sm-label { fill: var(--fg); font-family: var(--font-display); font-weight: 700; font-size: 13px; }
+.qg-sm-sub { fill: var(--fg-muted); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.02em; }
+.qg-squad-cap { text-align: center; font-family: var(--font-sans); font-size: 14px; color: var(--fg-mid); margin: 4px 0 18px; }
