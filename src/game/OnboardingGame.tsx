@@ -6,7 +6,7 @@ import { useGame } from './useGame';
 import type { Day, MentorState } from './types';
 import Bit from './Bit';
 import DayMap from './DayMap';
-import OpeningScene from './OpeningScene';
+import Day1Scene from './Day1Scene';
 import { GameHUD, DayIntroCard, MentorBeat, NarrationCard, ChoiceScene, TaskScene, DialogueScene, SquadReveal, DayRecapCard, DayProgress, SkillToast } from './panels';
 
 const CAPTION: Record<MentorState, string> = {
@@ -226,7 +226,7 @@ function DayPlayer({
         )}
 
         {stage === 'scene' && scene?.kind === 'opening' && (
-          <OpeningScene text={scene.text} onContinue={advance} />
+          <Day1Scene text={scene.text} onContinue={advance} />
         )}
 
         {stage === 'scene' && scene?.kind === 'narration' && (

@@ -415,3 +415,41 @@
 @media (prefers-reduced-motion: reduce) {
   .qg-op-glow, .qg-op-eye, .qg-op-cursor, .qg-op-bob, .qg-op-think { animation: none !important; }
 }
+
+/* ── Cold-open v2: extra layers (GSAP drives motion) ───────────── */
+.qg-op-windowlit { fill: var(--accent); opacity: 0.14; }
+.qg-op-beam { fill: var(--accent); opacity: 0.08; pointer-events: none; }
+.qg-op-mote { fill: var(--accent); opacity: 0; }
+.qg-op-passer > * { fill: var(--fg); }
+.qg-op-passer { opacity: 0.16; }
+.qg-op-pot { fill: var(--accent); stroke: var(--fg); stroke-width: 2; }
+.qg-op-leaf { fill: none; stroke: var(--fg); stroke-width: 2.5; stroke-linecap: round; }
+.qg-op-line { fill: var(--bg-page); opacity: 0.45; }
+.qg-op-steam { fill: none; stroke: var(--fg-muted); stroke-width: 2; stroke-linecap: round; opacity: 0; }
+/* hand breathing/float to GSAP — silence the old CSS loops */
+.qg-op-bob, .qg-op-think { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .qg-op-mote, .qg-op-steam { opacity: 0.4; }
+}
+
+/* ── Cold-open ambient loops (CSS) ─────────────────────────────── */
+.qg-op-breathe { transform-box: fill-box; transform-origin: center bottom; animation: qg-op-breathe 2.4s ease-in-out infinite; }
+.qg-op-thinkfloat { transform-box: fill-box; transform-origin: center; animation: qg-op-tfloat 3s ease-in-out infinite; }
+.qg-op-mote { transform-box: fill-box; animation: qg-op-moterise 4s ease-in infinite; }
+.qg-op-mote:nth-child(2) { animation-duration: 5s; animation-delay: .8s; }
+.qg-op-mote:nth-child(3) { animation-duration: 3.6s; animation-delay: 1.5s; }
+.qg-op-mote:nth-child(4) { animation-duration: 4.6s; animation-delay: .4s; }
+.qg-op-mote:nth-child(5) { animation-duration: 5.4s; animation-delay: 2.1s; }
+.qg-op-steam { transform-box: fill-box; animation: qg-op-steamrise 2s ease-out infinite; }
+.qg-op-steam:nth-child(2) { animation-delay: .7s; }
+.qg-op-passer { transform-box: fill-box; animation: qg-op-walk 12s linear infinite; }
+.qg-op-plant { transform-box: fill-box; transform-origin: 50% 100%; animation: qg-op-sway 3.6s ease-in-out infinite; }
+@keyframes qg-op-breathe { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2.5px); } }
+@keyframes qg-op-tfloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes qg-op-moterise { 0% { transform: translateY(6px); opacity: 0; } 25% { opacity: .6; } 100% { transform: translateY(-30px); opacity: 0; } }
+@keyframes qg-op-steamrise { 0% { transform: translateY(0); opacity: 0; } 30% { opacity: .5; } 100% { transform: translateY(-14px); opacity: 0; } }
+@keyframes qg-op-walk { 0% { transform: translateX(-70px); } 55%, 100% { transform: translateX(500px); } }
+@keyframes qg-op-sway { 0%, 100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .qg-op-breathe, .qg-op-thinkfloat, .qg-op-mote, .qg-op-steam, .qg-op-passer, .qg-op-plant { animation: none !important; }
+}
