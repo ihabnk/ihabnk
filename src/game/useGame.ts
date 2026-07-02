@@ -29,6 +29,7 @@ export function useGame() {
     setProgress((p) => {
       if (p.completedDays.includes(n)) return p; // idempotent — replaying doesn't double-count
       return {
+        ...p,
         completedDays: [...p.completedDays, n].sort((a, b) => a - b),
         confidence: p.confidence + gained,
         streak: p.streak + 1,

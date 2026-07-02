@@ -14,6 +14,7 @@ function pos(i: number) {
 }
 
 const hasContent = (n: number) => DAYS.some((d) => d.n === n);
+const dayTitle = (n: number) => DAYS.find((d) => d.n === n)?.title;
 
 interface Props {
   isUnlocked: (n: number) => boolean;
@@ -47,8 +48,9 @@ export default function DayMap({ isUnlocked, isDone, onPick }: Props) {
               onClick={() => playable && onPick(n)}
               tabIndex={playable ? 0 : -1}
               onKeyDown={(e) => { if (playable && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onPick(n); } }}
-              aria-label={`Day ${n}${done ? ', completed' : playable ? '' : ', locked'}`}
+              aria-label={`Day ${n}${dayTitle(n) ? ` — ${dayTitle(n)}` : ''}${done ? ', completed' : playable ? '' : ', locked'}`}
             >
+              {dayTitle(n) && <title>{`Day ${n} — ${dayTitle(n)}`}</title>}
               {isCurrent && <circle className="qg-node-pulse" r="22" />}
               <motion.circle
                 className="qg-node-dot" r="17"

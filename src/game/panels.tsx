@@ -427,9 +427,77 @@ export function DayRecapCard({
         ))}
       </ul>
       <button className="qg-btn qg-btn-primary" onClick={onFinish}>
-        {isLastContent ? 'Back to the map' : 'Next day →'}
+        {day.n % 5 === 0 ? 'Finish the week →' : isLastContent ? 'Back to the map' : 'Next day →'}
       </button>
     </div>
+  );
+}
+
+/* ── Week complete — a milestone, not just another recap ───────── */
+export function WeekCompleteCard({
+  week, weekTitle, skills, final = false, onContinue,
+}: { week: number; weekTitle: string; skills: string[]; final?: boolean; onContinue: () => void }) {
+  return (
+    <div className="qg-card qg-weekdone">
+      <motion.span className="qg-weekdone-badge"
+        initial={{ scale: 0.6, rotate: -8, opacity: 0 }} animate={{ scale: 1, rotate: 0, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 16 }}>
+        {final ? 'Day 30' : `Week ${week}`}
+      </motion.span>
+      <span className="qg-kicker">{final ? 'The First 30 Days — complete' : `Week ${week} complete`}</span>
+      <h2 className="qg-recap-title">{final ? 'You own it now.' : `“${weekTitle}” — done.`}</h2>
+      <p className="qg-weekdone-lead">
+        {final
+          ? 'Six weeks — observe, question, break, protect, collaborate, own. The final week gave you the owner’s tools:'
+          : 'Five workdays, and none of this was in your head a week ago. It is now:'}
+      </p>
+      <div className="qg-weekdone-skills">
+        {skills.map((s, i) => (
+          <motion.span key={s} className="qg-weekdone-skill"
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 + i * 0.09 }}>
+            <span aria-hidden="true">✦</span> {s}
+          </motion.span>
+        ))}
+      </div>
+      <button className="qg-btn qg-btn-primary" onClick={onContinue}>Back to the map →</button>
+    </div>
+  );
+}
+
+/* ── The journal — quiet proof of progress on the map screen ───── */
+export function Journal({ skills, met }: { skills: string[]; met: string[] }) {
+  if (skills.length === 0 && met.length === 0) return null;
+  return (
+    <section className="qg-journal" aria-label="Your journal">
+      <span className="qg-kicker">Your journal</span>
+      <div className="qg-journal-cols">
+        {skills.length > 0 && (
+          <div>
+            <span className="qg-journal-h">What you can do now</span>
+            <div className="qg-journal-skills">
+              {skills.map((s) => <span key={s} className="qg-weekdone-skill"><span aria-hidden="true">✦</span> {s}</span>)}
+            </div>
+          </div>
+        )}
+        {met.length > 0 && (
+          <div>
+            <span className="qg-journal-h">People you know</span>
+            <div className="qg-journal-people">
+              {met.map((id) => {
+                const c = character(id);
+                return (
+                  <span key={id} className="qg-journal-person">
+                    <CharacterPortrait id={id} size={34} />
+                    <span className="qg-journal-pname">{c.name}<em>{c.role}</em></span>
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 

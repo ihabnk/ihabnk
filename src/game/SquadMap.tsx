@@ -1,9 +1,10 @@
 import { motion, useReducedMotion } from 'framer-motion';
 
 /**
- * The "whole view" — the squad picture the hero pieces together over Day 1.
- * You (the tester) at the centre, woven through the roles around you. Built as
- * SVG so it scales/themes; Framer staggers the reveal so it assembles itself.
+ * The "whole view" — the squad picture the hero pieces together on Day 1.
+ * You (the tester) at the centre, woven through the roles around you. Built in
+ * SVG; Framer stages the reveal and the living detail: the centre pulses, a
+ * signal travels out along every connection, and the role nodes gently float.
  */
 interface Node { id: string; label: string; sub: string; color: string; x: number; y: number; center?: boolean; }
 
@@ -20,7 +21,9 @@ const you = NODES.find((n) => n.center)!;
 
 export default function SquadMap() {
   const reduce = useReducedMotion();
-  const t = (i: number) => (reduce ? { duration: 0 } : { type: 'spring' as const, stiffness: 260, damping: 22, delay: 0.25 + i * 0.12 });
+  const nodeIn = (i: number) => (reduce
+    ? { initial: false as const }
+    : { initial: { opacity: 0, scale: 0.5 }, animate: { opacity: 1, scale: 1 }, transition: { type: 'spring' as const, stiffness: 260, damping: 20, delay: 0.3 + i * 0.12 } });
 
   return (
     <svg className="qg-squadmap" viewBox="0 0 370 330" role="img" aria-label="Your squad: you, the tester, connected to the PM, PO, developers, and users">
@@ -33,16 +36,36 @@ export default function SquadMap() {
           transition={reduce ? { duration: 0 } : { duration: 0.5, delay: 0.15 + i * 0.12 }} />
       ))}
 
-      {/* nodes — outer <g> positions (static), inner motion <g> scales in place */}
+      {/* signal dots flowing out along each connection */}
+      {!reduce && around.map((n, i) => (
+        <motion.circle key={`p-${n.id}`} className="qg-sm-signal" r="3.2"
+          initial={{ cx: you.x, cy: you.y, opacity: 0 }}
+          animate={{ cx: [you.x, n.x], cy: [you.y, n.y], opacity: [0, 1, 1, 0] }}
+          transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut', delay: 1 + i * 0.45, repeatDelay: 0.6 }} />
+      ))}
+
+      {/* centre pulse ring */}
+      {!reduce && (
+        <motion.circle className="qg-sm-ring" cx={you.x} cy={you.y} r="30" fill="none"
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: [0.8, 1.6], opacity: [0.5, 0] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: 'easeOut', delay: 0.9 }}
+          style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
+      )}
+
+      {/* nodes */}
       {NODES.map((n, i) => (
         <g key={n.id} transform={`translate(${n.x} ${n.y})`}>
-          <motion.g
-            initial={reduce ? false : { opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={t(n.center ? 0 : i)}
-            style={{ transformBox: 'fill-box', transformOrigin: 'center' }}>
-            <circle r={n.center ? 30 : 24} fill={n.color} className={`qg-sm-node ${n.center ? 'is-you' : ''}`} />
-            <text className="qg-sm-init" textAnchor="middle" dy={n.center ? 6 : 5}>{n.label.slice(0, 1)}</text>
-            <text className="qg-sm-label" textAnchor="middle" y={n.center ? 48 : 40}>{n.label}</text>
-            <text className="qg-sm-sub" textAnchor="middle" y={n.center ? 62 : 53}>{n.sub}</text>
+          <motion.g {...nodeIn(n.center ? 0 : i)} style={{ transformBox: 'fill-box', transformOrigin: 'center' }}>
+            <g
+              className={n.center ? 'qg-sm-core' : 'qg-sm-bob'}
+              style={n.center ? undefined : { animationDelay: `${0.6 + i * 0.5}s` }}
+            >
+              <circle r={n.center ? 30 : 24} fill={n.color} className={`qg-sm-node ${n.center ? 'is-you' : ''}`} />
+              <text className="qg-sm-init" textAnchor="middle" dy={n.center ? 6 : 5}>{n.label.slice(0, 1)}</text>
+              <text className="qg-sm-label" textAnchor="middle" y={n.center ? 48 : 40}>{n.label}</text>
+              <text className="qg-sm-sub" textAnchor="middle" y={n.center ? 62 : 53}>{n.sub}</text>
+            </g>
           </motion.g>
         </g>
       ))}

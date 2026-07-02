@@ -4,10 +4,14 @@ import './onboarding.css';
 import { DAYS, getDay } from '../data/onboarding';
 import { useGame } from './useGame';
 import type { Day, MentorState } from './types';
+import { TOTAL_DAYS } from './types';
 import Bit from './Bit';
 import DayMap from './DayMap';
-import Day1Scene from './Day1Scene';
-import { GameHUD, DayIntroCard, MentorBeat, NarrationCard, ChoiceScene, TaskScene, DialogueScene, SquadReveal, DayRecapCard, DayProgress, SkillToast } from './panels';
+import OpeningScene from './OpeningScene';
+import { GameHUD, DayIntroCard, MentorBeat, NarrationCard, ChoiceScene, TaskScene, DialogueScene, SquadReveal, DayRecapCard, DayProgress, SkillToast, WeekCompleteCard, Journal } from './panels';
+
+/** progress.skills stores ids — resolve them to display labels via the day data. */
+const SKILL_LABEL: Record<string, string> = Object.fromEntries(DAYS.map((d) => [d.skill.id, d.skill.label]));
 
 const CAPTION: Record<MentorState, string> = {
   idle: 'Take your time.',
@@ -36,6 +40,7 @@ export default function OnboardingGame() {
   const [mentorLine, setMentorLine] = useState<string | null>(null);
   const handleMentor = useCallback((s: MentorState, line?: string) => { setMentor(s); setMentorLine(line ?? null); }, []);
   const [toast, setToast] = useState<string | null>(null);
+  const [weekDone, setWeekDone] = useState<{ week: number; title: string; skills: string[]; final: boolean } | null>(null);
   const reduce = useReducedMotion();
   const [startStep] = useState(() => Number.parseInt(params.get('step') ?? '0', 10) || 0);
   const [startPick] = useState<number | null>(() => { const p = params.get('pick'); return p != null ? Number.parseInt(p, 10) : null; });
@@ -54,8 +59,15 @@ export default function OnboardingGame() {
     completeDay(d.n, gained, d.skill.id);
     setToast(d.skill.label);
     window.setTimeout(() => setToast(null), 3400);
-    if (hasContent(d.n + 1) && (d.n + 1 === 1 || true)) setActiveDay(d.n + 1);
-    else setActiveDay(null);
+    if (d.n % 5 === 0) {
+      // Last workday of the week — celebrate the milestone before the map.
+      setActiveDay(null);
+      setWeekDone({ week: d.week, title: d.weekTitle, skills: DAYS.filter((x) => x.week === d.week).map((x) => x.skill.label), final: d.n >= TOTAL_DAYS });
+    } else if (hasContent(d.n + 1)) {
+      setActiveDay(d.n + 1);
+    } else {
+      setActiveDay(null);
+    }
   };
 
   const transition = reduce ? { duration: 0 } : { duration: 0.3, ease: [0.22, 1, 0.36, 1] as const };
@@ -79,7 +91,20 @@ export default function OnboardingGame() {
       </AnimatePresence>
 
       <AnimatePresence mode="wait">
-        {!day ? (
+        {weekDone && !day ? (
+          <motion.div key="weekdone" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={transition}>
+            <div className="qg-mapintro" style={{ justifyContent: 'center' }}>
+              <Bit state="celebrate" size={104} />
+            </div>
+            <WeekCompleteCard
+              week={weekDone.week}
+              weekTitle={weekDone.title}
+              skills={weekDone.skills}
+              final={weekDone.final}
+              onContinue={() => setWeekDone(null)}
+            />
+          </motion.div>
+        ) : !day ? (
           <motion.div key="map" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={transition}>
             <div className="qg-mapwrap">
               <div className="qg-mapintro">
@@ -92,11 +117,14 @@ export default function OnboardingGame() {
                     Bit will guide you through real onboarding scenarios that build the QA mindset.
                   </p>
                   <button className="qg-btn qg-btn-primary" onClick={() => enterDay(current)} disabled={!hydrated}>
-                    {progress.completedDays.length === 0 ? 'Start Day 1' : `Continue — Day ${current}`}
+                    {progress.completedDays.length === 0
+                      ? 'Start Day 1'
+                      : `Continue — Day ${current}${getDay(current) ? `: ${getDay(current)!.title}` : ''}`}
                   </button>
                 </div>
               </div>
               <DayMap isUnlocked={isUnlocked} isDone={isDone} onPick={enterDay} />
+              <Journal skills={progress.skills.map((id) => SKILL_LABEL[id] ?? id)} met={progress.met} />
             </div>
           </motion.div>
         ) : (
@@ -226,7 +254,7 @@ function DayPlayer({
         )}
 
         {stage === 'scene' && scene?.kind === 'opening' && (
-          <Day1Scene text={scene.text} onContinue={advance} />
+          <OpeningScene text={scene.text} onContinue={advance} />
         )}
 
         {stage === 'scene' && scene?.kind === 'narration' && (
