@@ -3,7 +3,8 @@
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "20"
+  # Astro 7 requires Node >= 22.12
+  NODE_VERSION = "22"
 
 # Retire leftover routes from the previous Hugo/Blowfish (bilingual) site so
 # any still-indexed old URLs 301 to the current brand instead of 404-ing.
