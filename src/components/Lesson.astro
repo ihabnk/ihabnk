@@ -81,7 +81,7 @@ const letters = ['A', 'B', 'C', 'D', 'E'];
         {Array.from({ length: 14 }).map((_, i) => <span class={`cbit cbit-${i % 4}`} style={`--d:${(i * 0.08).toFixed(2)}s;--x:${(i * 7) % 100}%`}></span>)}
       </div>
       <h2 class="lesson-title">Lesson complete.</h2>
-      <p class="lesson-intro">You just practiced the real work of QA — predicting failure, probing the edges, and reporting clearly. That instinct is the foundation everything else builds on.</p>
+      <p class="lesson-intro">{lesson.outro ?? 'You just practiced the real work of QA — predicting failure, probing the edges, and reporting clearly. That instinct is the foundation everything else builds on.'}</p>
       <div class="lesson-done-actions">
         {nextHref && (
           <a href={nextHref} class="btn-primary inline-flex items-center gap-2 font-bold text-sm px-6 h-11 rounded-[4px]">
