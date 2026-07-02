@@ -65,6 +65,37 @@
 .qg-weeks { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .qg-week-chip { font-family: var(--font-mono); font-size: 10px; color: var(--fg-muted); border: 1.5px solid var(--border); border-radius: 999px; padding: 4px 10px; }
 
+/* ── Week-complete interstitial ───────────────────────────────── */
+.qg-weekdone { position: relative; max-width: 560px; margin: 24px auto 0; }
+.qg-weekdone-badge {
+  position: absolute; top: -14px; right: 18px; display: inline-block;
+  font-family: var(--font-display); font-weight: 800; font-size: 13px;
+  background: var(--accent); color: var(--on-accent);
+  border: 2px solid var(--fg); border-radius: 999px; padding: 5px 14px;
+  box-shadow: 2px 2px 0 var(--fg); transform-origin: center;
+}
+.qg-weekdone-lead { font-size: 15px; line-height: 1.6; color: var(--fg-mid); margin: 0 0 16px; }
+.qg-weekdone-skills { display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; }
+.qg-weekdone-skill {
+  display: inline-flex; align-items: center; gap: 9px; width: fit-content;
+  font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--fg);
+  border: 2px solid var(--fg); border-radius: 8px; background: var(--bg-page);
+  box-shadow: 2px 2px 0 var(--fg); padding: 8px 14px;
+}
+.qg-weekdone-skill > span { color: var(--accent-text); }
+
+/* ── Journal on the map screen ────────────────────────────────── */
+.qg-journal { border: 2px solid var(--border-mid); border-radius: 10px; background: var(--bg-card); padding: 18px 20px; }
+.qg-journal-cols { display: flex; flex-wrap: wrap; gap: 22px 40px; margin-top: 12px; }
+.qg-journal-cols > div { min-width: 0; }
+.qg-journal-h { display: block; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-muted); margin-bottom: 9px; }
+.qg-journal-skills { display: flex; flex-wrap: wrap; gap: 8px; }
+.qg-journal-skills .qg-weekdone-skill { font-size: 13px; padding: 6px 11px; box-shadow: none; border-width: 1.5px; border-color: var(--border-mid); }
+.qg-journal-people { display: flex; flex-wrap: wrap; gap: 10px 18px; }
+.qg-journal-person { display: inline-flex; align-items: center; gap: 9px; }
+.qg-journal-pname { display: flex; flex-direction: column; font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--fg); line-height: 1.15; }
+.qg-journal-pname em { font-style: normal; font-family: var(--font-mono); font-weight: 400; font-size: 10px; color: var(--fg-muted); }
+
 /* ── Day stage layout ─────────────────────────────────────────── */
 .qg-stage { display: grid; grid-template-columns: 132px 1fr; gap: 22px; align-items: start; }
 .qg-rail { position: sticky; top: 84px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
@@ -323,3 +354,142 @@
   .qg-hud.is-bump { animation: none; }
   .qg-step-dot { transition: none; }
 }
+
+/* ── The Tester: character portrait ────────────────────────────── */
+.qg-portrait { display: grid; place-items: center; border: 2px solid var(--fg); border-radius: 12px; box-shadow: 3px 3px 0 var(--fg); color: #fff; font-family: var(--font-display); font-weight: 800; flex-shrink: 0; }
+
+/* ── Felt-status HUD ───────────────────────────────────────────── */
+.qg-hud { flex-wrap: wrap; }
+.qg-hud-day { display: flex; flex-direction: column; }
+.qg-hud-daynum { font-family: var(--font-display); font-weight: 800; font-size: 20px; color: var(--fg); line-height: 1; }
+.qg-hud-conf { display: flex; flex-direction: column; gap: 4px; align-items: center; margin: 0 auto; }
+.qg-pips { display: flex; gap: 4px; }
+.qg-pip { width: 18px; height: 8px; border-radius: 3px; background: var(--bg-surface); border: 1.5px solid var(--border-mid); transition: background .45s ease, border-color .45s ease; }
+.qg-pip.on { background: var(--accent); border-color: var(--fg); }
+.qg-hud-word { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--accent-text); }
+.qg-hud-people { display: flex; flex-direction: column; align-items: flex-end; }
+.qg-hud-peoplen { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--fg); }
+@media (max-width: 560px) { .qg-hud-conf { order: 3; flex-basis: 100%; align-items: flex-start; margin: 6px 0 0; } }
+
+/* ── Narration (inner voice) ───────────────────────────────────── */
+.qg-narration-text { font-family: var(--font-sans); font-style: italic; font-size: 18px; line-height: 1.7; color: var(--fg-mid); margin: 0 0 20px; }
+
+/* ── Dialogue with a colleague ─────────────────────────────────── */
+.qg-dialogue-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.qg-dialogue-name { display: block; font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--fg); line-height: 1.1; }
+.qg-dialogue-role { font-family: var(--font-mono); font-size: 11px; color: var(--fg-muted); text-transform: uppercase; letter-spacing: .06em; }
+.qg-said { font-family: var(--font-sans); font-size: 16px; line-height: 1.6; color: var(--fg); background: var(--bg-page); border: 2px solid var(--fg); border-radius: 12px; padding: 14px 16px; }
+.qg-said--them { border-top-left-radius: 3px; }
+.qg-replies { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.qg-reply { display: flex; align-items: center; gap: 12px; text-align: left; width: 100%; border: 2px solid var(--border-mid); border-radius: 9px; background: var(--bg-card); padding: 13px 15px; cursor: pointer; font-family: var(--font-sans); font-size: 15.5px; color: var(--fg); transition: border-color .15s, background .15s, opacity .2s; }
+.qg-reply:hover:not(:disabled) { border-color: var(--accent); }
+.qg-reply:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-chip); }
+.qg-reply:disabled { cursor: default; }
+.qg-reply.is-picked { border-color: var(--accent); background: var(--accent-glow); }
+.qg-reply.is-dim { opacity: .5; }
+.qg-reply-you { flex-shrink: 0; font-family: var(--font-mono); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--fg-muted); border: 1.5px solid var(--border-mid); border-radius: 5px; padding: 3px 7px; }
+.qg-dialogue-out { margin-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+.qg-dialogue-note { font-family: var(--font-mono); font-size: 12px; color: var(--fg-muted); margin: 0; }
+.qg-dialogue-learn { font-size: 14.5px; line-height: 1.6; color: var(--fg); background: var(--accent-glow); border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; padding: 12px 14px; margin: 0; }
+.qg-learn-tag { display: block; font-family: var(--font-mono); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--accent-text); margin-bottom: 4px; }
+
+/* ── Journal recap ─────────────────────────────────────────────── */
+.qg-journal-label { display: block; font-family: var(--font-mono); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--fg-muted); margin: 6px 0 8px; }
+
+/* ── Squad map reveal (the "whole view") ───────────────────────── */
+.qg-squad .qg-narration-text { margin-bottom: 6px; }
+.qg-squadmap { width: 100%; max-width: 430px; height: auto; display: block; margin: 10px auto 4px; overflow: visible; }
+.qg-sm-link { stroke: var(--border-mid); stroke-width: 2.5; stroke-linecap: round; }
+.qg-sm-node { stroke: var(--fg); stroke-width: 2.5; }
+.qg-sm-node.is-you { stroke-width: 3; }
+.qg-sm-init { fill: #fff; font-family: var(--font-display); font-weight: 800; font-size: 18px; }
+.qg-sm-label { fill: var(--fg); font-family: var(--font-display); font-weight: 700; font-size: 13px; }
+.qg-sm-sub { fill: var(--fg-muted); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.02em; }
+.qg-squad-cap { text-align: center; font-family: var(--font-sans); font-size: 14px; color: var(--fg-mid); margin: 4px 0 18px; }
+
+/* ── Day 1 cold-open scene ─────────────────────────────────────── */
+.qg-op-stage { border: 2px solid var(--fg); border-radius: 8px; overflow: hidden; box-shadow: 4px 4px 0 var(--fg); margin-bottom: 18px; background: var(--bg-surface); }
+.qg-op-svg { width: 100%; height: auto; display: block; }
+.qg-op-wall { fill: var(--bg-surface); }
+.qg-op-floor { fill: var(--bg-card); }
+.qg-op-window { fill: color-mix(in srgb, var(--accent) 24%, var(--bg-page)); stroke: var(--fg); stroke-width: 2; }
+.qg-op-glow { fill: var(--accent); opacity: 0.12; animation: qg-op-glow 5s ease-in-out infinite; }
+.qg-op-pane { stroke: var(--fg); stroke-width: 1.5; opacity: 0.6; }
+.qg-op-clock { fill: var(--bg-page); stroke: var(--fg); stroke-width: 2; }
+.qg-op-hand { stroke: var(--fg); stroke-width: 2; stroke-linecap: round; }
+.qg-op-deskbg { fill: var(--border-mid); opacity: 0.4; }
+.qg-op-desk { fill: var(--bg-page); stroke: var(--fg); stroke-width: 2; }
+.qg-op-leg { stroke: var(--fg); stroke-width: 3; stroke-linecap: round; }
+.qg-op-body { fill: var(--accent); stroke: var(--fg); stroke-width: 2; }
+.qg-op-head { fill: var(--accent); stroke: var(--fg); stroke-width: 2.5; }
+.qg-op-eye { fill: #fff; stroke: var(--fg); stroke-width: 1.5; transform-box: fill-box; transform-origin: center; animation: qg-op-blink2 4.6s ease-in-out infinite; }
+.qg-op-pupil { fill: var(--on-accent); }
+.qg-op-glint { fill: #fff; opacity: 0.7; }
+.qg-op-laptopbase { fill: var(--fg-mid); stroke: var(--fg); stroke-width: 2; }
+.qg-op-screen { fill: var(--fg); stroke: var(--fg); stroke-width: 2; }
+.qg-op-cursor { fill: var(--accent); animation: qg-op-cursor 1.1s steps(1) infinite; }
+.qg-op-screenlight { fill: var(--accent); opacity: 0.10; pointer-events: none; }
+.qg-op-coffee { fill: var(--bg-page); stroke: var(--fg); stroke-width: 2; }
+.qg-op-handle { fill: none; stroke: var(--fg); stroke-width: 2; }
+.qg-op-bubble { fill: var(--bg-page); stroke: var(--fg); stroke-width: 2; }
+.qg-op-q { fill: var(--accent-text); font-family: var(--font-display); font-weight: 800; font-size: 20px; }
+
+.qg-op-bob { transform-box: fill-box; transform-origin: center bottom; animation: qg-op-bob 3.6s ease-in-out infinite; }
+.qg-op-think { transform-box: fill-box; transform-origin: center bottom; animation: qg-op-float 3s ease-in-out infinite; }
+
+@keyframes qg-op-cursor { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes qg-op-blink2 { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+@keyframes qg-op-bob   { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2.5px); } }
+@keyframes qg-op-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes qg-op-glow  { 0%, 100% { opacity: 0.10; } 50% { opacity: 0.18; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .qg-op-glow, .qg-op-eye, .qg-op-cursor, .qg-op-bob, .qg-op-think { animation: none !important; }
+}
+
+/* ── Cold-open v2: extra layers (GSAP drives motion) ───────────── */
+.qg-op-windowlit { fill: var(--accent); opacity: 0.14; }
+.qg-op-beam { fill: var(--accent); opacity: 0.08; pointer-events: none; }
+.qg-op-mote { fill: var(--accent); opacity: 0; }
+.qg-op-passer > * { fill: var(--fg); }
+.qg-op-passer { opacity: 0.16; }
+.qg-op-pot { fill: var(--accent); stroke: var(--fg); stroke-width: 2; }
+.qg-op-leaf { fill: none; stroke: var(--fg); stroke-width: 2.5; stroke-linecap: round; }
+.qg-op-line { fill: var(--bg-page); opacity: 0.45; }
+.qg-op-steam { fill: none; stroke: var(--fg-muted); stroke-width: 2; stroke-linecap: round; opacity: 0; }
+/* hand breathing/float to GSAP — silence the old CSS loops */
+.qg-op-bob, .qg-op-think { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .qg-op-mote, .qg-op-steam { opacity: 0.4; }
+}
+
+/* ── Cold-open ambient loops (CSS) ─────────────────────────────── */
+.qg-op-breathe { transform-box: fill-box; transform-origin: center bottom; animation: qg-op-breathe 2.4s ease-in-out infinite; }
+.qg-op-thinkfloat { transform-box: fill-box; transform-origin: center; animation: qg-op-tfloat 3s ease-in-out infinite; }
+.qg-op-mote { transform-box: fill-box; animation: qg-op-moterise 4s ease-in infinite; }
+.qg-op-mote:nth-child(2) { animation-duration: 5s; animation-delay: .8s; }
+.qg-op-mote:nth-child(3) { animation-duration: 3.6s; animation-delay: 1.5s; }
+.qg-op-mote:nth-child(4) { animation-duration: 4.6s; animation-delay: .4s; }
+.qg-op-mote:nth-child(5) { animation-duration: 5.4s; animation-delay: 2.1s; }
+.qg-op-steam { transform-box: fill-box; animation: qg-op-steamrise 2s ease-out infinite; }
+.qg-op-steam:nth-child(2) { animation-delay: .7s; }
+.qg-op-passer { transform-box: fill-box; animation: qg-op-walk 12s linear infinite; }
+.qg-op-plant { transform-box: fill-box; transform-origin: 50% 100%; animation: qg-op-sway 3.6s ease-in-out infinite; }
+@keyframes qg-op-breathe { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2.5px); } }
+@keyframes qg-op-tfloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes qg-op-moterise { 0% { transform: translateY(6px); opacity: 0; } 25% { opacity: .6; } 100% { transform: translateY(-30px); opacity: 0; } }
+@keyframes qg-op-steamrise { 0% { transform: translateY(0); opacity: 0; } 30% { opacity: .5; } 100% { transform: translateY(-14px); opacity: 0; } }
+@keyframes qg-op-walk { 0% { transform: translateX(-70px); } 55%, 100% { transform: translateX(500px); } }
+@keyframes qg-op-sway { 0%, 100% { transform: rotate(-2.5deg); } 50% { transform: rotate(2.5deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .qg-op-breathe, .qg-op-thinkfloat, .qg-op-mote, .qg-op-steam, .qg-op-passer, .qg-op-plant { animation: none !important; }
+}
+
+/* ── Squad map: living detail ──────────────────────────────────── */
+.qg-sm-signal { fill: var(--accent); }
+.qg-sm-ring { stroke: var(--accent); stroke-width: 2; }
+.qg-sm-bob { transform-box: fill-box; transform-origin: center; animation: qg-sm-bob 4s ease-in-out infinite; }
+.qg-sm-core { transform-box: fill-box; transform-origin: center; animation: qg-sm-core 3s ease-in-out infinite; }
+@keyframes qg-sm-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes qg-sm-core { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@media (prefers-reduced-motion: reduce) { .qg-sm-bob, .qg-sm-core { animation: none !important; } }

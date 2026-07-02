@@ -10,6 +10,7 @@ const posts = await getCollection('blog-en', ({ data }) => !data.draft);
 const lessonsByLevel = (lvl: 'beginner' | 'intermediate' | 'advanced') =>
   lessons.filter((l) => l.level === lvl).sort((a, b) => a.order - b.order);
 const beginnerLessons = lessonsByLevel('beginner');
+const intermediateLessons = lessonsByLevel('intermediate');
 
 const byLevel = (lvl: 'beginner' | 'intermediate' | 'advanced') =>
   guides
@@ -22,7 +23,7 @@ const advanced = byLevel('advanced');
 
 // Cross-listed reading for tracks that are still filling in — keeps every
 // level useful even before its guides are all written.
-const findPost = (slug: string) => posts.find((p) => p.slug === slug);
+const findPost = (slug: string) => posts.find((p) => p.id === slug);
 const advancedReading = [
   'evals-are-the-new-tests',
   'why-quality-is-the-bottleneck',
@@ -30,7 +31,7 @@ const advancedReading = [
 ]
   .map(findPost)
   .filter((p): p is NonNullable<typeof p> => Boolean(p))
-  .map((p) => ({ href: `/blog/${p.slug}`, title: p.data.title, blurb: p.data.description ?? '' }));
+  .map((p) => ({ href: `/blog/${p.id}`, title: p.data.title, blurb: p.data.description ?? '' }));
 
 const tracks = [
   {
@@ -49,6 +50,7 @@ const tracks = [
     desc: 'You know the basics — now build real depth in API testing, automation, CI/CD, and test strategy that survives contact with production.',
     guides: intermediate,
     reading: [],
+    lessons: intermediateLessons,
   },
   {
     id: 'advanced',
@@ -116,6 +118,20 @@ const tracks = [
               <span class="track-lesson-desc">Play through your first month as a junior QA engineer, guided by a mentor.</span>
             </span>
             <span class="track-lesson-cta" aria-hidden="true">Play →</span>
+          </a>
+        )}
+
+        {track.id === 'intermediate' && (
+          <a href="/learn/qa-lab" class="track-lesson track-lesson--game group mt-6">
+            <span class="track-lesson-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20" /></svg>
+            </span>
+            <span class="track-lesson-body">
+              <span class="track-lesson-tag">★ The QA Lab · 6 tools</span>
+              <span class="track-lesson-title">The QA Lab — hands-on tool trainer</span>
+              <span class="track-lesson-desc">Working simulators of an API console, SQL terminal, network tab, logs, locators, and a terminal — with missions.</span>
+            </span>
+            <span class="track-lesson-cta" aria-hidden="true">Open →</span>
           </a>
         )}
 

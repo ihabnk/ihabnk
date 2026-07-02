@@ -10,12 +10,19 @@ export function getStaticPaths() {
 const { slug } = Astro.params;
 const lesson = getLesson(slug!)!;
 
-// After a lesson, point to the matching written guide if one exists, so the
-// reader can go deeper on the same topic.
-const nextByLesson: Record<string, { href: string; label: string }> = {
-  'think-like-a-tester': { href: '/guides/what-qa-engineer-does', label: 'Next guide' },
-};
-const nextStep = nextByLesson[lesson.slug];
+// After a lesson, point to the next one in the path (beginner → intermediate
+// → advanced, by order), so the whole curriculum plays as one sequence.
+const levelRank = { beginner: 0, intermediate: 1, advanced: 2 } as const;
+const sequence = [...lessons].sort(
+  (a, b) => levelRank[a.level] - levelRank[b.level] || a.order - b.order,
+);
+const nextLesson = sequence[sequence.findIndex((l) => l.slug === lesson.slug) + 1];
+const nextStep = nextLesson
+  ? {
+      href: `/learn/${nextLesson.slug}`,
+      label: nextLesson.level === lesson.level ? 'Next lesson' : `Next: ${nextLesson.pathway ?? nextLesson.title}`,
+    }
+  : undefined;
 ---
 
 <Base

@@ -44,7 +44,33 @@ export type Scene =
       /** Optional on-demand hint the mentor can offer. */
       hint?: string;
     }
-  | { kind: 'choice'; prompt: string; subtitle?: string; options: Choice[]; hint?: string };
+  | { kind: 'choice'; prompt: string; subtitle?: string; options: Choice[]; hint?: string }
+  | {
+      kind: 'dialogue';
+      /** cast id of the colleague speaking. */
+      speaker: string;
+      /** what they say to you. */
+      line: string;
+      /** how you can reply (conversational, not a quiz). */
+      replies: Reply[];
+      /** the takeaway the moment teaches. */
+      learn?: string;
+    }
+  | { kind: 'narration'; text: string }
+  /** Cinematic cold-open (animated scene illustration + narration). */
+  | { kind: 'opening'; text: string }
+  /** The "pull back" reveal — the hero finally sees the whole squad picture. */
+  | { kind: 'squad'; text: string; caption?: string };
+
+export interface Reply {
+  text: string;
+  /** the colleague's response to your reply. */
+  reply: string;
+  /** the most professional / instinctive reply. */
+  best?: boolean;
+  /** a beat about how it landed (relationship/tone), shown subtly. */
+  note?: string;
+}
 
 export interface Day {
   n: number;
@@ -60,10 +86,21 @@ export interface Day {
 
 export interface GameProgress {
   completedDays: number[];
+  /** Hidden growth value — never shown as a number; drives the felt word. */
   confidence: number;
   streak: number;
   skills: string[];
+  /** cast ids of colleagues you've met. */
+  met: string[];
   lastPlayedISO?: string;
 }
 
 export const TOTAL_DAYS = 30;
+
+/** A felt confidence state — words, not points. */
+export const confidenceWord = (v: number): string =>
+  v < 15 ? 'Nervous' : v < 45 ? 'Finding your feet' : v < 90 ? 'Settling in' : v < 150 ? 'Steady' : 'Trusted';
+
+/** 1–5 pips for the quiet confidence meter. */
+export const confidenceLevel = (v: number): number =>
+  v < 15 ? 1 : v < 45 ? 2 : v < 90 ? 3 : v < 150 ? 4 : 5;

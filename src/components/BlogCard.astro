@@ -12,7 +12,7 @@ interface Props {
 }
 
 const { post, animate = false, stagger } = Astro.props;
-const href = `/blog/${post.slug}`;
+const href = `/blog/${post.id}`;
 const dateStr = post.data.date.toLocaleDateString('en-US', {
   year: 'numeric', month: 'short', day: 'numeric',
 });
@@ -31,7 +31,7 @@ const staggerClass = stagger ? `stagger-${stagger}` : '';
   data-tags={tags.join(',')}
 >
   <!-- Per-article art (edge-to-edge thumbnail) -->
-  <ArticleArt slug={post.slug} variant="card" />
+  <ArticleArt slug={post.id} variant="card" />
 
   <!-- Tag row -->
   {tags.length > 0 && (

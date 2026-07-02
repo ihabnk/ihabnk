@@ -34,6 +34,8 @@ export interface Lesson {
   est: string;
   /** One-line dek shown on the lesson's intro screen. */
   intro: string;
+  /** Closing line for the completion screen. Falls back to a generic one. */
+  outro?: string;
   steps: LessonStep[];
 }
 
@@ -343,6 +345,578 @@ export const lessons: Lesson[] = [
         title: 'Reproducibility is everything',
         body: "A bug a developer can reproduce is a bug that gets fixed. If it only happens sometimes, say so and include exactly what you were doing — intermittent bugs still deserve precise notes, not a shrug.",
         note: "You've now got the full beginner foundation: think like a tester, know the role, read the business, test by hand, and report clearly.",
+      },
+    ],
+  },
+
+  /* ------------------------------------------------------------------ */
+  /* Intermediate — "Growing in QA"                                      */
+  /* ------------------------------------------------------------------ */
+
+  {
+    slug: 'test-the-api-not-just-the-ui',
+    title: 'Test the API, not just the UI',
+    level: 'intermediate',
+    pathway: 'Growing in QA',
+    order: 1,
+    est: '6 min',
+    intro:
+      "Most of what an app does happens below the buttons. Learning to test at the API layer makes you faster, sharper, and much harder to fool.",
+    outro:
+      "You can now test below the surface: talk to the API directly, read status codes like a native, and know when a green 200 is lying to you.",
+    steps: [
+      {
+        kind: 'concept',
+        title: 'The UI is just the front door',
+        body: "When you tap 'Pay now', the app sends a request to a server — the API — which does the real work and sends back a response. The button is decoration; the API is the machine. Test only through the UI and you're testing the machine through a keyhole.",
+        note: "API testing means sending those requests yourself and inspecting exactly what comes back.",
+      },
+      {
+        kind: 'concept',
+        title: 'Requests and responses',
+        body: "Every API call is a small contract: you send a request (an action plus data, like 'create an order for 2 items'), and the server returns a response — a status code saying how it went, and a body with the result. Tools like Postman or plain curl let you do this without any UI at all.",
+      },
+      {
+        kind: 'mcq',
+        prompt:
+          "The checkout total is wrong: the UI shows $40 for items worth $50. Where do you look first to isolate the bug?",
+        options: [
+          {
+            text: 'Click through the UI again on three different browsers',
+            correct: false,
+            feedback:
+              "If the API is returning the wrong total, every browser will faithfully display the same wrong number. You'd be testing the messenger, not the message.",
+          },
+          {
+            text: 'Call the API directly and check the total in the raw response',
+            correct: true,
+            feedback:
+              "Exactly. If the response says $40, the bug is server-side math. If it says $50, the UI is displaying it wrong. One request just cut the search space in half.",
+          },
+          {
+            text: 'File the bug as-is and let a developer figure out the layer',
+            correct: false,
+            feedback:
+              "You'd be handing over half an investigation. Pinning down the layer yourself is exactly the kind of report that gets fixed same-day.",
+          },
+        ],
+      },
+      {
+        kind: 'concept',
+        title: 'Status codes in one minute',
+        body: "The status code is the server's one-line verdict. 2xx: it worked. 4xx: your request was the problem (400 malformed, 401 not logged in, 403 not allowed, 404 not found). 5xx: the server itself broke. That first digit tells you who owns the bug.",
+        note: "A 4xx for a valid request and a 5xx for any request are both bugs — but they point at different code.",
+      },
+      {
+        kind: 'mcq',
+        prompt:
+          "You request an order that doesn't exist, and the API returns 500 Internal Server Error. What's your read?",
+        options: [
+          {
+            text: "Correct behavior — the order isn't there, so it's an error",
+            correct: false,
+            feedback:
+              "An error, yes — but the wrong kind. A missing resource is the client's problem to hear about (404), not a server crash.",
+          },
+          {
+            text: 'A bug: a missing order should be a clean 404, not a server crash',
+            correct: true,
+            feedback:
+              "Right. A 500 means unhandled failure — the server likely tried to use an order that wasn't there and fell over. That's a real bug even though 'an error' was expected.",
+          },
+          {
+            text: 'Not worth reporting since no real user requests missing orders',
+            correct: false,
+            feedback:
+              "Stale links, deleted orders, and probing attackers all hit this path. Unhandled 500s are exactly where reliability and security problems hide.",
+          },
+        ],
+      },
+      {
+        kind: 'concept',
+        title: 'A 200 can still be wrong',
+        body: "The status code says the request was handled — not that the answer is right. A 200 with the wrong total, a missing field, or somebody else's data is a worse bug than a crash, because nothing looks broken. Always check the body, not just the code.",
+      },
+      {
+        kind: 'mcq',
+        prompt:
+          "An API test asserts only 'status == 200' and it's green. The response body is another user's profile. What's the verdict on the test?",
+        options: [
+          {
+            text: "It passed, so the feature works",
+            correct: false,
+            feedback:
+              "The test is green and the product is leaking private data. A test that can't fail on the worst bug in the feature isn't protecting anything.",
+          },
+          {
+            text: "The test is too shallow — it must also assert whose data came back",
+            correct: true,
+            feedback:
+              "Exactly. Status-only checks are the API-testing happy path. Assert the things that would hurt if wrong: whose data, which fields, what values.",
+          },
+          {
+            text: 'The API should have returned 500 to make the test fail',
+            correct: false,
+            feedback:
+              "You can't rely on the server to announce its own logic bugs. The test's job is to catch what the status code can't say.",
+          },
+        ],
+      },
+      {
+        kind: 'concept',
+        title: 'Why testers love this layer',
+        body: "API tests skip rendering, clicking, and waiting — they run in milliseconds and rarely break when a button moves. Edge cases that are painful in a UI (weird characters, missing fields, wrong permissions) are one line in a request. Same instincts as before, sharper instrument.",
+        note: "Next: now that you can test more layers, which checks deserve to be automated?",
+      },
+    ],
+  },
+
+  {
+    slug: 'what-to-automate',
+    title: 'What to automate (and what not to)',
+    level: 'intermediate',
+    pathway: 'Growing in QA',
+    order: 2,
+    est: '5 min',
+    intro:
+      "Automation is a bet: you spend time now to save time forever. Good testers know which checks pay that bet back — and which quietly lose it.",
+    outro:
+      "You now think about automation like an investment: automate the stable and repeated, keep exploring by hand, and shape the whole thing like a pyramid.",
+    steps: [
+      {
+        kind: 'concept',
+        title: 'Automation is an investment',
+        body: "Every automated test costs time to write and time to maintain, and pays out a little every run. A check you'll repeat on every release for years is a great investment. A check you'll run twice is not — do it by hand and move on.",
+        note: "The question is never 'can we automate this?' It's 'will this pay for itself?'",
+      },
+      {
+        kind: 'mcq',
+        prompt: 'Which of these is the best candidate for automation?',
+        options: [
+          {
+            text: "'Users can log in' — checked before every single release",
+            correct: true,
+            feedback:
+              "Exactly: stable, critical, and repeated forever. This check pays for itself within weeks and then keeps paying.",
+          },
+          {
+            text: 'A one-time check that last year’s data migrated correctly',
+            correct: false,
+            feedback:
+              "You'll run it once, maybe twice. Scripting it fully costs more than doing it carefully by hand.",
+          },
+          {
+            text: "Whether the new onboarding flow 'feels confusing'",
+            correct: false,
+            feedback:
+              "No script can feel confused. Judgment calls about UX stay human — that's exploratory territory.",
+          },
+        ],
+      },
+      {
+        kind: 'concept',
+        title: 'The test pyramid',
+        body: "The classic shape for an automation suite: lots of fast unit tests at the bottom, a solid middle layer of API/integration tests, and a small set of end-to-end UI tests on top. Lower layers are faster, cheaper, and more precise about what broke.",
+        note: "The pyramid isn't a law — it's a reminder that UI tests are the most expensive kind, so spend them carefully.",
+      },
+      {
+        kind: 'mcq',
+        prompt:
+          "A team automated 400 UI tests and almost nothing else. The suite takes 3 hours and fails randomly. What's the actual problem?",
+        options: [
+          {
+            text: 'They need a faster machine to run the UI tests on',
+            correct: false,
+            feedback:
+              "Faster hardware shaves minutes off a strategy problem. The suite is slow and brittle because of *where* the tests live, not what they run on.",
+          },
+          {
+            text: "The pyramid is upside down — most of those checks belong at the API or unit layer",
+            correct: true,
+            feedback:
+              "Right. Most of those 400 flows are checking logic that an API test could verify in milliseconds. Keep a handful of true user journeys in the UI and push the rest down.",
+          },
+          {
+            text: 'They should delete the failing tests to make the suite green',
+            correct: false,
+            feedback:
+              "That makes the dashboard green and the product unprotected. The failures are a symptom of the architecture, not the individual tests.",
+          },
+        ],
+      },
+      {
+        kind: 'concept',
+        title: 'What stays human',
+        body: "Automation checks what you already know to look for. Exploration finds what you didn't. New features, risky changes, UX judgment, and 'something feels off' all stay human — automation exists to free your hands for exactly that work.",
+      },
+      {
+        kind: 'mcq',
+        prompt:
+          "Your regression suite is fully automated and green. You have a free afternoon before release. What's the highest-value use of it?",
+        options: [
+          {
+            text: 'Re-run the automated suite a second time to be sure',
+            correct: false,
+            feedback:
+              "Same tests, same code, same answer. A second green run adds confidence theatre, not information.",
+          },
+          {
+            text: 'Explore the newest, riskiest feature by hand',
+            correct: true,
+            feedback:
+              "Exactly. The suite covers the known; your afternoon is for the unknown. New and risky is where the undiscovered bugs are.",
+          },
+          {
+            text: 'Start automating a screen that changes design every sprint',
+            correct: false,
+            feedback:
+              "That test will be broken by next sprint's redesign — a maintenance bill, not an asset. Automate it once the screen settles down.",
+          },
+        ],
+      },
+      {
+        kind: 'concept',
+        title: 'The strategy in one line',
+        body: "Automate the checks you'll repeat forever, at the lowest layer that can catch the bug — and spend the time you save exploring what no script can see.",
+        note: "Next: automated tests are only useful if you can trust them. Time to deal with flaky tests.",
+      },
+    ],
+  },
+
+  {
+    slug: 'flaky-tests',
+    title: 'Flaky tests, and how to kill them',
+    level: 'intermediate',
+    pathway: 'Growing in QA',
+    order: 3,
+    est: '5 min',
+    intro:
+      "A test that fails sometimes is worse than no test at all — it teaches the whole team to ignore red. Here's how flakiness starts, and how to end it.",
+    outro:
+      "You now treat a flaky test as a bug in the suite: reproduce it, fix the root cause — usually timing or shared state — and never train the team to ignore red.",
+    steps: [
+      {
+        kind: 'concept',
+        title: 'What a flaky test costs',
+        body: "A flaky test passes and fails on the same code, at random. The first cost is time — reruns, investigations. The real cost is trust: once 'it's probably just flaky' becomes a normal sentence, real failures start getting waved through with it.",
+        note: "A suite the team doesn't believe is a suite that catches nothing.",
+      },
+      {
+        kind: 'mcq',
+        prompt:
+          "A test fails on the build server, passes on rerun, and nobody can explain why. The team wants to ship. What's the right call?",
+        options: [
+          {
+            text: "It passed on rerun — green is green, ship it",
+            correct: false,
+            feedback:
+              "Maybe it's flaky timing. Maybe it's a real race condition in the product that appears one run in five. 'Passed on rerun' can't tell those apart — and one of them ships to users.",
+          },
+          {
+            text: 'Investigate why it failed; if you must ship first, quarantine it as a tracked, known-flaky test',
+            correct: true,
+            feedback:
+              "Right. A flaky failure is a question that needs an answer. Quarantine keeps the suite honest while someone finds the cause — silently rerunning until green just buries it.",
+          },
+          {
+            text: 'Delete the test — it clearly causes more trouble than help',
+            correct: false,
+            feedback:
+              "Now the flake is gone and so is the coverage. And if the randomness was in the product, you just deleted the only witness.",
+          },
+        ],
+      },
+      {
+        kind: 'concept',
+        title: 'Cause #1: timing',
+        body: "Most flakiness is a test racing the app. The test clicks 'Save' and immediately checks for the confirmation — but the server took 300ms longer than usual, so the check ran too early. Same code, different day, different speed, different result.",
+      },
+      {
+        kind: 'mcq',
+        prompt:
+          "A test fails intermittently after clicking 'Save'. A teammate suggests adding a 5-second pause. What's the better fix?",
+        options: [
+          {
+            text: 'Take the pause — 5 seconds is plenty',
+            correct: false,
+            feedback:
+              "Until the day the server takes 6 seconds — and meanwhile every run wastes 5. Fixed pauses make tests slower *and* still flaky, just less often.",
+          },
+          {
+            text: "Wait for the condition itself: proceed the moment 'Saved' actually appears",
+            correct: true,
+            feedback:
+              "Exactly. Waiting for the real signal is fast when the app is fast and patient when it's slow. This one habit kills most flakiness in UI suites.",
+          },
+          {
+            text: 'Configure the test to auto-retry three times before reporting failure',
+            correct: false,
+            feedback:
+              "Retries hide the symptom and add minutes to every genuine failure. The race is still there — you've just paid to stop hearing about it.",
+          },
+        ],
+      },
+      {
+        kind: 'concept',
+        title: 'Cause #2: shared state',
+        body: "Tests that share data poison each other. Test A renames the account; test B assumes the old name — B now fails only when A runs first. Symptoms: tests that pass alone but fail together, or fail only in parallel runs.",
+        note: "The cure is isolation: each test creates what it needs and cleans up after itself, owing nothing to the tests around it.",
+      },
+      {
+        kind: 'mcq',
+        prompt:
+          'A test always passes when run alone but fails about half the time in the full suite. What does that pattern point to?',
+        options: [
+          {
+            text: 'The test framework has a random bug',
+            correct: false,
+            feedback:
+              "Frameworks get blamed for this daily and are almost never guilty. The pattern is too specific: alone-pass, together-fail is an interference signature.",
+          },
+          {
+            text: "Another test is changing data or state this test depends on",
+            correct: true,
+            feedback:
+              "Right — alone-pass, together-fail is the classic shared-state signature. Find which test runs before it in the failing orders and you'll find your culprit.",
+          },
+          {
+            text: 'The test is simply too long and should be split in half',
+            correct: false,
+            feedback:
+              "Length doesn't explain why running *alone* fixes it. The dependency on outside state does.",
+          },
+        ],
+      },
+      {
+        kind: 'concept',
+        title: 'Treat flakes like bugs',
+        body: "A flaky test is a bug in the test suite, and it earns a bug's treatment: reproduce it (run it 50 times, run it in parallel), find the root cause, fix it properly. Teams that do this have suites people trust — which is the entire point of having one.",
+        note: "Next: where all these tests actually run — the CI pipeline.",
+      },
+    ],
+  },
+
+  {
+    slug: 'testing-in-ci',
+    title: 'Testing in the CI pipeline',
+    level: 'intermediate',
+    pathway: 'Growing in QA',
+    order: 4,
+    est: '5 min',
+    intro:
+      "Your tests are only as good as when they run. CI runs them on every change, minutes after it's made — here's how to make that feedback loop actually work.",
+    outro:
+      "You now see the pipeline as a feedback machine: every change tested in minutes, fast tests first, and a red main build treated as the team's top priority.",
+    steps: [
+      {
+        kind: 'concept',
+        title: 'What CI actually is',
+        body: "Continuous Integration is a robot with one job: every time anyone pushes code, build the app and run the tests — automatically, within minutes. No 'testing phase' at the end. Every change gets checked while it's still small and fresh in someone's head.",
+        note: "Remember the cheapest-bug lesson? CI is that idea built into the team's plumbing.",
+      },
+      {
+        kind: 'mcq',
+        prompt:
+          "A developer pushes a change and CI turns red 4 minutes later. Why is this a *good* morning for the team?",
+        options: [
+          {
+            text: "It isn't — red builds mean the process failed",
+            correct: false,
+            feedback:
+              "The process just *worked*. The bug exists either way; red is the pipeline catching it. A process failure would be this bug surfacing in three weeks — in production.",
+          },
+          {
+            text: 'The bug was caught within minutes, by the person who wrote it, while the change is one small diff',
+            correct: true,
+            feedback:
+              "Exactly. Four minutes later, the developer knows which lines did it and fixes it before lunch. That same bug found in production would be an investigation.",
+          },
+          {
+            text: 'Good, because now QA has something concrete to do',
+            correct: false,
+            feedback:
+              "CI didn't catch it *for* QA — it caught it so no human has to spend time on already-known failures. Your time goes to what the pipeline can't see.",
+          },
+        ],
+      },
+      {
+        kind: 'concept',
+        title: 'Fast feedback first',
+        body: "Pipelines run in stages, cheapest first: lint and unit tests in the first minutes, API tests next, the slow end-to-end suite last. If a unit test fails, the pipeline stops immediately — no point running an hour of UI tests on code that can't add two numbers.",
+        note: "This is the test pyramid again, laid on its side and turned into a schedule.",
+      },
+      {
+        kind: 'mcq',
+        prompt:
+          'Your full end-to-end suite takes 50 minutes, so developers only get feedback once an hour. What actually fixes this?',
+        options: [
+          {
+            text: 'Run the heavy suite only at night, so nobody waits on it',
+            correct: false,
+            feedback:
+              "Now a bug pushed at 9am is discovered at 3am tomorrow, mixed with everyone else's changes. You traded slow feedback for anonymous, day-late feedback.",
+          },
+          {
+            text: 'Stage it: fast unit and API tests on every push, the full end-to-end suite before merge or release',
+            correct: true,
+            feedback:
+              "Right. Most bugs die in the first cheap minutes, and the expensive suite still guards the doors that matter. Speed and safety aren't actually in conflict here.",
+          },
+          {
+            text: 'Cut the end-to-end suite down to the 5 fastest tests',
+            correct: false,
+            feedback:
+              "Choosing tests by *speed* keeps the sprinters and cuts the goalkeepers. If you must trim, trim by risk — that's the next lesson.",
+          },
+        ],
+      },
+      {
+        kind: 'concept',
+        title: 'Red means stop',
+        body: "One rule separates teams where CI works from teams where it's wallpaper: a red main build is everyone's top priority. Fix it or revert the change — nothing new ships on top of red. Break the rule for a week and red becomes the normal color of the dashboard.",
+        note: "This is the flaky-tests lesson at team scale: the pipeline only protects a team that believes it.",
+      },
+      {
+        kind: 'mcq',
+        prompt:
+          "Main has been red for three days ('a known issue, ignore it') and new changes keep merging on top. What's the real damage?",
+        options: [
+          {
+            text: 'Nothing serious yet — the issue is known and documented',
+            correct: false,
+            feedback:
+              "The known issue isn't the damage. The damage is that for three days, the pipeline has been unable to tell anyone about a *second* problem.",
+          },
+          {
+            text: "The team is now shipping blind: any new failure is invisible behind the red everyone's ignoring",
+            correct: true,
+            feedback:
+              "Exactly. A red build can't turn red. Every change merged during those three days went out with no working alarm at all.",
+          },
+          {
+            text: 'Mostly wasted compute from re-running a failing pipeline',
+            correct: false,
+            feedback:
+              "The compute bill is trivia. The alarm system being offline for three days of merges is the cost that ends up in production.",
+          },
+        ],
+      },
+      {
+        kind: 'concept',
+        title: 'Where you fit',
+        body: "In a CI world the tester's job moves upstream: you decide what earns a place in the pipeline, keep it fast and trusted, and treat its gaps as your exploration map. The robot runs the checks; you decide what's worth checking.",
+        note: "Last lesson in this pathway: with limited time, how do you decide what to test at all?",
+      },
+    ],
+  },
+
+  {
+    slug: 'risk-based-testing',
+    title: 'Test strategy: think in risk',
+    level: 'intermediate',
+    pathway: 'Growing in QA',
+    order: 5,
+    est: '5 min',
+    intro:
+      "You will never have time to test everything. Strategy is deciding what to test first, what to test lightly, and what to consciously skip — by risk.",
+    outro:
+      "That's the whole intermediate toolkit: API skills, an automation strategy, a trustworthy suite, a fast pipeline — and now the judgment to aim all of it at what matters most.",
+    steps: [
+      {
+        kind: 'concept',
+        title: 'The uncomfortable truth',
+        body: "Complete testing is impossible — the input combinations of any real app outnumber the atoms you have time for. Everyone skips things; strong testers just *choose* what to skip instead of letting the clock choose for them.",
+        note: "Risk = how likely something is to break × how much it hurts if it does.",
+      },
+      {
+        kind: 'mcq',
+        prompt: "Two hours before release. Where do your first 30 minutes go?",
+        options: [
+          {
+            text: 'Start at the top of the test-case list and get as far as possible',
+            correct: false,
+            feedback:
+              "That's letting a list written months ago make today's decision. The riskiest area might be case #212 — you'll never reach it.",
+          },
+          {
+            text: "On what changed in this release, and on the flows that touch money",
+            correct: true,
+            feedback:
+              "Exactly the two risk magnets: new code breaks most often, and payment flows hurt most when they do. Likelihood × impact, applied in one sentence.",
+          },
+          {
+            text: 'Spread the time evenly so every feature gets a fair share',
+            correct: false,
+            feedback:
+              "Fair to features, unfair to users. Equal time on the settings page and the checkout means under-testing the thing the business lives on.",
+          },
+        ],
+      },
+      {
+        kind: 'concept',
+        title: 'Where bugs cluster',
+        body: "Bugs aren't spread evenly. They cluster in what's new or just changed, in complex logic (pricing, permissions, sync), at integrations with other systems, and in whatever's been buggy before — defect history repeats. Your testing should be exactly as uneven as the risk.",
+      },
+      {
+        kind: 'mcq',
+        prompt:
+          "This sprint: the checkout was rewritten, the FAQ got new text, and a date-picker got restyled. The rewritten checkout is also covered by automation. Test what first?",
+        options: [
+          {
+            text: "The checkout — big change, big money, and automation only covers what it was told to expect",
+            correct: true,
+            feedback:
+              "Right. A rewrite resets everything you knew about that code, and regression tests check yesterday's expectations against today's logic. New risk needs fresh human eyes.",
+          },
+          {
+            text: 'The FAQ and date-picker first — clear them quickly, then focus',
+            correct: false,
+            feedback:
+              "'Clear the easy ones first' feels productive, but if time runs out you'll have verified fonts and skipped the rewritten payment path.",
+          },
+          {
+            text: "The checkout is automated, so trust the suite and split time between the other two",
+            correct: false,
+            feedback:
+              "The suite was written against the *old* checkout's behavior. After a rewrite, passing tests mean less than they appear to — that's precisely when exploration matters.",
+          },
+        ],
+      },
+      {
+        kind: 'concept',
+        title: 'Say what you skipped',
+        body: "Risk-based testing has a price: things go untested, on purpose. The professional move is to make that visible — 'tested checkout and auth deeply; admin reports untouched.' Now the release decision includes the gaps, and the team chose them together.",
+        note: "Silent gaps become your fault. Stated gaps are a team decision.",
+      },
+      {
+        kind: 'mcq',
+        prompt:
+          "Time's up, and the admin reporting section is untested. What do you tell the release meeting?",
+        options: [
+          {
+            text: "Nothing — you tested hard where it mattered, and mentioning gaps looks bad",
+            correct: false,
+            feedback:
+              "If admin reports break next week, the silence becomes the story. The gap existed either way; hiding it just changes whose decision it was.",
+          },
+          {
+            text: "'Checkout and auth are solid. Admin reporting is untested — low traffic, no money involved. I'd ship, and cover it Monday.'",
+            correct: true,
+            feedback:
+              "That's a strategy speaking: coverage, the gap, the reasoning, a recommendation, and a plan. This is the sentence that turns a tester into the person the room trusts.",
+          },
+          {
+            text: "'We need two more days to be sure everything works.'",
+            correct: false,
+            feedback:
+              "'Sure' isn't on the menu — testing reduces uncertainty, it can't end it. Asking for time without naming the risk just delays the same decision.",
+          },
+        ],
+      },
+      {
+        kind: 'concept',
+        title: 'Strategy in one breath',
+        body: "Find where the risk lives — new, complex, money, history. Spend your deepest testing there. Automate what you'll repeat. Explore what you can't predict. And say out loud what you skipped. That's test strategy; everything else is technique.",
       },
     ],
   },

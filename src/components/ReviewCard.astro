@@ -13,7 +13,7 @@ interface Props {
 }
 
 const { review, animate = false, stagger, featured = false } = Astro.props;
-const href = `/reviews/${review.slug}`;
+const href = `/reviews/${review.id}`;
 const dateStr = review.data.date.toLocaleDateString('en-US', {
   year: 'numeric', month: 'short', day: 'numeric',
 });
@@ -38,7 +38,7 @@ const hasPerToolRatings = toolRatings && Object.keys(toolRatings).length > 0;
   data-tags={tags.join(',')}
   data-kind={review.data.kind}
 >
-  <ReviewArt slug={review.slug} variant="card" kind={review.data.kind} tools={tools} />
+  <ReviewArt slug={review.id} variant="card" kind={review.data.kind} tools={tools} />
 
   <!-- Kind chip + rating -->
   <div class="flex items-center gap-2.5 flex-wrap">

@@ -1,19 +1,19 @@
 ---
 import BlogPost from '../../layouts/BlogPost.astro';
 import BlogCard from '../../components/BlogCard.astro';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import { readingTime } from '../../lib/reading-time';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog-en', ({ data }) => !data.draft);
   return posts.map(post => ({
-    params: { slug: post.slug },
+    params: { slug: post.id },
     props: { post },
   }));
 }
 
 const { post } = Astro.props;
-const { Content } = await post.render();
+const { Content } = await render(post);
 
 const minutes = readingTime(post.body);
 
@@ -21,7 +21,7 @@ const minutes = readingTime(post.body);
 const all = await getCollection('blog-en', ({ data }) => !data.draft);
 const myTags = new Set(post.data.tags ?? []);
 const related = all
-  .filter(p => p.slug !== post.slug && (p.data.tags ?? []).some(t => myTags.has(t)))
+  .filter(p => p.id !== post.id && (p.data.tags ?? []).some(t => myTags.has(t)))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 3);
 ---
@@ -32,7 +32,7 @@ const related = all
   date={post.data.date}
   tags={post.data.tags}
   readingTimeMin={minutes}
-  slug={post.slug}
+  slug={post.id}
 >
   <Content />
 
