@@ -12,6 +12,7 @@ const lessonsByLevel = (lvl: 'beginner' | 'intermediate' | 'advanced') =>
   lessons.filter((l) => l.level === lvl).sort((a, b) => a.order - b.order);
 const beginnerLessons = lessonsByLevel('beginner');
 const intermediateLessons = lessonsByLevel('intermediate');
+const advancedLessons = lessonsByLevel('advanced');
 
 const byLevel = (lvl: 'beginner' | 'intermediate' | 'advanced') =>
   guides
@@ -60,6 +61,7 @@ const tracks = [
     desc: 'The current, harder edge: evals, AI-assisted testing, and designing quality strategy for a whole organization.',
     guides: advanced,
     reading: advancedReading,
+    lessons: advancedLessons,
   },
 ];
 ---
