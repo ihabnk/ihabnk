@@ -1,0 +1,40 @@
+---
+/**
+ * The Testerhood accent squiggle: draws itself on scroll (DrawSVG) and,
+ * optionally, hosts the resident bug that scurries along it (MotionPath —
+ * any [data-follow-path] rides its SVG's first path, see gsap-init).
+ */
+interface Props {
+  bug?: boolean;
+  class?: string;
+}
+const { bug = false, class: className = '' } = Astro.props;
+---
+
+<svg
+  class={`th-squiggle ${className}`}
+  data-anim="draw"
+  viewBox="0 0 260 16"
+  fill="none"
+  aria-hidden="true"
+  style="overflow:visible"
+>
+  <path
+    d="M4 10 Q 20 2, 36 9 T 68 9 T 100 9 T 132 9 T 164 9 T 196 9 T 228 9 T 256 8"
+    stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round"
+  />
+  {bug && (
+    <g data-follow-path>
+      <ellipse cx="0" cy="-4" rx="4.5" ry="3.2" fill="var(--fg)" />
+      <circle cx="4.5" cy="-4" r="1.8" fill="var(--fg)" />
+      <path
+        d="M-3 -6 l-2 -2.6 M0 -6.6 l0 -3 M3 -6 l2 -2.6 M-3 -2 l-2 2.6 M0 -1.4 l0 3 M3 -2 l2 2.6"
+        stroke="var(--fg)" stroke-width="1.1" stroke-linecap="round"
+      />
+    </g>
+  )}
+</svg>
+
+<style>
+  .th-squiggle { width: min(230px, 52%); height: 16px; display: block; margin: 14px 0 6px 2px; }
+</style>

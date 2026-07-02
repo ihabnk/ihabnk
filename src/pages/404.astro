@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Squiggle from '../components/Squiggle.astro';
 ---
 
 <Base title="404 — Not Found" description="Page not found">
@@ -28,6 +29,7 @@ import Base from '../layouts/Base.astro';
       class="font-bold mb-4 relative z-10"
       style="font-family:var(--font-display);font-size:clamp(24px,4vw,40px);color:var(--fg)"
     >Page not found</h1>
+    <div class="relative z-10" style="width:230px"><Squiggle bug /></div>
 
     <!-- Body copy -->
     <p class="text-[15px] leading-relaxed mb-10 max-w-sm relative z-10" style="color:var(--fg-mid)">

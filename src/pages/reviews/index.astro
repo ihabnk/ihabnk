@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Squiggle from '../../components/Squiggle.astro';
 import ReviewCard from '../../components/ReviewCard.astro';
 import ReviewRow from '../../components/ReviewRow.astro';
 import { getCollection } from 'astro:content';
@@ -38,6 +39,7 @@ const jumpLinks = [
         class="font-bold reveal-soft reveal-pop"
         style="font-size:clamp(36px,5vw,56px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.015em;line-height:1"
       >Tool reviews &<br/>head-to-head comparisons</h1>
+      <Squiggle />
 
       <p
         class="mt-6 max-w-[640px] text-[17px] leading-[1.65] reveal-soft"
