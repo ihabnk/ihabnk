@@ -23,11 +23,11 @@ interface Props {
 
 const {
   title,
-  description = 'ihabnk — QA Engineer turned AI Product builder',
+  description = 'Testerhood — the community where software testers learn, level up, and belong.',
   ogImage,
   article,
 } = Astro.props;
-const pageTitle = title === 'ihabnk' ? 'ihabnk' : `${title} | ihabnk`;
+const pageTitle = title === 'Testerhood' ? 'Testerhood' : `${title} | Testerhood`;
 const canonical = new URL(Astro.url.pathname, 'https://ihabnk.org').href;
 const ogType = article ? 'article' : 'website';
 
@@ -46,9 +46,9 @@ const person = {
 const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  name: 'ihabnk',
+  name: 'Testerhood',
   url: 'https://ihabnk.org',
-  description: 'ihabnk — QA Engineer turned AI Product builder. Articles and reviews on AI quality, evals, and product engineering.',
+  description: 'Testerhood — the community where software testers learn, level up, and belong. Interactive lessons, games, guides, and honest tool reviews.',
   author: person,
   publisher: person,
 };
@@ -114,10 +114,10 @@ const articleSchema = article
     <meta name="theme-color" media="(prefers-color-scheme: dark)"  content="#150f0b" />
 
     <!-- RSS — both surfaces SEO + lets readers subscribe -->
-    <link rel="alternate" type="application/rss+xml" title="ihabnk — articles & reviews" href="/rss.xml" />
+    <link rel="alternate" type="application/rss+xml" title="Testerhood — articles & reviews" href="/rss.xml" />
 
     <meta property="og:type" content={ogType} />
-    <meta property="og:site_name" content="ihabnk" />
+    <meta property="og:site_name" content="Testerhood" />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />

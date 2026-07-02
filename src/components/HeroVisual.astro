@@ -1,10 +1,11 @@
 ---
-// Animated terminal card: QA → AI pipeline log. Brutalist + on-brand.
+// The Testerhood recruitment poster: Bit does Uncle Sam. "BIT WANTS YOU."
+// Pure CSS animation (float, stamp slam, pointing pulse) — no JS.
 ---
 
 <div class="hv-root" aria-hidden="true">
 
-  <!-- Soft ambient glow behind the terminal -->
+  <!-- Soft ambient glow behind the poster -->
   <div class="hv-aura"></div>
 
   <!-- Grid backdrop for technical feel -->
@@ -13,44 +14,63 @@
   <!-- Left-side fade for hero text readability -->
   <div class="hv-fade"></div>
 
-  <!-- Terminal card -->
-  <div class="hv-term">
-    <div class="hv-term-bar">
-      <span class="hv-bdot hv-bdot-r"></span>
-      <span class="hv-bdot hv-bdot-y"></span>
-      <span class="hv-bdot hv-bdot-g"></span>
-      <span class="hv-term-title">~/ihabnk — pipeline</span>
-      <span class="hv-status">
-        <span class="hv-status-dot"></span>live
-      </span>
+  <!-- The poster -->
+  <div class="hv-poster">
+    <div class="hv-poster-top">★ CITIZENS OF SOFTWARE ★</div>
+
+    <!-- Bit in the star-banded top hat, pointing at YOU -->
+    <svg class="hv-bit" viewBox="0 0 160 178" fill="none">
+      <!-- hard shadow -->
+      <rect x="33" y="49" width="98" height="98" rx="21" fill="var(--fg)" opacity="0.9" />
+      <!-- body -->
+      <rect x="28" y="44" width="98" height="98" rx="21" fill="var(--accent)" stroke="var(--fg)" stroke-width="3.5" />
+
+      <!-- top hat -->
+      <rect x="46" y="4" width="62" height="34" rx="4" fill="#20303e" stroke="var(--fg)" stroke-width="3.5" />
+      <rect x="46" y="24" width="62" height="12" fill="#b3402e" stroke="var(--fg)" stroke-width="3" />
+      <path d="M60 30 l2.6 -5 2.6 5 -5.2 0z M74 30 l2.6 -5 2.6 5 -5.2 0z M88 30 l2.6 -5 2.6 5 -5.2 0z" fill="#f3e9d2" />
+      <rect x="34" y="36" width="86" height="9" rx="4.5" fill="#20303e" stroke="var(--fg)" stroke-width="3.5" />
+
+      <!-- stern recruiting eye -->
+      <circle cx="77" cy="84" r="17" fill="#fff" stroke="var(--fg)" stroke-width="3" />
+      <circle cx="77" cy="86" r="7.5" fill="var(--fg)" />
+      <circle cx="80" cy="82" r="2.4" fill="#fff" />
+      <path d="M58 66 L96 62" stroke="var(--fg)" stroke-width="4" stroke-linecap="round" />
+
+      <!-- firm, patriotic mouth -->
+      <path d="M68 116 L92 116" stroke="var(--fg)" stroke-width="4" stroke-linecap="round" />
+
+      <!-- the pointing arm: sleeve + big foreshortened hand, aimed at YOU -->
+      <g class="hv-point">
+        <path d="M46 132 Q56 152 74 158" stroke="var(--fg)" stroke-width="13" stroke-linecap="round" />
+        <path d="M46 132 Q56 152 74 158" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" />
+        <circle cx="86" cy="158" r="15" fill="#f3e9d2" stroke="var(--fg)" stroke-width="3.5" />
+        <rect x="94" y="150" width="26" height="13" rx="6.5" fill="#f3e9d2" stroke="var(--fg)" stroke-width="3.5" />
+      </g>
+    </svg>
+
+    <div class="hv-line1">BIT</div>
+    <div class="hv-line2">WANTS <span class="hv-you">YOU</span></div>
+    <div class="hv-line3">for the <b>TESTERHOOD</b></div>
+
+    <div class="hv-fineprint">
+      no experience required · curiosity mandatory · bugs provided
     </div>
 
-    <div class="hv-term-body">
-      <div class="hv-line"><span class="hv-prompt">$</span> qa run <span class="hv-flag">--mode=manual</span></div>
-      <div class="hv-line hv-fail">  ✗ 142 tests · 38 flaky · 6h release cycle</div>
-
-      <div class="hv-line"><span class="hv-prompt">$</span> ai-agent learn <span class="hv-flag">--from=tests/</span></div>
-      <div class="hv-line hv-info">  ◌ extracting patterns…</div>
-      <div class="hv-line hv-info">  ◌ generating evals…</div>
-
-      <div class="hv-line"><span class="hv-prompt">$</span> qa run <span class="hv-flag">--mode=ai-augmented</span></div>
-      <div class="hv-line hv-pass">  ✓ 142/142 · 0 flaky · 12min release</div>
-      <div class="hv-line hv-pass">  ✓ ship rate: <span class="hv-bold">+30×</span></div>
-
-      <div class="hv-line hv-caret-row"><span class="hv-prompt">$</span><span class="hv-caret"></span></div>
-    </div>
+    <!-- the stamp slams in -->
+    <div class="hv-stamp">NOW<br />RECRUITING</div>
   </div>
 
-  <!-- Tiny floating spec card (depth + brand cue) -->
+  <!-- Tiny floating enlistment card (depth + wink) -->
   <div class="hv-spec">
     <div class="hv-spec-row">
-      <span class="hv-spec-k">eval</span><span class="hv-spec-v">0.94</span>
+      <span class="hv-spec-k">recruits</span><span class="hv-spec-v">you, ideally</span>
     </div>
     <div class="hv-spec-row">
-      <span class="hv-spec-k">trace</span><span class="hv-spec-v hv-mono">↑↑↑</span>
+      <span class="hv-spec-k">requirement</span><span class="hv-spec-v">curiosity</span>
     </div>
     <div class="hv-spec-row">
-      <span class="hv-spec-k">cost</span><span class="hv-spec-v">$0.003</span>
+      <span class="hv-spec-k">salary</span><span class="hv-spec-v">bugs. so many.</span>
     </div>
   </div>
 
@@ -71,11 +91,7 @@
   width: 620px; height: 620px;
   right: -120px; top: -120px;
   border-radius: 50%;
-  background: radial-gradient(
-    circle at center,
-    var(--accent-glow) 0%,
-    transparent 65%
-  );
+  background: radial-gradient(circle at center, var(--accent-glow) 0%, transparent 65%);
   filter: blur(2px);
   animation: hv-aura-drift 18s ease-in-out infinite;
 }
@@ -110,134 +126,138 @@
   );
 }
 
-/* ── Terminal card ── */
-.hv-term {
+/* ── The poster ── */
+.hv-poster {
   position: absolute;
-  right: 4%;
+  right: 5%;
   top: 50%;
-  transform: translateY(-50%) rotate(-1deg);
-  width: min(440px, 42vw);
-  background: var(--bg-card);
-  border: 2px solid var(--fg);
-  border-radius: 8px;
-  box-shadow: 6px 6px 0 var(--fg);
-  overflow: hidden;
-  font-family: var(--font-mono);
-  animation: hv-term-float 9s ease-in-out infinite;
-}
-@keyframes hv-term-float {
-  0%, 100% { transform: translateY(-50%) rotate(-1deg); }
-  50%      { transform: translateY(calc(-50% - 8px)) rotate(-1deg); }
-}
-
-.hv-term-bar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 14px;
-  background: color-mix(in srgb, var(--fg) 8%, var(--bg-card));
-  border-bottom: 1.5px solid var(--fg);
-}
-.hv-bdot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.hv-bdot-r { background: #ff5f56; }
-.hv-bdot-y { background: #ffbd2e; }
-.hv-bdot-g { background: #27c93f; }
-.hv-term-title {
-  margin-left: 8px;
-  font-size: 11px;
-  color: var(--fg-muted);
-  letter-spacing: 0.02em;
-}
-.hv-status {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 10px;
-  color: var(--accent-text);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.hv-status-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-  animation: hv-pulse 1.4s ease-in-out infinite;
-}
-@keyframes hv-pulse {
-  0%, 100% { opacity: 1;   transform: scale(1); }
-  50%      { opacity: 0.4; transform: scale(0.85); }
-}
-
-.hv-term-body {
+  transform: translateY(-50%) rotate(1.5deg);
+  width: min(330px, 34vw);
+  background: #f3e9d2;
+  border: 3px solid var(--fg);
+  border-radius: 6px;
+  box-shadow: 8px 8px 0 var(--fg);
   padding: 16px 18px 18px;
-  font-size: 12px;
-  line-height: 1.85;
-  color: var(--fg);
+  text-align: center;
+  font-family: var(--font-display);
+  color: #201b12;
+  animation: hv-poster-float 9s ease-in-out infinite;
+}
+@keyframes hv-poster-float {
+  0%, 100% { transform: translateY(-50%) rotate(1.5deg); }
+  50%      { transform: translateY(calc(-50% - 8px)) rotate(1.2deg); }
 }
 
-.hv-line {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.hv-poster-top {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: #b3402e;
+  border-top: 2px solid #201b12;
+  border-bottom: 2px solid #201b12;
+  padding: 5px 0;
+  margin-bottom: 10px;
+}
+
+.hv-bit {
+  width: 132px;
+  height: auto;
+  display: block;
+  margin: 0 auto 4px;
+}
+/* the point: a slow, insistent jab toward the reader */
+.hv-point {
+  transform-origin: 52px 136px;
+  animation: hv-jab 2.6s ease-in-out infinite;
+}
+@keyframes hv-jab {
+  0%, 100% { transform: scale(1); }
+  12%      { transform: scale(1.09); }
+  24%      { transform: scale(1); }
+}
+
+.hv-line1 {
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: 0.01em;
+}
+.hv-line2 {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.05;
+}
+.hv-you {
+  color: #b3402e;
+  font-size: 36px;
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 4px;
+}
+.hv-line3 {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+.hv-line3 b { font-family: var(--font-display); font-weight: 800; letter-spacing: 0.04em; }
+
+.hv-fineprint {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.04em;
+  color: #6e6250;
+  border-top: 1.5px dashed #b9a887;
+  margin-top: 10px;
+  padding-top: 7px;
+}
+
+/* ── The stamp: slams in after the poster settles ── */
+.hv-stamp {
+  position: absolute;
+  top: 6px;
+  right: -18px;
+  transform: rotate(12deg) scale(3);
   opacity: 0;
-  animation: hv-line-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1.05;
+  letter-spacing: 0.06em;
+  color: #b3402e;
+  border: 3px solid #b3402e;
+  border-radius: 6px;
+  padding: 5px 9px;
+  background: color-mix(in srgb, #f3e9d2 82%, transparent);
+  mix-blend-mode: multiply;
+  animation: hv-stamp-slam 0.45s cubic-bezier(0.34, 1.3, 0.64, 1) 1.1s forwards;
 }
-.hv-line:nth-child(1) { animation-delay: 0.30s; }
-.hv-line:nth-child(2) { animation-delay: 0.70s; }
-.hv-line:nth-child(3) { animation-delay: 1.20s; }
-.hv-line:nth-child(4) { animation-delay: 1.55s; }
-.hv-line:nth-child(5) { animation-delay: 1.85s; }
-.hv-line:nth-child(6) { animation-delay: 2.25s; }
-.hv-line:nth-child(7) { animation-delay: 2.65s; }
-.hv-line:nth-child(8) { animation-delay: 2.95s; }
-.hv-line:nth-child(9) { animation-delay: 3.30s; }
-
-@keyframes hv-line-in {
-  from { opacity: 0; transform: translateX(-6px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-
-.hv-prompt { color: var(--accent-text); margin-right: 6px; }
-.hv-flag   { color: var(--fg-muted); }
-.hv-fail   { color: var(--pop-red); }
-.hv-info   { color: var(--fg-muted); }
-.hv-pass   { color: var(--accent-text); }
-.hv-bold   { font-weight: 700; color: var(--fg); }
-
-.hv-caret-row { display: inline-flex; align-items: center; }
-.hv-caret {
-  display: inline-block;
-  width: 8px; height: 14px;
-  background: var(--accent);
-  vertical-align: middle;
-  animation: hv-blink 1s steps(2, start) infinite;
-  animation-delay: 3.5s;
-}
-@keyframes hv-blink {
-  0%, 50%       { opacity: 1; }
-  50.01%, 100%  { opacity: 0; }
+@keyframes hv-stamp-slam {
+  0%   { opacity: 0; transform: rotate(4deg) scale(3); }
+  60%  { opacity: 1; transform: rotate(13deg) scale(0.94); }
+  100% { opacity: 0.92; transform: rotate(12deg) scale(1); }
 }
 
-/* ── Floating spec / eval card ── */
+/* ── Floating enlistment card ── */
 .hv-spec {
   position: absolute;
-  right: calc(4% + min(440px, 42vw) - 70px);
-  top: calc(50% + 100px);
-  transform: rotate(3deg);
+  right: calc(5% + min(330px, 34vw) - 60px);
+  top: calc(50% + 150px);
+  transform: rotate(-3deg);
   background: var(--bg-page);
   border: 2px solid var(--fg);
   border-radius: 6px;
   box-shadow: 4px 4px 0 var(--fg);
   padding: 10px 14px;
   font-family: var(--font-mono);
-  min-width: 130px;
+  min-width: 170px;
   animation: hv-spec-float 8s ease-in-out infinite;
   animation-delay: -3s;
 }
 @keyframes hv-spec-float {
-  0%, 100% { transform: rotate(3deg) translateY(0); }
-  50%      { transform: rotate(3deg) translateY(-10px); }
+  0%, 100% { transform: rotate(-3deg) translateY(0); }
+  50%      { transform: rotate(-3deg) translateY(-10px); }
 }
 .hv-spec-row {
   display: flex;
@@ -248,23 +268,20 @@
 }
 .hv-spec-k { color: var(--fg-muted); }
 .hv-spec-v { color: var(--accent-text); font-weight: 600; }
-.hv-mono { letter-spacing: 0.15em; }
 
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
-  .hv-aura, .hv-term, .hv-spec, .hv-line, .hv-caret, .hv-status-dot {
-    animation: none;
-  }
-  .hv-line { opacity: 1; }
+  .hv-aura, .hv-poster, .hv-spec, .hv-point, .hv-stamp { animation: none; }
+  .hv-stamp { opacity: 0.92; transform: rotate(12deg) scale(1); }
 }
 
-/* ── Small screens: hide spec card, scale terminal ── */
+/* ── Small screens ── */
 @media (max-width: 1024px) {
   .hv-spec { display: none; }
-  .hv-term { right: -8%; width: min(380px, 50vw); }
+  .hv-poster { right: -4%; width: min(290px, 40vw); }
 }
 @media (max-width: 899px) {
-  .hv-term { display: none; }
+  .hv-poster { display: none; }
   .hv-aura { width: 360px; height: 360px; right: -100px; top: 0; }
   .hv-grid { display: none; }
   .hv-fade {
