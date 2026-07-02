@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { gsap, useGSAP, reduceMotion } from './gsapSetup';
+import DayArt from './DayArt';
 import type { Choice, Day, MentorState, Scene } from './types';
 import { TOTAL_DAYS, confidenceWord, confidenceLevel } from './types';
 import { character } from './cast';
@@ -138,6 +139,7 @@ export function DayIntroCard({ day, onStart, onBack }: { day: Day; onStart: () =
   return (
     <div className="qg-card qg-intro">
       <button className="qg-back" onClick={onBack}>← Map</button>
+      <DayArt week={day.week} />
       <span className="qg-kicker">Week {day.week} · {day.weekTitle}</span>
       <h2 className="qg-day-title"><span className="qg-day-n">Day {day.n}</span><span ref={titleRef}>{day.title}</span></h2>
       <p className="qg-goal"><span className="qg-goal-pin" aria-hidden="true">◎</span>{day.goal}</p>
