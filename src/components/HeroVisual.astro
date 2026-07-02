@@ -39,8 +39,8 @@
       </g>
       <path d="M58 66 L96 62" stroke="var(--fg)" stroke-width="4" stroke-linecap="round" />
 
-      <!-- firm, patriotic mouth -->
-      <path d="M68 116 L92 116" stroke="var(--fg)" stroke-width="4" stroke-linecap="round" />
+      <!-- firm, patriotic mouth (morphs to a grin on hover — MorphSVG) -->
+      <path class="hv-mouth" d="M68 116 L92 116" stroke="var(--fg)" stroke-width="4" stroke-linecap="round" fill="none" />
 
       <!-- the pointing arm: sleeve + big foreshortened hand, aimed at YOU -->
       <g class="hv-point">
@@ -130,6 +130,7 @@
 
 /* ── The poster ── */
 .hv-poster {
+  pointer-events: auto; /* hover interactions: grin morph, stamp re-slam */
   position: absolute;
   right: 5%;
   top: 50%;
@@ -305,10 +306,16 @@
    * transforms from the CSS keyframes (they'd fight otherwise).
    */
   import { gsap } from 'gsap';
+  import { MorphSVGPlugin } from 'gsap/MorphSVGPlugin';
+
+  gsap.registerPlugin(MorphSVGPlugin);
 
   declare global {
     interface Window { __hvCleanup?: () => void }
   }
+
+  const MOUTH_STERN = 'M68 116 L92 116';
+  const MOUTH_GRIN = 'M66 112 Q79 126 92 112';
 
   function setupPoster() {
     window.__hvCleanup?.();
@@ -356,12 +363,21 @@
       gsap.fromTo(stamp!, { scale: 1.5, opacity: 0.4 }, { scale: 1, opacity: 0.92, duration: 0.3, ease: 'power3.out' });
     };
 
+    // Recruiting is serious business — until you hover. Then Bit grins.
+    const mouth = poster.querySelector<SVGPathElement>('.hv-mouth');
+    const onGrin = () => mouth && gsap.to(mouth, { morphSVG: MOUTH_GRIN, duration: 0.35, ease: 'back.out(2)' });
+    const onStern = () => mouth && gsap.to(mouth, { morphSVG: MOUTH_STERN, duration: 0.45, ease: 'power2.inOut' });
+
     window.addEventListener('mousemove', onMove, { passive: true });
     stamp?.addEventListener('mouseenter', onStamp);
+    poster.addEventListener('mouseenter', onGrin);
+    poster.addEventListener('mouseleave', onStern);
 
     window.__hvCleanup = () => {
       window.removeEventListener('mousemove', onMove);
       stamp?.removeEventListener('mouseenter', onStamp);
+      poster.removeEventListener('mouseenter', onGrin);
+      poster.removeEventListener('mouseleave', onStern);
       float.kill();
       jab?.kill();
       window.__hvCleanup = undefined;

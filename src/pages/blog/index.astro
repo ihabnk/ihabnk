@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Squiggle from '../../components/Squiggle.astro';
 import BlogRow from '../../components/BlogRow.astro';
 import { getCollection } from 'astro:content';
 
@@ -20,6 +21,7 @@ const allTags = [...new Set(posts.flatMap(p => p.data.tags ?? []))].sort();
         class="font-bold reveal-soft reveal-pop"
         style="font-size:clamp(32px,4vw,44px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1"
       >All Articles</h1>
+      <Squiggle />
       <p
         class="mt-5 max-w-[640px] text-[16px] leading-[1.6] reveal-soft"
         style="color:var(--fg-mid);font-family:var(--font-sans)"

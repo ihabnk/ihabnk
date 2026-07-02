@@ -4,11 +4,12 @@ import ThemeToggle from './ThemeToggle.astro';
 const pathname = Astro.url.pathname;
 
 const navLinks = [
-  { href: '/start',   label: 'Start' },
-  { href: '/guides',  label: 'Guides' },
-  { href: '/reviews', label: 'Reviews' },
-  { href: '/blog',    label: 'Articles' },
-  { href: '/about',   label: 'About' },
+  { href: '/start',     label: 'Start' },
+  { href: '/guides',    label: 'Guides' },
+  { href: '/reviews',   label: 'Reviews' },
+  { href: '/blog',      label: 'Articles' },
+  { href: '/community', label: 'Community' },
+  { href: '/about',     label: 'About' },
 ];
 
 function isActive(href: string) {

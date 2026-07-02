@@ -19,8 +19,10 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
+import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
+import { MorphSVGPlugin } from 'gsap/MorphSVGPlugin';
 
-gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin);
+gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin, MotionPathPlugin, MorphSVGPlugin);
 
 // Live SplitText instances — reverted on teardown so view transitions
 // always rebuild from clean markup.
@@ -255,6 +257,26 @@ function setup(): void {
           ease: 'power2.inOut',
           stagger: 0.15,
           delay: 0.25,
+        });
+      });
+
+      // 8b. PATH FOLLOWERS — any [data-follow-path] element travels along
+      //     the first <path> in its own SVG (MotionPath). Think: the bug
+      //     that scurries across the hero squiggle every few seconds.
+      document.querySelectorAll<SVGGraphicsElement>('svg [data-follow-path]').forEach((runner) => {
+        const svg = runner.closest('svg');
+        const path = svg?.querySelector('path');
+        if (!path) return;
+        gsap.set(runner, { opacity: 0 });
+        gsap.to(runner, {
+          motionPath: { path, align: path, alignOrigin: [0.5, 0.5], autoRotate: true },
+          duration: 2.6,
+          ease: 'power1.inOut',
+          repeat: -1,
+          repeatDelay: 5,
+          delay: 2.5,
+          onRepeat: function () { gsap.set(runner, { opacity: 1 }); },
+          onStart: function () { gsap.set(runner, { opacity: 1 }); },
         });
       });
 

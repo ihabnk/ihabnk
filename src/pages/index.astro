@@ -116,9 +116,16 @@ const why = [
           <span class="hero-title-line hero-title-accent">Welcome to the hood.</span>
         </h1>
 
-        <svg class="hero-squiggle" data-anim="draw" viewBox="0 0 260 16" fill="none" aria-hidden="true">
+        <svg class="hero-squiggle" data-anim="draw" viewBox="0 0 260 16" fill="none" aria-hidden="true" style="overflow:visible">
           <path d="M4 10 Q 20 2, 36 9 T 68 9 T 100 9 T 132 9 T 164 9 T 196 9 T 228 9 T 256 8"
             stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round" />
+          <!-- resident bug: scurries the squiggle on a MotionPath every few seconds -->
+          <g data-follow-path>
+            <ellipse cx="0" cy="-4" rx="4.5" ry="3.2" fill="var(--fg)" />
+            <circle cx="4.5" cy="-4" r="1.8" fill="var(--fg)" />
+            <path d="M-3 -6 l-2 -2.6 M0 -6.6 l0 -3 M3 -6 l2 -2.6 M-3 -2 l-2 2.6 M0 -1.4 l0 3 M3 -2 l2 2.6"
+              stroke="var(--fg)" stroke-width="1.1" stroke-linecap="round" />
+          </g>
         </svg>
 
         <p class="text-[17px] sm:text-[18px] leading-[1.6] mb-8 max-w-[560px]" style="color:var(--fg-mid)">
@@ -167,7 +174,7 @@ const why = [
         { n: '03', href: '/start', title: 'Lessons', desc: 'Interactive, Brilliant-style lessons — tap, answer, learn by doing.', glyph: 'play' },
         { n: '04', href: '/guides', title: 'The Guidebook', desc: 'Structured written guides from first test plan to org-wide strategy.', glyph: 'book' },
         { n: '05', href: '/reviews', title: 'Reviews', desc: 'Independent tool reviews and head-to-heads. No marketing, no affiliate spin.', glyph: 'scale' },
-        { n: '06', href: '/start#community', title: 'The Community', desc: 'People who speak fluent bug report. Quiet, practical, zero gatekeeping.', glyph: 'chat' },
+        { n: '06', href: '/community', title: 'The Community', desc: 'People who speak fluent bug report. Quiet, practical, zero gatekeeping.', glyph: 'chat' },
       ].map((c) => (
         <a class="hood-panel card-brutal" href={c.href} data-hscroll-panel>
           <span class="hood-n" aria-hidden="true">{c.n}</span>

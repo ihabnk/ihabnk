@@ -1,0 +1,230 @@
+---
+import Base from '../layouts/Base.astro';
+import Squiggle from '../components/Squiggle.astro';
+
+const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/01KRX7GT1KB53TTBX7BTKZ4529';
+const FORUM_URL = 'https://github.com/ihabnk/ihabnk/discussions';
+
+// The live-chat preview: a taste of the room, styled like the real thing.
+// (Stoat blocks iframing — x-frame-options: SAMEORIGIN — so we recreate the
+// vibe and hand visitors through to the real channel.)
+const preview = [
+  { who: 'Bit', color: 'var(--accent)', mono: 'B', text: 'New face! Welcome in. Rule one: there are no dumb questions, only unreproduced ones.', time: '09:12' },
+  { who: 'sam_tests', color: '#4a7fa8', mono: 'S', text: 'anyone else seen playwright eat a click when the button re-renders mid-action?', time: '09:14' },
+  { who: 'nadia.k', color: '#5f7a4a', mono: 'N', text: '@sam_tests yes!! fixed it yesterday — wait for the response, not the button. posting a snippet in a sec', time: '09:15' },
+  { who: 'maya_pm', color: '#9a6010', mono: 'M', text: 'reminder: bug bash friday. bring your weirdest edge case, best find gets eternal glory', time: '09:21' },
+];
+
+const forumTopics = [
+  { cat: 'Q&A', title: 'Ask the hood', desc: 'Stuck on a flaky test, a weird 500, a career question? Ask — someone here has hit it before.' },
+  { cat: 'Show and tell', title: 'Show your finds', desc: 'Your best bug, your cleanest repro, your first green pipeline. Brag properly.' },
+  { cat: 'Ideas', title: 'Shape Testerhood', desc: 'Missing a lesson? Want a new tool in the Lab? Propose it — this place is built from requests.' },
+  { cat: 'General', title: 'The water cooler', desc: 'Everything that isn’t a question or a bug. Tool talk, war stories, Friday screenshots.' },
+];
+---
+
+<Base
+  title="Community"
+  description="The Testerhood community — a live chat on Stoat and an open forum. Quiet, practical, zero gatekeeping."
+>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+
+    <div class="glow-sep mb-10"></div>
+
+    <header class="mb-12" data-anim="section-head">
+      <span class="section-label mb-2 reveal-soft block">// the community</span>
+      <h1
+        class="font-bold reveal-soft reveal-pop" data-split
+        style="font-size:clamp(34px,5.5vw,58px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.015em;line-height:1.02"
+      >The hood’s common room.</h1>
+      <Squiggle bug />
+      <p class="mt-5 max-w-[620px] text-[17px] leading-[1.6] reveal-soft" style="color:var(--fg-mid)">
+        Testing is better with people a few steps ahead of you — and a few steps behind.
+        Two doors here: a <b>live chat</b> for the fast questions, and a <b>forum</b> for the
+        ones worth keeping. Quiet, practical, zero gatekeeping.
+      </p>
+    </header>
+
+    <!-- ── Door one: the live chat ─────────────────────────────── -->
+    <section class="mb-14">
+      <div class="comm-grid">
+
+        <div class="comm-chat card-brutal" data-anim="featured">
+          <div class="comm-chat-bar">
+            <span class="comm-dot"></span>
+            <span class="comm-chat-title"># testerhood — live on Stoat</span>
+            <span class="comm-live">● live</span>
+          </div>
+          <div class="comm-msgs" data-anim="row-list">
+            {preview.map((m) => (
+              <div class="comm-msg">
+                <span class="comm-ava" style={`background:${m.color}`} aria-hidden="true">{m.mono}</span>
+                <span class="comm-msg-body">
+                  <span class="comm-msg-head"><b>{m.who}</b><em>{m.time}</em></span>
+                  <span class="comm-msg-text">{m.text}</span>
+                </span>
+              </div>
+            ))}
+            <div class="comm-msg comm-msg--you">
+              <span class="comm-you-hint">…your first message goes here</span>
+            </div>
+          </div>
+          <div class="comm-chat-foot">
+            <a href={STOAT_URL} target="_blank" rel="noopener noreferrer"
+              class="btn-primary inline-flex items-center gap-2 font-bold text-sm px-6 h-11 rounded-[4px]">
+              Join the live chat ↗
+            </a>
+            <span class="comm-foot-note">opens in Stoat — free account, no phone number, open source</span>
+          </div>
+        </div>
+
+        <aside class="comm-side" data-anim="card-grid">
+          <div class="comm-side-card card-brutal">
+            <span class="comm-side-k">What it’s for</span>
+            <p>The fast stuff: “is this a bug or am I tired?”, tool help in the moment, bug-bash coordination, celebrating a green pipeline at 4:59pm.</p>
+          </div>
+          <div class="comm-side-card card-brutal">
+            <span class="comm-side-k">Why Stoat?</span>
+            <p>Open-source chat (formerly Revolt), no ads, no data mining. It can’t be embedded here — their servers forbid iframes, which honestly is the security answer we’d expect them to get right.</p>
+          </div>
+        </aside>
+
+      </div>
+    </section>
+
+    <!-- ── Door two: the forum ─────────────────────────────────── -->
+    <section class="mb-14">
+      <div data-anim="section-head" class="mb-6">
+        <span class="section-label mb-2 block">// the forum</span>
+        <h2 class="font-bold" style="font-size:clamp(26px,3.4vw,38px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.01em;line-height:1.05">
+          For answers worth keeping.
+        </h2>
+        <p class="mt-3 max-w-[600px] text-[15px] leading-[1.6]" style="color:var(--fg-mid)">
+          Chat scrolls away; the forum doesn’t. Threads, categories, searchable forever —
+          powered by GitHub Discussions, so your existing GitHub login just works.
+        </p>
+      </div>
+
+      <div class="comm-topics" data-anim="card-grid">
+        {forumTopics.map((t) => (
+          <a class="comm-topic card-brutal" href={FORUM_URL} target="_blank" rel="noopener noreferrer">
+            <span class="comm-topic-cat">{t.cat}</span>
+            <span class="comm-topic-title">{t.title}</span>
+            <span class="comm-topic-desc">{t.desc}</span>
+            <span class="comm-topic-cta" aria-hidden="true">Open →</span>
+          </a>
+        ))}
+      </div>
+
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a href={FORUM_URL} target="_blank" rel="noopener noreferrer"
+          class="btn-primary inline-flex items-center gap-2 font-bold text-sm px-6 h-11 rounded-[4px]">
+          Browse the forum ↗
+        </a>
+        <a href={`${FORUM_URL}/new?category=q-a`} target="_blank" rel="noopener noreferrer"
+          class="ghost-btn inline-flex items-center gap-2 font-bold text-sm px-6 h-11 rounded-[4px]">
+          Ask your first question
+        </a>
+      </div>
+    </section>
+
+    <!-- ── House rules ─────────────────────────────────────────── -->
+    <section>
+      <div class="glow-sep mb-8"></div>
+      <span class="section-label mb-5 block">// house rules</span>
+      <div class="comm-rules" data-anim="row-list">
+        <div class="comm-rule">
+          <span class="comm-rule-n">01</span>
+          <p><b>Write for a stranger.</b> Questions with steps, expected, and actual get answered in minutes. “It doesn’t work” gets sympathy, eventually.</p>
+        </div>
+        <div class="comm-rule">
+          <span class="comm-rule-n">02</span>
+          <p><b>Blameless, always.</b> We report bugs in software, not in people. Same rule as the job.</p>
+        </div>
+        <div class="comm-rule">
+          <span class="comm-rule-n">03</span>
+          <p><b>No gatekeeping.</b> Everyone here once asked what a PM does. If a question looks basic, that’s your invitation to be someone’s Sam.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</Base>
+
+<style>
+  .comm-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+  @media (max-width: 820px) { .comm-grid { grid-template-columns: 1fr; } }
+
+  /* Chat preview card */
+  .comm-chat { background: var(--bg-card); padding: 0; overflow: hidden; }
+  .comm-chat-bar {
+    display: flex; align-items: center; gap: 10px; padding: 12px 18px;
+    border-bottom: 2px solid var(--fg);
+    background: color-mix(in srgb, var(--fg) 7%, var(--bg-card));
+  }
+  .comm-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .comm-chat-title { font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--fg); }
+  .comm-live {
+    margin-left: auto; font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-text);
+    animation: comm-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes comm-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+  .comm-msgs { padding: 16px 18px 6px; display: flex; flex-direction: column; gap: 14px; }
+  .comm-msg { display: flex; gap: 11px; align-items: flex-start; }
+  .comm-ava {
+    width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+    display: grid; place-items: center; color: #fff;
+    font-family: var(--font-display); font-weight: 800; font-size: 15px;
+    border: 2px solid var(--fg); box-shadow: 2px 2px 0 var(--fg);
+  }
+  .comm-msg-body { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .comm-msg-head { display: flex; gap: 8px; align-items: baseline; }
+  .comm-msg-head b { font-family: var(--font-display); font-size: 14px; color: var(--fg); }
+  .comm-msg-head em { font-family: var(--font-mono); font-style: normal; font-size: 10px; color: var(--fg-muted); }
+  .comm-msg-text { font-family: var(--font-sans); font-size: 14px; line-height: 1.5; color: var(--fg-mid); }
+  .comm-msg--you { padding: 10px 0 6px; border-top: 1.5px dashed var(--border-mid); }
+  .comm-you-hint { font-family: var(--font-mono); font-size: 12px; color: var(--fg-muted); font-style: italic; }
+
+  .comm-chat-foot {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 14px 18px 18px;
+  }
+  .comm-foot-note { font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-muted); max-width: 260px; line-height: 1.5; }
+
+  /* Side cards */
+  .comm-side { display: flex; flex-direction: column; gap: 14px; }
+  .comm-side-card { background: var(--bg-card); padding: 16px 18px; }
+  .comm-side-k {
+    display: block; font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-text); margin-bottom: 6px;
+  }
+  .comm-side-card p { font-family: var(--font-sans); font-size: 13.5px; line-height: 1.55; color: var(--fg-mid); margin: 0; }
+
+  /* Forum topics */
+  .comm-topics { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+  .comm-topic {
+    display: flex; flex-direction: column; gap: 5px; padding: 18px;
+    background: var(--bg-card); text-decoration: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .comm-topic:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--fg); }
+  .comm-topic-cat {
+    font-family: var(--font-mono); font-size: 9.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-text);
+  }
+  .comm-topic-title { font-family: var(--font-display); font-weight: 800; font-size: 19px; color: var(--fg); }
+  .comm-topic-desc { font-family: var(--font-sans); font-size: 13px; line-height: 1.5; color: var(--fg-mid); flex: 1; }
+  .comm-topic-cta { margin-top: 8px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--accent-text); }
+
+  /* House rules */
+  .comm-rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 22px; }
+  .comm-rule { display: flex; gap: 14px; align-items: flex-start; }
+  .comm-rule-n {
+    font-family: var(--font-display); font-weight: 800; font-size: 30px;
+    color: var(--accent-text); line-height: 1; flex-shrink: 0;
+  }
+  .comm-rule p { font-family: var(--font-sans); font-size: 14px; line-height: 1.6; color: var(--fg-mid); margin: 0; }
+  .comm-rule b { color: var(--fg); }
+</style>

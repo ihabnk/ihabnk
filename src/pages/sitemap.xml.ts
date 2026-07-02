@@ -11,7 +11,7 @@ export const GET: APIRoute = async () => {
   const reviews = await getCollection('reviews-en', ({ data }) => !data.draft);
   const guides = await getCollection('guides-en', ({ data }) => !data.draft);
 
-  const staticPages = ['/', '/start', '/guides', '/reviews', '/blog', '/about', '/learn/qa-onboarding', '/learn/qa-lab'];
+  const staticPages = ['/', '/start', '/guides', '/reviews', '/blog', '/about', '/learn/qa-onboarding', '/learn/qa-lab', '/community'];
 
   const lastmod = (d: Date) => d.toISOString().split('T')[0];
 
