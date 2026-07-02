@@ -45,7 +45,7 @@ export const GET: APIRoute = async () => {
   const body = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>ihabnk — guides, reviews &amp; articles</title>
+    <title>Testerhood — guides, reviews &amp; articles</title>
     <link>${SITE}</link>
     <description>Guides, independent tool reviews, and field notes for software quality engineers — testing, automation, evals, and AI-assisted quality.</description>
     <language>en</language>
