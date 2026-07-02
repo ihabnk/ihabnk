@@ -63,15 +63,17 @@
     <div class="hv-stamp">NOW<br />RECRUITING</div>
   </div>
 
-  <!-- The enlistment desk: Bit points here -->
-  <a
-    href="https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/01KW7QWNJAKNE0KWYJBCMHQ1CV"
-    target="_blank"
-    rel="noopener noreferrer"
-    class="hv-join"
-  >Join the hood ↗</a>
-
 </div>
+
+<!-- The enlistment desk: Bit points here. Lives OUTSIDE .hv-root because
+     that layer sits under the hero's z-10 text container — an anchor in
+     there renders fine but never receives the click. -->
+<a
+  href="https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/01KW7QWNJAKNE0KWYJBCMHQ1CV"
+  target="_blank"
+  rel="noopener noreferrer"
+  class="hv-join"
+>Join the hood ↗</a>
 
 <style>
 .hv-root {
@@ -163,6 +165,7 @@
   height: auto;
   display: block;
   margin: 0 auto 4px;
+  overflow: visible; /* the aiming hand may poke past the box — let it */
 }
 /* the point: a slow, insistent jab toward the reader */
 .hv-point {
@@ -242,8 +245,9 @@
 .hv-join {
   pointer-events: auto;
   position: absolute;
-  right: calc(5% + min(330px, 34vw) - 76px);
-  top: calc(50% + 158px);
+  z-index: 20;
+  right: calc(5% + 8px);
+  top: calc(50% + 168px);
   transform: rotate(-3deg);
   display: inline-flex;
   align-items: center;
@@ -368,7 +372,7 @@
       const b = join.getBoundingClientRect();
       const pt = new DOMPoint(b.left + b.width / 2, b.top + 8).matrixTransform(ctm.inverse());
       armBase = (Math.atan2(pt.y - 136, pt.x - 52) * 180) / Math.PI - 16.4;
-      armBase = Math.max(-40, Math.min(75, armBase));
+      armBase = Math.max(-10, Math.min(42, armBase));
     };
     aimAtButton();
     if (arm) gsap.set(arm, { rotation: armBase, transformOrigin: '52px 136px' });
