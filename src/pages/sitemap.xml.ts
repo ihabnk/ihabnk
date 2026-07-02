@@ -11,15 +11,15 @@ export const GET: APIRoute = async () => {
   const reviews = await getCollection('reviews-en', ({ data }) => !data.draft);
   const guides = await getCollection('guides-en', ({ data }) => !data.draft);
 
-  const staticPages = ['/', '/start', '/guides', '/reviews', '/blog', '/about'];
+  const staticPages = ['/', '/start', '/guides', '/reviews', '/blog', '/about', '/learn/qa-onboarding', '/learn/qa-lab'];
 
   const lastmod = (d: Date) => d.toISOString().split('T')[0];
 
   const urls = [
     ...staticPages.map(p => ({ loc: p })),
-    ...posts.map(p => ({ loc: `/blog/${p.slug}`, lastmod: lastmod(p.data.date) })),
-    ...reviews.map(r => ({ loc: `/reviews/${r.slug}`, lastmod: lastmod(r.data.updated ?? r.data.date) })),
-    ...guides.map(g => ({ loc: `/guides/${g.slug}`, lastmod: lastmod(g.data.updated ?? g.data.date) })),
+    ...posts.map(p => ({ loc: `/blog/${p.id}`, lastmod: lastmod(p.data.date) })),
+    ...reviews.map(r => ({ loc: `/reviews/${r.id}`, lastmod: lastmod(r.data.updated ?? r.data.date) })),
+    ...guides.map(g => ({ loc: `/guides/${g.id}`, lastmod: lastmod(g.data.updated ?? g.data.date) })),
     ...lessons.map(l => ({ loc: `/learn/${l.slug}` })),
   ];
 

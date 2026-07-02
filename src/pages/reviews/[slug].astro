@@ -1,25 +1,25 @@
 ---
 import ReviewPost from '../../layouts/ReviewPost.astro';
 import ReviewCard from '../../components/ReviewCard.astro';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import { readingTime } from '../../lib/reading-time';
 
 export async function getStaticPaths() {
   const reviews = await getCollection('reviews-en', ({ data }) => !data.draft);
   return reviews.map(review => ({
-    params: { slug: review.slug },
+    params: { slug: review.id },
     props: { review },
   }));
 }
 
 const { review } = Astro.props;
-const { Content } = await review.render();
+const { Content } = await render(review);
 
 // Surface up to 3 related reviews (shared tag, exclude self)
 const all = await getCollection('reviews-en', ({ data }) => !data.draft);
 const myTags = new Set(review.data.tags ?? []);
 const related = all
-  .filter(r => r.slug !== review.slug && (r.data.tags ?? []).some(t => myTags.has(t)))
+  .filter(r => r.id !== review.id && (r.data.tags ?? []).some(t => myTags.has(t)))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 3);
 
@@ -44,7 +44,7 @@ const minutes = readingTime(review.body);
   scoresByTool={review.data.scoresByTool}
   toc={review.data.toc}
   readingTimeMin={minutes}
-  slug={review.slug}
+  slug={review.id}
 >
   <Content />
 

@@ -13,7 +13,7 @@ interface Props {
 }
 
 const { guide, animate = false, stagger, showArt = true } = Astro.props;
-const href = `/guides/${guide.slug}`;
+const href = `/guides/${guide.id}`;
 const minutes = readingTime(guide.body);
 const est = guide.data.est ?? `${minutes} min`;
 const staggerClass = stagger ? `stagger-${stagger}` : '';
@@ -35,7 +35,7 @@ const level = guide.data.level;
   style="background:var(--bg-card)"
   data-level={level}
 >
-  {showArt && <ArticleArt slug={guide.slug} variant="card" />}
+  {showArt && <ArticleArt slug={guide.id} variant="card" />}
 
   <!-- Level chip + pathway -->
   <div class="flex items-center gap-2.5 flex-wrap">

@@ -1,4 +1,5 @@
 import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
 
 const postSchema = z.object({
   title: z.string(),
@@ -49,8 +50,10 @@ const guideSchema = z.object({
   featured: z.boolean().default(false),
 });
 
+const md = (dir: string) => glob({ pattern: '**/*.md', base: `./src/content/${dir}` });
+
 export const collections = {
-  'blog-en':    defineCollection({ type: 'content', schema: postSchema   }),
-  'reviews-en': defineCollection({ type: 'content', schema: reviewSchema }),
-  'guides-en':  defineCollection({ type: 'content', schema: guideSchema  }),
+  'blog-en':    defineCollection({ loader: md('blog-en'),    schema: postSchema   }),
+  'reviews-en': defineCollection({ loader: md('reviews-en'), schema: reviewSchema }),
+  'guides-en':  defineCollection({ loader: md('guides-en'),  schema: guideSchema  }),
 };

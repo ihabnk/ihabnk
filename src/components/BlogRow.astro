@@ -10,7 +10,7 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const href = `/blog/${post.slug}`;
+const href = `/blog/${post.id}`;
 const dateStr = post.data.date.toLocaleDateString('en-US', {
   year: 'numeric', month: 'short', day: 'numeric',
 });
@@ -24,7 +24,7 @@ const minutes = readingTime(post.body);
   data-tags={tags.join(',')}
 >
   <!-- Per-article art (left side, hidden on small screens via component CSS) -->
-  <ArticleArt slug={post.slug} variant="row" />
+  <ArticleArt slug={post.id} variant="row" />
 
   <div class="flex flex-col gap-2.5 min-w-0 flex-1">
     <!-- Tag + date + Read arrow -->

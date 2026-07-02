@@ -34,7 +34,7 @@ const featuredReview =
 
 // The rest of the reviews, newest first, shown as a grid beneath the flagship.
 const otherReviews = allReviews
-  .filter((r) => r.slug !== featuredReview?.slug)
+  .filter((r) => r.id !== featuredReview?.id)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 3);
 
@@ -228,14 +228,14 @@ const why = [
 
     {featuredReview && (
       <a
-        href={`/reviews/${featuredReview.slug}`}
+        href={`/reviews/${featuredReview.id}`}
         class="featured-review-card card-brutal group block relative overflow-hidden reveal mb-5 sm:mb-6"
         style="background:var(--bg-card)"
         data-anim="featured"
       >
         <div class="featured-review-grid">
           <div class="featured-review-art">
-            <ReviewArt slug={featuredReview.slug} variant="hero" kind={featuredReview.data.kind} tools={featuredReview.data.tools ?? []} />
+            <ReviewArt slug={featuredReview.id} variant="hero" kind={featuredReview.data.kind} tools={featuredReview.data.tools ?? []} />
           </div>
 
           <div class="featured-review-body">
