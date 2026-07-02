@@ -400,13 +400,16 @@
       stamp?.removeEventListener('mouseenter', onStamp);
       poster.removeEventListener('mouseenter', onGrin);
       poster.removeEventListener('mouseleave', onStern);
-      intro.kill();
+      intro.revert(); // revert, not kill: never strand the poster at opacity 0
       float.kill();
       jab?.kill();
       window.__hvCleanup = undefined;
     };
   }
 
+  // Single run per page via astro:page-load (it fires on initial load too).
+  // Running an extra immediate call raced the event: the second cleanup
+  // killed the first entrance mid-delay and the new from() captured
+  // opacity 0 as its destination — an invisible poster.
   document.addEventListener('astro:page-load', setupPoster);
-  setupPoster();
 </script>
