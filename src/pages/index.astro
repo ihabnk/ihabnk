@@ -110,11 +110,16 @@ const why = [
           <span class="hero-status-label">A community for software testers — now recruiting</span>
         </div>
 
-        <h1 class="font-bold leading-[1.02] mb-5 hero-title" style="font-size:clamp(34px,7.4vw,72px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.015em">
+        <h1 class="font-bold leading-[1.02] mb-2 hero-title" data-anim="split-chars" style="font-size:clamp(34px,7.4vw,72px);color:var(--fg);font-family:var(--font-display);letter-spacing:-0.015em">
           <span class="hero-title-line">Testing is lonely.</span>
           <span class="hero-title-line">It doesn't have to be.</span>
           <span class="hero-title-line hero-title-accent">Welcome to the hood.</span>
         </h1>
+
+        <svg class="hero-squiggle" data-anim="draw" viewBox="0 0 260 16" fill="none" aria-hidden="true">
+          <path d="M4 10 Q 20 2, 36 9 T 68 9 T 100 9 T 132 9 T 164 9 T 196 9 T 228 9 T 256 8"
+            stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round" />
+        </svg>
 
         <p class="text-[17px] sm:text-[18px] leading-[1.6] mb-8 max-w-[560px]" style="color:var(--fg-mid)">
           Testerhood is where testers grow together — a 30-day onboarding game,
@@ -144,6 +149,54 @@ const why = [
         </svg>
       </span>
     </a>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       INSIDE THE HOOD — pinned horizontal tour
+       ═══════════════════════════════════════════ -->
+  <section class="hood-strip" data-anim="hscroll" aria-label="What's inside Testerhood">
+    <div class="hood-head">
+      <span class="section-label">// inside the hood</span>
+      <h2 class="hood-h2">One neighborhood, six front doors.</h2>
+      <span class="hood-hint" aria-hidden="true">scroll →</span>
+    </div>
+    <div class="hood-track" data-hscroll-track>
+      {[
+        { n: '01', href: '/learn/qa-onboarding', title: 'The Game', desc: 'Play your first 30 days as a QA engineer — mentor included.', glyph: 'bit' },
+        { n: '02', href: '/learn/qa-lab', title: 'The QA Lab', desc: 'Six real tools, simulated: API console, SQL, network tab, logs, locators, terminal.', glyph: 'flask' },
+        { n: '03', href: '/start', title: 'Lessons', desc: 'Interactive, Brilliant-style lessons — tap, answer, learn by doing.', glyph: 'play' },
+        { n: '04', href: '/guides', title: 'The Guidebook', desc: 'Structured written guides from first test plan to org-wide strategy.', glyph: 'book' },
+        { n: '05', href: '/reviews', title: 'Reviews', desc: 'Independent tool reviews and head-to-heads. No marketing, no affiliate spin.', glyph: 'scale' },
+        { n: '06', href: '/start#community', title: 'The Community', desc: 'People who speak fluent bug report. Quiet, practical, zero gatekeeping.', glyph: 'chat' },
+      ].map((c) => (
+        <a class="hood-panel card-brutal" href={c.href} data-hscroll-panel>
+          <span class="hood-n" aria-hidden="true">{c.n}</span>
+          <span class="hood-glyph" aria-hidden="true">
+            {c.glyph === 'bit' && (
+              <svg viewBox="0 0 48 48" fill="none"><rect x="8" y="8" width="32" height="32" rx="8" stroke="currentColor" stroke-width="2.5"/><circle cx="22" cy="22" r="5" stroke="currentColor" stroke-width="2.5"/><path d="M18 33 q6 4 12 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+            )}
+            {c.glyph === 'flask' && (
+              <svg viewBox="0 0 48 48" fill="none"><path d="M19 6 h10 M21 6 v12 L10 38 a4 4 0 0 0 3.6 6 h20.8 a4 4 0 0 0 3.6 -6 L27 18 V6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 30 h18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+            )}
+            {c.glyph === 'play' && (
+              <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="17" stroke="currentColor" stroke-width="2.5"/><path d="M20 17 L31 24 L20 31 Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/></svg>
+            )}
+            {c.glyph === 'book' && (
+              <svg viewBox="0 0 48 48" fill="none"><path d="M24 12 C20 8 13 8 9 10 v28 c4 -2 11 -2 15 2 c4 -4 11 -4 15 -2 V10 c-4 -2 -11 -2 -15 2 v30" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            )}
+            {c.glyph === 'scale' && (
+              <svg viewBox="0 0 48 48" fill="none"><path d="M24 8 v30 M12 14 l24 -4 M10 38 h28" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M12 14 l-5 12 a6 5 0 0 0 10 0 z M36 10 l-5 12 a6 5 0 0 0 10 0 z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/></svg>
+            )}
+            {c.glyph === 'chat' && (
+              <svg viewBox="0 0 48 48" fill="none"><path d="M8 12 a4 4 0 0 1 4 -4 h18 a4 4 0 0 1 4 4 v10 a4 4 0 0 1 -4 4 H18 l-7 6 v-6 h-1 a4 4 0 0 1 -4 -4 z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M38 20 h1 a4 4 0 0 1 4 4 v8 a4 4 0 0 1 -4 4 h-1 v5 l-6 -5 h-8" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/></svg>
+            )}
+          </span>
+          <span class="hood-title">{c.title}</span>
+          <span class="hood-desc">{c.desc}</span>
+          <span class="hood-cta" aria-hidden="true">Enter →</span>
+        </a>
+      ))}
+    </div>
   </section>
 
   <!-- ═══════════════════════════════════════════
@@ -629,10 +682,14 @@ const why = [
     display: block;
     max-width: 100%;
     overflow-wrap: break-word;
+  }
+  /* CSS fallback animation only when GSAP hasn't taken ownership */
+  :global(html:not(.gsap-ready)) .hero-title-line {
     opacity: 0;
     transform: translateY(18px);
     animation: hero-title-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
+  .hero-squiggle { width: min(250px, 56%); height: 16px; margin: 0 0 22px 4px; overflow: visible; }
   @media (max-width: 400px) {
     .hero-title { letter-spacing: -0.02em; }
   }
@@ -642,6 +699,117 @@ const why = [
   .hero-title-accent { color: var(--accent-text); }
   @keyframes hero-title-in {
     to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ───────────────────────────────────────────────────────────
+     INSIDE THE HOOD — pinned horizontal tour
+     ─────────────────────────────────────────────────────────── */
+  .hood-strip {
+    position: relative;
+    padding: 56px 0 64px;
+    background: var(--bg-page);
+    overflow: hidden;
+  }
+  .hood-head {
+    max-width: 64rem;
+    margin: 0 auto 26px;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .hood-h2 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(26px, 3.6vw, 40px);
+    letter-spacing: -0.01em;
+    color: var(--fg);
+    line-height: 1.05;
+  }
+  .hood-hint {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    animation: hood-hint-nudge 1.6s ease-in-out infinite;
+  }
+  @keyframes hood-hint-nudge {
+    0%, 100% { transform: translateX(0); }
+    50%      { transform: translateX(6px); }
+  }
+  .hood-track {
+    display: flex;
+    gap: 20px;
+    width: max-content;
+    padding: 6px calc((100vw - min(64rem, 100vw - 3rem)) / 2 + 1.5rem) 14px;
+    will-change: transform;
+  }
+  .hood-panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: clamp(250px, 26vw, 330px);
+    padding: 22px 22px 20px;
+    background: var(--bg-card);
+    text-decoration: none;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .hood-panel:hover {
+    transform: translate(-3px, -3px) rotate(-0.4deg);
+    box-shadow: 8px 8px 0 var(--fg);
+  }
+  .hood-n {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 34px;
+    color: color-mix(in srgb, var(--fg) 14%, transparent);
+    letter-spacing: -0.02em;
+  }
+  .hood-glyph { width: 46px; height: 46px; color: var(--accent-text); margin-bottom: 14px; }
+  .hood-glyph svg { width: 100%; height: 100%; }
+  .hood-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 22px;
+    color: var(--fg);
+    margin-bottom: 6px;
+  }
+  .hood-desc {
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--fg-mid);
+    flex: 1;
+  }
+  .hood-cta {
+    margin-top: 14px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent-text);
+    transition: transform 0.15s ease;
+  }
+  .hood-panel:hover .hood-cta { transform: translateX(4px); }
+
+  /* Mobile: native swipe row instead of a pin */
+  @media (max-width: 699px) {
+    .hood-strip { overflow: visible; }
+    .hood-strip > .hood-track {
+      overflow-x: auto;
+      width: auto;
+      padding: 6px 1rem 18px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+    .hood-panel { scroll-snap-align: start; flex-shrink: 0; width: 78vw; }
+    .hood-hint { display: none; }
   }
 
   /* ───────────────────────────────────────────────────────────

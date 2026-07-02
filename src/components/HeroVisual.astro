@@ -31,10 +31,12 @@
       <path d="M60 30 l2.6 -5 2.6 5 -5.2 0z M74 30 l2.6 -5 2.6 5 -5.2 0z M88 30 l2.6 -5 2.6 5 -5.2 0z" fill="#f3e9d2" />
       <rect x="34" y="36" width="86" height="9" rx="4.5" fill="#20303e" stroke="var(--fg)" stroke-width="3.5" />
 
-      <!-- stern recruiting eye -->
+      <!-- stern recruiting eye (pupil group follows the cursor) -->
       <circle cx="77" cy="84" r="17" fill="#fff" stroke="var(--fg)" stroke-width="3" />
-      <circle cx="77" cy="86" r="7.5" fill="var(--fg)" />
-      <circle cx="80" cy="82" r="2.4" fill="#fff" />
+      <g class="hv-pupil">
+        <circle cx="77" cy="86" r="7.5" fill="var(--fg)" />
+        <circle cx="80" cy="82" r="2.4" fill="#fff" />
+      </g>
       <path d="M58 66 L96 62" stroke="var(--fg)" stroke-width="4" stroke-linecap="round" />
 
       <!-- firm, patriotic mouth -->
@@ -215,6 +217,7 @@
 
 /* ── The stamp: slams in after the poster settles ── */
 .hv-stamp {
+  pointer-events: auto;
   position: absolute;
   top: 6px;
   right: -18px;
@@ -294,3 +297,77 @@
   }
 }
 </style>
+
+<script>
+  /**
+   * Interactive Bit: on fine pointers the poster tilts toward the cursor,
+   * the pupil tracks it, and the pointing arm aims at it. GSAP takes over
+   * transforms from the CSS keyframes (they'd fight otherwise).
+   */
+  import { gsap } from 'gsap';
+
+  declare global {
+    interface Window { __hvCleanup?: () => void }
+  }
+
+  function setupPoster() {
+    window.__hvCleanup?.();
+    const poster = document.querySelector<HTMLElement>('.hv-poster');
+    if (!poster) return;
+    if (!matchMedia('(pointer: fine)').matches) return;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (matchMedia('(max-width: 899px)').matches) return;
+
+    const pupil = poster.querySelector<SVGGElement>('.hv-pupil');
+    const arm = poster.querySelector<SVGGElement>('.hv-point');
+    const stamp = poster.querySelector<HTMLElement>('.hv-stamp');
+
+    // GSAP owns the poster + arm transforms now.
+    poster.style.animation = 'none';
+    if (arm) arm.style.animation = 'none';
+    gsap.set(poster, { yPercent: -50, rotation: 1.5 });
+    const float = gsap.to(poster, { y: -8, duration: 4.5, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+    const jab = arm
+      ? gsap.to(arm, {
+          scale: 1.09, transformOrigin: '52px 136px', duration: 0.32,
+          ease: 'sine.inOut', yoyo: true, repeat: -1, repeatDelay: 2.1,
+        })
+      : null;
+
+    const rotTo = gsap.quickTo(poster, 'rotation', { duration: 0.6, ease: 'power3.out' });
+    const posXTo = gsap.quickTo(poster, 'x', { duration: 0.6, ease: 'power3.out' });
+    const pupilX = pupil ? gsap.quickTo(pupil, 'x', { duration: 0.3, ease: 'power2.out' }) : null;
+    const pupilY = pupil ? gsap.quickTo(pupil, 'y', { duration: 0.3, ease: 'power2.out' }) : null;
+    const armRot = arm ? gsap.quickTo(arm, 'rotation', { duration: 0.4, ease: 'power2.out' }) : null;
+
+    const onMove = (e: MouseEvent) => {
+      const r = poster.getBoundingClientRect();
+      const dx = (e.clientX - (r.left + r.width / 2)) / innerWidth;  // -0.5..0.5-ish
+      const dy = (e.clientY - (r.top + r.height / 2)) / innerHeight;
+      rotTo(1.5 + dx * 3);
+      posXTo(dx * 14);
+      pupilX?.(Math.max(-4.5, Math.min(4.5, dx * 26)));
+      pupilY?.(Math.max(-3.5, Math.min(3.5, dy * 22)));
+      armRot?.(Math.max(-9, Math.min(9, dx * 30)));
+    };
+
+    // The stamp re-slams if you dare hover it.
+    const onStamp = () => {
+      gsap.fromTo(stamp!, { scale: 1.5, opacity: 0.4 }, { scale: 1, opacity: 0.92, duration: 0.3, ease: 'power3.out' });
+    };
+
+    window.addEventListener('mousemove', onMove, { passive: true });
+    stamp?.addEventListener('mouseenter', onStamp);
+
+    window.__hvCleanup = () => {
+      window.removeEventListener('mousemove', onMove);
+      stamp?.removeEventListener('mouseenter', onStamp);
+      float.kill();
+      jab?.kill();
+      window.__hvCleanup = undefined;
+    };
+  }
+
+  document.addEventListener('astro:page-load', setupPoster);
+  setupPoster();
+</script>

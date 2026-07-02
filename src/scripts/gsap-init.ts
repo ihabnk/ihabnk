@@ -17,8 +17,16 @@
 
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { SplitText } from 'gsap/SplitText';
+import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin);
+
+// Live SplitText instances — reverted on teardown so view transitions
+// always rebuild from clean markup.
+let splits: SplitText[] = [];
+// Bound magnetic-button listeners, removed on teardown.
+let magnetCleanups: Array<() => void> = [];
 
 // Mobile reliability:
 //  - ignoreMobileResize prevents ScrollTrigger from re-calculating every
@@ -81,8 +89,9 @@ function setup(): void {
       });
 
       // 2. SECTION HEADS — // label + h2 + p stagger
+      //    (children carrying data-split are owned by the SplitText handler)
       document.querySelectorAll<HTMLElement>('[data-anim="section-head"]').forEach((head) => {
-        const kids = Array.from(head.children);
+        const kids = Array.from(head.children).filter((c) => !c.hasAttribute('data-split'));
         if (!kids.length) return;
         gsap.from(kids, {
           scrollTrigger: { trigger: head, ...SCROLL_OPTS },
@@ -196,8 +205,116 @@ function setup(): void {
         });
       });
 
+      // 7. HORIZONTAL STRIP — pinned section, track scrubs sideways.
+      //    On mobile the strip is a native swipe row (CSS), no pin.
+      if (!isMobile) {
+        document.querySelectorAll<HTMLElement>('[data-anim="hscroll"]').forEach((sec) => {
+          const track = sec.querySelector<HTMLElement>('[data-hscroll-track]');
+          if (!track) return;
+          const amount = () => Math.max(0, track.scrollWidth - sec.clientWidth);
+          const scrub = gsap.to(track, {
+            x: () => -amount(),
+            ease: 'none',
+            scrollTrigger: {
+              trigger: sec,
+              start: 'top top',
+              end: () => '+=' + amount(),
+              pin: true,
+              scrub: 0.6,
+              anticipatePin: 1,
+              invalidateOnRefresh: true,
+            },
+          });
+          // Panels pop up as they ride into view inside the moving track.
+          track.querySelectorAll<HTMLElement>('[data-hscroll-panel]').forEach((panel) => {
+            gsap.from(panel, {
+              y: 44,
+              opacity: 0,
+              rotation: 1.2,
+              duration: 0.55,
+              ease: EASE,
+              scrollTrigger: {
+                trigger: panel,
+                containerAnimation: scrub,
+                start: 'left 88%',
+                toggleActions: SCROLL_OPTS.toggleActions,
+              },
+            });
+          });
+        });
+      }
+
+      // 8. SVG DRAW-ON — strokes draw themselves when scrolled into view.
+      document.querySelectorAll<SVGElement>('svg[data-anim="draw"]').forEach((svg) => {
+        const strokes = svg.querySelectorAll('path, line, polyline, circle');
+        if (!strokes.length) return;
+        gsap.from(strokes, {
+          scrollTrigger: { trigger: svg, ...SCROLL_OPTS },
+          drawSVG: '0%',
+          duration: 1.1,
+          ease: 'power2.inOut',
+          stagger: 0.15,
+          delay: 0.25,
+        });
+      });
+
+      // 9. TEXT SPLITS — run after fonts settle so line breaks are final.
+      document.fonts.ready.then(() => {
+        // Hero titles: character tumble on load.
+        document.querySelectorAll<HTMLElement>('[data-anim="split-chars"]').forEach((el) => {
+          const split = SplitText.create(el, { type: 'lines,chars', mask: 'lines' });
+          splits.push(split);
+          gsap.from(split.chars, {
+            yPercent: 115,
+            rotation: 5,
+            duration: 0.65,
+            ease: 'back.out(1.4)',
+            stagger: 0.016,
+            delay: 0.1,
+          });
+        });
+
+        // Standalone headings: word-mask rise when scrolled to.
+        document.querySelectorAll<HTMLElement>('[data-split]').forEach((el) => {
+          const split = SplitText.create(el, { type: 'lines,words', mask: 'lines' });
+          splits.push(split);
+          gsap.from(split.words, {
+            scrollTrigger: { trigger: el, ...SCROLL_OPTS },
+            yPercent: 110,
+            duration: 0.6,
+            ease: EASE,
+            stagger: 0.045,
+          });
+        });
+      });
+
+      // 10. MAGNETIC BUTTONS — primary CTAs lean toward a fine pointer.
+      if (!isMobile && matchMedia('(pointer: fine)').matches) {
+        document.querySelectorAll<HTMLElement>('.btn-primary, .ghost-btn, [data-magnetic]').forEach((el) => {
+          const xTo = gsap.quickTo(el, 'x', { duration: 0.35, ease: 'power3.out' });
+          const yTo = gsap.quickTo(el, 'y', { duration: 0.35, ease: 'power3.out' });
+          const move = (e: MouseEvent) => {
+            const r = el.getBoundingClientRect();
+            xTo((e.clientX - (r.left + r.width / 2)) * 0.22);
+            yTo((e.clientY - (r.top + r.height / 2)) * 0.3);
+          };
+          const leave = () => {
+            gsap.to(el, { x: 0, y: 0, duration: 0.55, ease: 'elastic.out(1, 0.45)' });
+          };
+          el.addEventListener('mousemove', move);
+          el.addEventListener('mouseleave', leave);
+          magnetCleanups.push(() => {
+            el.removeEventListener('mousemove', move);
+            el.removeEventListener('mouseleave', leave);
+            gsap.set(el, { clearProps: 'x,y' });
+          });
+        });
+      }
+
       return () => {
         ScrollTrigger.getAll().forEach((t) => t.kill());
+        magnetCleanups.forEach((fn) => fn());
+        magnetCleanups = [];
       };
     },
   );
@@ -205,6 +322,10 @@ function setup(): void {
 
 function teardown(): void {
   ScrollTrigger.getAll().forEach((t) => t.kill());
+  splits.forEach((s) => s.revert());
+  splits = [];
+  magnetCleanups.forEach((fn) => fn());
+  magnetCleanups = [];
   gsap.globalTimeline.clear();
 }
 
