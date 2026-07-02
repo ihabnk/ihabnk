@@ -27,6 +27,8 @@ gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin, MotionPathPlugin, M
 // Live SplitText instances — reverted on teardown so view transitions
 // always rebuild from clean markup.
 let splits: SplitText[] = [];
+// Tweens created after fonts.ready resolve outside the context — tracked here.
+let splitTweens: gsap.core.Tween[] = [];
 // Bound magnetic-button listeners, removed on teardown.
 let magnetCleanups: Array<() => void> = [];
 
@@ -58,7 +60,15 @@ const SCROLL_OPTS = {
 
 const EASE = 'power3.out';
 
+// Everything setup() creates is captured in this context, so teardown can
+// revert OUR animations without nuking timelines owned by other scripts
+// (the hero poster's entrance, the community chat choreography, React
+// islands using useGSAP). A global globalTimeline.clear() here once killed
+// those mid-flight and left their targets frozen at opacity 0.
+let ctx: gsap.Context | null = null;
+
 function setup(): void {
+  ctx = gsap.context(() => {
   const mm = gsap.matchMedia();
 
   // Use gsap.matchMedia with two breakpoints so the same animation runs at
@@ -246,6 +256,40 @@ function setup(): void {
         });
       }
 
+      // 7b. CHOREOGRAPHY — a container declares data-choreo ("load" or
+      //     "scroll"); descendants join one shared timeline at their own
+      //     data-beat (seconds), each with a data-move preset:
+      //     rise (default) | pop | slide-l | slide-r | stamp | draw
+      document.querySelectorAll<HTMLElement>('[data-choreo]').forEach((root) => {
+        const beats = Array.from(root.querySelectorAll<HTMLElement>('[data-beat]'));
+        if (!beats.length) return;
+        const onLoad = root.getAttribute('data-choreo') === 'load';
+        const tl = gsap.timeline(
+          onLoad ? { delay: 0.1 } : { scrollTrigger: { trigger: root, ...SCROLL_OPTS } },
+        );
+        beats.forEach((el) => {
+          const at = Number.parseFloat(el.dataset.beat || '0') || 0;
+          switch (el.dataset.move) {
+            case 'pop':
+              tl.from(el, { scale: 0.6, opacity: 0, duration: 0.55, ease: 'back.out(2)' }, at); break;
+            case 'slide-l':
+              tl.from(el, { x: -36 * k, opacity: 0, duration: 0.6, ease: EASE }, at); break;
+            case 'slide-r':
+              tl.from(el, { x: 36 * k, opacity: 0, duration: 0.6, ease: EASE }, at); break;
+            case 'stamp':
+              tl.from(el, { scale: 2.3, opacity: 0, duration: 0.35, ease: 'power4.in' }, at)
+                .to(el, { scale: 1, duration: 0.18, ease: 'back.out(3)' }, at + 0.35); break;
+            case 'draw': {
+              const strokes = el.querySelectorAll('path, line, polyline, circle');
+              if (strokes.length) tl.fromTo(strokes, { drawSVG: '0%' }, { drawSVG: '100%', duration: 0.8, ease: 'power2.inOut', stagger: 0.1 }, at);
+              break;
+            }
+            default:
+              tl.from(el, { y: 26 * k, opacity: 0, duration: 0.6, ease: EASE }, at);
+          }
+        });
+      });
+
       // 8. SVG DRAW-ON — strokes draw themselves when scrolled into view.
       document.querySelectorAll<SVGElement>('svg[data-anim="draw"]').forEach((svg) => {
         const strokes = svg.querySelectorAll('path, line, polyline, circle');
@@ -286,27 +330,27 @@ function setup(): void {
         document.querySelectorAll<HTMLElement>('[data-anim="split-chars"]').forEach((el) => {
           const split = SplitText.create(el, { type: 'lines,chars', mask: 'lines' });
           splits.push(split);
-          gsap.from(split.chars, {
+          splitTweens.push(gsap.from(split.chars, {
             yPercent: 115,
             rotation: 5,
             duration: 0.65,
             ease: 'back.out(1.4)',
             stagger: 0.016,
             delay: 0.1,
-          });
+          }));
         });
 
         // Standalone headings: word-mask rise when scrolled to.
         document.querySelectorAll<HTMLElement>('[data-split]').forEach((el) => {
           const split = SplitText.create(el, { type: 'lines,words', mask: 'lines' });
           splits.push(split);
-          gsap.from(split.words, {
+          splitTweens.push(gsap.from(split.words, {
             scrollTrigger: { trigger: el, ...SCROLL_OPTS },
             yPercent: 110,
             duration: 0.6,
             ease: EASE,
             stagger: 0.045,
-          });
+          }));
         });
       });
 
@@ -334,21 +378,23 @@ function setup(): void {
       }
 
       return () => {
-        ScrollTrigger.getAll().forEach((t) => t.kill());
         magnetCleanups.forEach((fn) => fn());
         magnetCleanups = [];
       };
     },
   );
+  }); // end gsap.context
 }
 
 function teardown(): void {
-  ScrollTrigger.getAll().forEach((t) => t.kill());
+  ctx?.revert(); // kills only what setup() created (tweens + ScrollTriggers)
+  ctx = null;
+  splitTweens.forEach((t) => { t.scrollTrigger?.kill(); t.kill(); });
+  splitTweens = [];
   splits.forEach((s) => s.revert());
   splits = [];
   magnetCleanups.forEach((fn) => fn());
   magnetCleanups = [];
-  gsap.globalTimeline.clear();
 }
 
 // Single bootstrap path so setup() runs exactly once per page.

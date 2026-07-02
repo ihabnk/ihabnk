@@ -3,19 +3,19 @@
 // Pure CSS animation (float, stamp slam, pointing pulse) — no JS.
 ---
 
-<div class="hv-root" aria-hidden="true">
+<div class="hv-root">
 
   <!-- Soft ambient glow behind the poster -->
-  <div class="hv-aura"></div>
+  <div class="hv-aura" aria-hidden="true"></div>
 
   <!-- Grid backdrop for technical feel -->
-  <div class="hv-grid"></div>
+  <div class="hv-grid" aria-hidden="true"></div>
 
   <!-- Left-side fade for hero text readability -->
-  <div class="hv-fade"></div>
+  <div class="hv-fade" aria-hidden="true"></div>
 
   <!-- The poster -->
-  <div class="hv-poster">
+  <div class="hv-poster" aria-hidden="true">
     <div class="hv-poster-top">★ CITIZENS OF SOFTWARE ★</div>
 
     <!-- Bit in the star-banded top hat, pointing at YOU -->
@@ -63,20 +63,17 @@
     <div class="hv-stamp">NOW<br />RECRUITING</div>
   </div>
 
-  <!-- Tiny floating enlistment card (depth + wink) -->
-  <div class="hv-spec">
-    <div class="hv-spec-row">
-      <span class="hv-spec-k">recruits</span><span class="hv-spec-v">you, ideally</span>
-    </div>
-    <div class="hv-spec-row">
-      <span class="hv-spec-k">requirement</span><span class="hv-spec-v">curiosity</span>
-    </div>
-    <div class="hv-spec-row">
-      <span class="hv-spec-k">salary</span><span class="hv-spec-v">bugs. so many.</span>
-    </div>
-  </div>
-
 </div>
+
+<!-- The enlistment desk: Bit points here. Lives OUTSIDE .hv-root because
+     that layer sits under the hero's z-10 text container — an anchor in
+     there renders fine but never receives the click. -->
+<a
+  href="https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/01KW7QWNJAKNE0KWYJBCMHQ1CV"
+  target="_blank"
+  rel="noopener noreferrer"
+  class="hv-join"
+>Join the hood ↗</a>
 
 <style>
 .hv-root {
@@ -168,6 +165,7 @@
   height: auto;
   display: block;
   margin: 0 auto 4px;
+  overflow: visible; /* the aiming hand may poke past the box — let it */
 }
 /* the point: a slow, insistent jab toward the reader */
 .hv-point {
@@ -243,45 +241,44 @@
   100% { opacity: 0.92; transform: rotate(12deg) scale(1); }
 }
 
-/* ── Floating enlistment card ── */
-.hv-spec {
+/* ── "Join the hood" — the button Bit points at ── */
+.hv-join {
+  pointer-events: auto;
   position: absolute;
-  right: calc(5% + min(330px, 34vw) - 60px);
-  top: calc(50% + 150px);
+  z-index: 20;
+  right: calc(5% + 8px);
+  top: calc(50% + 168px);
   transform: rotate(-3deg);
-  background: var(--bg-page);
-  border: 2px solid var(--fg);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: var(--on-accent);
+  border: 2.5px solid var(--fg);
   border-radius: 6px;
-  box-shadow: 4px 4px 0 var(--fg);
-  padding: 10px 14px;
-  font-family: var(--font-mono);
-  min-width: 170px;
-  animation: hv-spec-float 8s ease-in-out infinite;
-  animation-delay: -3s;
+  box-shadow: 5px 5px 0 var(--fg);
+  padding: 12px 20px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-@keyframes hv-spec-float {
-  0%, 100% { transform: rotate(-3deg) translateY(0); }
-  50%      { transform: rotate(-3deg) translateY(-10px); }
+.hv-join:hover {
+  transform: rotate(-3deg) translate(-2px, -2px);
+  box-shadow: 7px 7px 0 var(--fg);
 }
-.hv-spec-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 10px;
-  line-height: 1.8;
-}
-.hv-spec-k { color: var(--fg-muted); }
-.hv-spec-v { color: var(--accent-text); font-weight: 600; }
 
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
-  .hv-aura, .hv-poster, .hv-spec, .hv-point, .hv-stamp { animation: none; }
+  .hv-aura, .hv-poster, .hv-point, .hv-stamp { animation: none; }
   .hv-stamp { opacity: 0.92; transform: rotate(12deg) scale(1); }
 }
 
 /* ── Small screens ── */
 @media (max-width: 1024px) {
-  .hv-spec { display: none; }
+  .hv-join { display: none; }
   .hv-poster { right: -4%; width: min(290px, 40vw); }
 }
 @media (max-width: 899px) {
@@ -333,13 +330,53 @@
     poster.style.animation = 'none';
     if (arm) arm.style.animation = 'none';
     gsap.set(poster, { yPercent: -50, rotation: 1.5 });
-    const float = gsap.to(poster, { y: -8, duration: 4.5, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+
+    // ── Entrance choreography: one directed sequence ─────────────
+    // poster swings in → Bit pops → headline stamps line by line →
+    // fine print settles → STAMP slams → enlistment card flips up
+    if (stamp) stamp.style.animation = 'none';
+    const bit = poster.querySelector('.hv-bit');
+    const join = document.querySelector<HTMLElement>('.hv-join');
+    const intro = gsap.timeline({ delay: 0.25 });
+    intro
+      .from(poster, { x: 140, rotation: 8, opacity: 0, duration: 0.8, ease: 'power3.out' }, 0)
+      .from(bit, { scale: 0.5, transformOrigin: 'center 30%', duration: 0.6, ease: 'back.out(2.2)' }, 0.35)
+      .from(poster.querySelector('.hv-line1'), { scale: 1.9, opacity: 0, duration: 0.3, ease: 'power4.in' }, 0.6)
+      .from(poster.querySelector('.hv-line2'), { scale: 1.9, opacity: 0, duration: 0.3, ease: 'power4.in' }, 0.78)
+      .from(poster.querySelector('.hv-line3'), { y: 10, opacity: 0, duration: 0.35, ease: 'power2.out' }, 1.0)
+      .from(poster.querySelector('.hv-fineprint'), { opacity: 0, duration: 0.4 }, 1.15);
+    if (stamp) {
+      intro
+        .fromTo(stamp, { rotation: 4, scale: 3, opacity: 0 }, { rotation: 13, scale: 0.94, opacity: 1, duration: 0.3, ease: 'power4.in' }, 1.3)
+        .to(stamp, { rotation: 12, scale: 1, opacity: 0.92, duration: 0.15, ease: 'back.out(3)' }, 1.6);
+    }
+    if (join) intro.from(join, { y: 46, rotation: -9, opacity: 0, duration: 0.55, ease: 'back.out(1.8)' }, 1.55);
+
+    const float = gsap.to(poster, { y: -8, duration: 4.5, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 1.2 });
     const jab = arm
       ? gsap.to(arm, {
           scale: 1.09, transformOrigin: '52px 136px', duration: 0.32,
           ease: 'sine.inOut', yoyo: true, repeat: -1, repeatDelay: 2.1,
         })
       : null;
+
+    // The arm's resting aim: pointed straight at the Join button. The
+    // finger's neutral direction (pivot 52,136 -> fingertip ~120,156) is
+    // ~16deg; we rotate by the difference to the button's actual angle.
+    const svg = poster.querySelector<SVGSVGElement>('.hv-bit');
+    let armBase = 0;
+    const aimAtButton = () => {
+      if (!svg || !join) return;
+      const ctm = svg.getScreenCTM();
+      if (!ctm) return;
+      const b = join.getBoundingClientRect();
+      const pt = new DOMPoint(b.left + b.width / 2, b.top + 8).matrixTransform(ctm.inverse());
+      armBase = (Math.atan2(pt.y - 136, pt.x - 52) * 180) / Math.PI - 16.4;
+      armBase = Math.max(-10, Math.min(42, armBase));
+    };
+    aimAtButton();
+    if (arm) gsap.set(arm, { rotation: armBase, transformOrigin: '52px 136px' });
+    window.addEventListener('resize', aimAtButton);
 
     const rotTo = gsap.quickTo(poster, 'rotation', { duration: 0.6, ease: 'power3.out' });
     const posXTo = gsap.quickTo(poster, 'x', { duration: 0.6, ease: 'power3.out' });
@@ -355,7 +392,7 @@
       posXTo(dx * 14);
       pupilX?.(Math.max(-4.5, Math.min(4.5, dx * 26)));
       pupilY?.(Math.max(-3.5, Math.min(3.5, dy * 22)));
-      armRot?.(Math.max(-9, Math.min(9, dx * 30)));
+      armRot?.(armBase + Math.max(-6, Math.min(6, dx * 18)));
     };
 
     // The stamp re-slams if you dare hover it.
@@ -372,18 +409,28 @@
     stamp?.addEventListener('mouseenter', onStamp);
     poster.addEventListener('mouseenter', onGrin);
     poster.addEventListener('mouseleave', onStern);
+    // hovering the button is what Bit's been pointing at all along
+    join?.addEventListener('mouseenter', onGrin);
+    join?.addEventListener('mouseleave', onStern);
 
     window.__hvCleanup = () => {
       window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('resize', aimAtButton);
       stamp?.removeEventListener('mouseenter', onStamp);
       poster.removeEventListener('mouseenter', onGrin);
       poster.removeEventListener('mouseleave', onStern);
+      join?.removeEventListener('mouseenter', onGrin);
+      join?.removeEventListener('mouseleave', onStern);
+      intro.revert(); // revert, not kill: never strand the poster at opacity 0
       float.kill();
       jab?.kill();
       window.__hvCleanup = undefined;
     };
   }
 
+  // Single run per page via astro:page-load (it fires on initial load too).
+  // Running an extra immediate call raced the event: the second cleanup
+  // killed the first entrance mid-delay and the new from() captured
+  // opacity 0 as its destination — an invisible poster.
   document.addEventListener('astro:page-load', setupPoster);
-  setupPoster();
 </script>

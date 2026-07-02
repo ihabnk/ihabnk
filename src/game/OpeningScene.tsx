@@ -1,4 +1,6 @@
+import { useRef } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
+import { gsap, useGSAP, reduceMotion } from './gsapSetup';
 
 /**
  * Day 1 cold-open — the hero arrives, sits, and stares at the laptop.
@@ -9,6 +11,34 @@ import { motion, useReducedMotion } from 'framer-motion';
  */
 export default function OpeningScene({ text, onContinue }: { text: string; onContinue: () => void }) {
   const reduce = useReducedMotion();
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  // GSAP layer — only NEW elements, so it never fights the CSS ambience:
+  // a bird crosses the window on a MotionPath, and the clock actually runs.
+  useGSAP(() => {
+    if (reduceMotion()) return;
+    const root = svgRef.current;
+    if (!root) return;
+    const bird = root.querySelector('.qg-op-bird');
+    const flight = root.querySelector('.qg-op-flight');
+    if (bird && flight) {
+      gsap.to(bird, {
+        motionPath: { path: flight as SVGPathElement, align: flight as SVGPathElement, alignOrigin: [0.5, 0.5] },
+        duration: 3.2,
+        ease: 'power1.inOut',
+        repeat: -1,
+        repeatDelay: 6,
+        delay: 1.6,
+      });
+      gsap.to(bird.querySelectorAll('path'), {
+        scaleY: 0.4, transformOrigin: 'center', duration: 0.16, yoyo: true, repeat: -1, ease: 'sine.inOut',
+      });
+    }
+    const minute = root.querySelector('.qg-op-hand--min');
+    const hour = root.querySelector('.qg-op-hand--hr');
+    if (minute) gsap.to(minute, { rotation: 360, svgOrigin: '408 62', duration: 60, repeat: -1, ease: 'none' });
+    if (hour) gsap.to(hour, { rotation: 360, svgOrigin: '408 62', duration: 720, repeat: -1, ease: 'none' });
+  }, { scope: svgRef });
   const slide = (delay: number) => reduce
     ? { initial: false as const }
     : { initial: { opacity: 0, x: -40 }, animate: { opacity: 1, x: 0 }, transition: { type: 'spring' as const, stiffness: 140, damping: 18, delay } };
@@ -22,17 +52,23 @@ export default function OpeningScene({ text, onContinue }: { text: string; onCon
   return (
     <div className="qg-card qg-opening">
       <div className="qg-op-stage">
-        <svg viewBox="0 0 460 300" className="qg-op-svg" role="img" aria-label="Your first morning: you sit at a new desk, staring at the laptop, unsure where to start.">
+        <svg ref={svgRef} viewBox="0 0 460 300" className="qg-op-svg" role="img" aria-label="Your first morning: you sit at a new desk, staring at the laptop, unsure where to start. Outside the window, a bird crosses the sky; the office clock is already running.">
           {/* room */}
           <rect className="qg-op-wall" x="0" y="0" width="460" height="226" />
           <rect className="qg-op-floor" x="0" y="226" width="460" height="74" />
           <rect className="qg-op-window" x="40" y="46" width="118" height="94" rx="3" />
           <rect className="qg-op-windowlit" x="44" y="50" width="110" height="86" rx="2" />
+          {/* the world outside: a bird crossing on a MotionPath */}
+          <path className="qg-op-flight" d="M46 78 q28 -18 54 -6 t54 -4" fill="none" stroke="none" />
+          <g className="qg-op-bird">
+            <path d="M-5 0 Q-2 -4 0 0" />
+            <path d="M0 0 Q3 -4 5 0" />
+          </g>
           <line className="qg-op-pane" x1="99" y1="46" x2="99" y2="140" />
           <line className="qg-op-pane" x1="40" y1="93" x2="158" y2="93" />
           <circle className="qg-op-clock" cx="408" cy="62" r="20" />
-          <line className="qg-op-hand" x1="408" y1="62" x2="408" y2="49" />
-          <line className="qg-op-hand" x1="408" y1="62" x2="419" y2="62" />
+          <line className="qg-op-hand qg-op-hand--min" x1="408" y1="62" x2="408" y2="49" />
+          <line className="qg-op-hand qg-op-hand--hr" x1="408" y1="62" x2="419" y2="62" />
           <rect className="qg-op-deskbg" x="18" y="252" width="110" height="9" rx="3" />
           <g className="qg-op-plant">
             <path className="qg-op-pot" d="M424 240 h26 l-3 22 h-20 z" />

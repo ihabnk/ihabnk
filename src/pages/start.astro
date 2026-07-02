@@ -24,7 +24,7 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
   title="Start in QA"
   description="New to software quality? Start here. A clear, ordered path into QA — no bootcamp, no certifications, just what to learn and in what order."
 >
-  <div class="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16" data-choreo="load">
 
     <div class="glow-sep mb-10"></div>
 
@@ -46,7 +46,7 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
     </header>
 
     <!-- Flagship: the 30-day onboarding game -->
-    <a href="/learn/qa-onboarding" class="game-promo card-brutal group" data-anim="featured">
+    <a href="/learn/qa-onboarding" class="game-promo card-brutal group" data-beat="0.5" data-move="rise">
       <div class="game-promo-text">
         <span class="game-promo-tag">★ The game · 30 days</span>
         <h2 class="game-promo-title">Play your first 30 days as a QA engineer</h2>
@@ -56,7 +56,7 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
     </a>
 
     <!-- The QA Lab: hands-on tool simulators -->
-    <a href="/learn/qa-lab" class="game-promo card-brutal group" data-anim="featured" style="background:linear-gradient(135deg, color-mix(in srgb, var(--pop-cyan, #3aa0b5) 14%, var(--bg-card)), var(--bg-card))">
+    <a href="/learn/qa-lab" class="game-promo card-brutal group" data-beat="0.75" data-move="rise" style="background:linear-gradient(135deg, color-mix(in srgb, var(--pop-cyan, #3aa0b5) 14%, var(--bg-card)), var(--bg-card))">
       <div class="game-promo-text">
         <span class="game-promo-tag">⌘ The QA Lab · hands-on</span>
         <h2 class="game-promo-title">Learn the tools by using them</h2>
@@ -67,7 +67,7 @@ const STOAT_URL = 'https://stoat.chat/server/01KRX7GT1KEA2BK47257B1XGP1/channel/
 
     <!-- Featured interactive lesson -->
     {featured && (
-      <a href={`/learn/${featured.slug}`} class="lesson-promo card-brutal group" data-anim="featured">
+      <a href={`/learn/${featured.slug}`} class="lesson-promo card-brutal group" data-beat="1.0" data-move="rise">
         <div class="lesson-promo-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polygon points="5,3 19,12 5,21" style="fill:currentColor;stroke:none" />

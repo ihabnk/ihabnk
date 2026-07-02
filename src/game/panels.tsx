@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { gsap, useGSAP, reduceMotion } from './gsapSetup';
+import DayArt from './DayArt';
 import type { Choice, Day, MentorState, Scene } from './types';
 import { TOTAL_DAYS, confidenceWord, confidenceLevel } from './types';
 import { character } from './cast';
@@ -120,11 +122,26 @@ export function GameHUD({
 
 /* ── Day intro ─────────────────────────────────────────────────── */
 export function DayIntroCard({ day, onStart, onBack }: { day: Day; onStart: () => void; onBack: () => void }) {
+  const titleRef = useRef<HTMLSpanElement>(null);
+
+  // The day's title decrypts itself (ScrambleText) — a tiny "incoming
+  // briefing" beat at the top of every day.
+  useGSAP(() => {
+    if (!titleRef.current || reduceMotion()) return;
+    gsap.to(titleRef.current, {
+      duration: 0.9,
+      scrambleText: { text: day.title, chars: '▓▒░<>/#{}*', speed: 0.4 },
+      ease: 'none',
+      delay: 0.2,
+    });
+  }, [day.n]);
+
   return (
     <div className="qg-card qg-intro">
       <button className="qg-back" onClick={onBack}>← Map</button>
+      <DayArt week={day.week} />
       <span className="qg-kicker">Week {day.week} · {day.weekTitle}</span>
-      <h2 className="qg-day-title"><span className="qg-day-n">Day {day.n}</span>{day.title}</h2>
+      <h2 className="qg-day-title"><span className="qg-day-n">Day {day.n}</span><span ref={titleRef}>{day.title}</span></h2>
       <p className="qg-goal"><span className="qg-goal-pin" aria-hidden="true">◎</span>{day.goal}</p>
       <p className="qg-intro-text">{day.intro}</p>
       <button className="qg-btn qg-btn-primary" onClick={onStart}>Start the day →</button>
@@ -155,6 +172,21 @@ export function ChoiceScene({
   const answered = picked !== null;
   const chosen = answered ? options[picked!] : null;
   const tier = chosen ? tierOf(chosen) : null;
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // Physical feedback on the verdict: the strong pick lands with a squashy
+  // bounce (CustomBounce); a risky pick gets shaken off (CustomWiggle).
+  // Delayed so framer's entrance settles before GSAP touches transforms.
+  useGSAP(() => {
+    if (!answered || reduceMotion()) return;
+    const el = rootRef.current?.querySelector(chosen?.best ? '.qg-dcard.is-best' : '.qg-dcard.is-picked');
+    if (!el) return;
+    if (chosen?.best) {
+      gsap.fromTo(el, { scale: 0.96 }, { scale: 1, duration: 0.8, ease: 'bitBounce', delay: 0.45 });
+    } else {
+      gsap.fromTo(el, { x: 0 }, { x: 7, duration: 0.6, ease: 'bitWiggle', delay: 0.45, clearProps: 'x' });
+    }
+  }, { dependencies: [answered], scope: rootRef });
 
   const list = {
     hidden: {},
@@ -166,7 +198,7 @@ export function ChoiceScene({
   };
 
   return (
-    <div className="qg-card qg-scenario">
+    <div className="qg-card qg-scenario" ref={rootRef}>
       <div className="qg-scenario-head">
         <span className="qg-decision-pill"><span className="qg-decision-dot" aria-hidden="true" />Your call</span>
         <span className="qg-scenario-ctx">Day {dayN} · scenario</span>
@@ -246,14 +278,13 @@ export function TaskScene({
   });
 
   const openCard = (i: number) => {
-    if (resolved) return;
-    setOpen((prev) => {
-      if (prev.has(i)) return prev;
-      const next = new Set(prev).add(i);
-      if (next.size >= need) { setResolved(true); setGain(task.xp); setStrong(true); onResolve(task.xp); onMentor('success'); }
-      else onMentor('speaking');
-      return next;
-    });
+    if (resolved || open.has(i)) return;
+    // side effects stay OUT of the state updater — updaters can run during
+    // render, and parent setState from there trips React's warning
+    const next = new Set(open).add(i);
+    setOpen(next);
+    if (next.size >= need) { setResolved(true); setGain(task.xp); setStrong(true); onResolve(task.xp); onMentor('success'); }
+    else onMentor('speaking');
   };
 
   const toggleSel = (i: number) => {
@@ -434,11 +465,47 @@ export function DayRecapCard({
 }
 
 /* ── Week complete — a milestone, not just another recap ───────── */
+const CONFETTI_COLORS = ['var(--accent)', 'var(--pop-cyan)', 'var(--pop-red)', 'var(--fg)'];
+
 export function WeekCompleteCard({
   week, weekTitle, skills, final = false, onContinue,
 }: { week: number; weekTitle: string; skills: string[]; final?: boolean; onContinue: () => void }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Real confetti: Physics2D launches pieces up and out from the badge
+  // corner, gravity does the rest. The final week gets a double salvo.
+  useGSAP(() => {
+    const card = cardRef.current;
+    if (!card || reduceMotion()) return;
+    const burst = (delay: number) => {
+      const count = final ? 34 : 24;
+      for (let i = 0; i < count; i++) {
+        const bit = document.createElement('span');
+        bit.className = 'qg-physbit';
+        bit.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+        card.appendChild(bit);
+        gsap.set(bit, { x: card.clientWidth - 40, y: 10, rotation: gsap.utils.random(-90, 90) });
+        gsap.to(bit, {
+          delay,
+          duration: gsap.utils.random(1.2, 1.9),
+          physics2D: {
+            velocity: gsap.utils.random(220, 460),
+            angle: gsap.utils.random(190, 330),
+            gravity: 750,
+          },
+          rotation: `+=${gsap.utils.random(-360, 360)}`,
+          opacity: 0,
+          ease: 'none',
+          onComplete: () => bit.remove(),
+        });
+      }
+    };
+    burst(0.35);
+    if (final) burst(0.9);
+  }, { scope: cardRef });
+
   return (
-    <div className="qg-card qg-weekdone">
+    <div className="qg-card qg-weekdone" ref={cardRef}>
       <motion.span className="qg-weekdone-badge"
         initial={{ scale: 0.6, rotate: -8, opacity: 0 }} animate={{ scale: 1, rotate: 0, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 260, damping: 16 }}>
