@@ -278,14 +278,13 @@ export function TaskScene({
   });
 
   const openCard = (i: number) => {
-    if (resolved) return;
-    setOpen((prev) => {
-      if (prev.has(i)) return prev;
-      const next = new Set(prev).add(i);
-      if (next.size >= need) { setResolved(true); setGain(task.xp); setStrong(true); onResolve(task.xp); onMentor('success'); }
-      else onMentor('speaking');
-      return next;
-    });
+    if (resolved || open.has(i)) return;
+    // side effects stay OUT of the state updater — updaters can run during
+    // render, and parent setState from there trips React's warning
+    const next = new Set(open).add(i);
+    setOpen(next);
+    if (next.size >= need) { setResolved(true); setGain(task.xp); setStrong(true); onResolve(task.xp); onMentor('success'); }
+    else onMentor('speaking');
   };
 
   const toggleSel = (i: number) => {

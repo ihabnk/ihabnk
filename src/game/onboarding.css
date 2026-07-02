@@ -434,9 +434,15 @@
 .qg-squad .qg-narration-text { margin-bottom: 6px; }
 .qg-squadmap { width: 100%; max-width: 430px; height: auto; display: block; margin: 10px auto 4px; overflow: visible; }
 .qg-sm-link { stroke: var(--border-mid); stroke-width: 2.5; stroke-linecap: round; }
-.qg-sm-linkpath { fill: none; stroke: var(--border-mid); stroke-width: 2.5; stroke-linecap: round; }
-.qg-sm-perim { fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-dasharray: 3 7; stroke-linecap: round; opacity: 0.65; }
-.qg-sm-orb { fill: var(--accent-text); opacity: 0; }
+.qg-sm-weave { fill: none; stroke: var(--border-mid); stroke-width: 2.5; stroke-linecap: round; }
+.qg-sm-weave-hot { fill: none; stroke: var(--accent); stroke-width: 3.5; stroke-linecap: round; opacity: 0; filter: drop-shadow(0 0 3px var(--accent-glow)); }
+.qg-sm-crosslabel { font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; fill: var(--accent-text); opacity: 0; }
+.qg-sm-rider-halo { fill: var(--accent-glow); }
+.qg-sm-rider-body { fill: var(--accent); stroke: var(--fg); stroke-width: 2.4; }
+.qg-sm-rider-eye { fill: #fff; stroke: var(--fg); stroke-width: 1.5; }
+.qg-sm-rider-pupil { fill: var(--fg); }
+.qg-sm-rider-mouth { fill: none; stroke: var(--fg); stroke-width: 2; stroke-linecap: round; }
+.qg-sm-rider-tag { font-family: var(--font-mono); font-size: 10px; font-weight: 700; fill: var(--fg-mid); }
 .qg-sm-node { stroke: var(--fg); stroke-width: 2.5; }
 .qg-sm-node.is-you { stroke-width: 3; }
 .qg-sm-init { fill: #fff; font-family: var(--font-display); font-weight: 800; font-size: 18px; }

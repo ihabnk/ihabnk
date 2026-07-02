@@ -2,44 +2,33 @@ import { useRef } from 'react';
 import { gsap, useGSAP, reduceMotion } from './gsapSetup';
 
 /**
- * The "whole picture" — the squad map the hero pieces together on Day 1.
- * GSAP orchestrates the reveal as one timeline:
+ * The "whole picture", visualized as the narration says it: not a hub with
+ * spokes — a THREAD. One figure-eight weave passes through all four roles
+ * and crosses at the centre, and You (the tester) ride it continuously:
+ * product → priorities → build → users, through the middle every lap.
  *
- *   1. You land in the centre (CustomBounce, with squash)
- *   2. Curved relationship links draw outward (DrawSVG)…
- *   3. …and each role node pops in as its link arrives
- *   4. The perimeter web joins the squad to each other (DrawSVG, dashed)
- *   5. "Tester" decrypts under your node (ScrambleText)
- *   6. Forever after: signal dots ride the curved links (MotionPath),
- *      a spark orbits the perimeter, the centre ring pulses
+ * GSAP: the weave draws itself (DrawSVG), stations pop as the thread
+ * reaches them, "quality lives here" decrypts at the crossing point
+ * (ScrambleText), then You travel the weave forever (MotionPath).
  */
-interface Node { id: string; label: string; sub: string; color: string; x: number; y: number; center?: boolean; }
+interface Station { id: string; label: string; sub: string; color: string; x: number; y: number; }
 
 const CX = 185, CY = 165;
-const NODES: Node[] = [
-  { id: 'you',   label: 'You',   sub: 'Tester',             color: '#9a6010', x: CX, y: CY, center: true },
-  { id: 'pm',    label: 'Maya',  sub: 'PM · what & why',    color: '#9a6010', x: 60,  y: 60 },
-  { id: 'po',    label: 'Priya', sub: 'PO · priorities',    color: '#c0521a', x: 310, y: 60 },
-  { id: 'dev',   label: 'Idris', sub: 'Devs · build & fix', color: '#6b5040', x: 60,  y: 270 },
-  { id: 'users', label: 'Users', sub: 'who you protect',    color: '#4a7fa8', x: 310, y: 270 },
+const STATIONS: Station[] = [
+  { id: 'pm',    label: 'Maya',  sub: 'PM · what & why',    color: '#9a6010', x: 75,  y: 70 },
+  { id: 'po',    label: 'Priya', sub: 'PO · priorities',    color: '#c0521a', x: 295, y: 70 },
+  { id: 'dev',   label: 'Idris', sub: 'Devs · build & fix', color: '#6b5040', x: 75,  y: 260 },
+  { id: 'users', label: 'Users', sub: 'who you protect',    color: '#4a7fa8', x: 295, y: 260 },
 ];
-const around = NODES.filter((n) => !n.center);
-const you = NODES.find((n) => n.center)!;
 
-/** Curved link from the centre to a node — bows outward for life. */
-function linkPath(n: Node): string {
-  const mx = (you.x + n.x) / 2;
-  const my = (you.y + n.y) / 2;
-  // perpendicular offset for the bow
-  const dx = n.x - you.x, dy = n.y - you.y;
-  const len = Math.hypot(dx, dy) || 1;
-  const bow = 16;
-  const ox = (-dy / len) * bow, oy = (dx / len) * bow;
-  return `M ${you.x} ${you.y} Q ${mx + ox} ${my + oy} ${n.x} ${n.y}`;
-}
+/* One closed figure-eight: centre → Maya → Priya → centre → Idris → Users →
+ * centre. The crossing point IS the middle of the squad. */
+const WEAVE = `M ${CX} ${CY}
+  Q 60 130 75 70 Q 185 18 295 70 Q 310 130 ${CX} ${CY}
+  Q 60 200 75 260 Q 185 312 295 260 Q 310 200 ${CX} ${CY} Z`;
 
-/** The perimeter web: colleagues joined to each other, bowing outward. */
-const PERIMETER = 'M 60 60 Q 185 34 310 60 Q 338 165 310 270 Q 185 296 60 270 Q 32 165 60 60';
+/* Where along the weave (0..1) the thread passes each station, for pops. */
+const STATION_AT = [0.125, 0.375, 0.625, 0.875];
 
 export default function SquadMap() {
   const ref = useRef<SVGSVGElement>(null);
@@ -47,108 +36,98 @@ export default function SquadMap() {
   useGSAP(() => {
     const root = ref.current;
     if (!root) return;
-    const links = root.querySelectorAll<SVGPathElement>('.qg-sm-linkpath');
-    const nodes = root.querySelectorAll('.qg-sm-nodepop');
-    const centre = root.querySelector('.qg-sm-nodepop--you');
-    const perim = root.querySelector<SVGPathElement>('.qg-sm-perim');
+    const weave = root.querySelector<SVGPathElement>('.qg-sm-weave');
+    const stations = root.querySelectorAll('.qg-sm-station');
     const labels = root.querySelectorAll('.qg-sm-labels');
-    const sub = root.querySelector('.qg-sm-sub--you');
-    const ring = root.querySelector('.qg-sm-ring');
-    const signals = root.querySelectorAll<SVGCircleElement>('.qg-sm-signal');
-    const orb = root.querySelector('.qg-sm-orb');
+    const cross = root.querySelector('.qg-sm-crosslabel');
+    const rider = root.querySelector('.qg-sm-rider');
+    const glowTrail = root.querySelector<SVGPathElement>('.qg-sm-weave-hot');
 
     if (reduceMotion()) {
-      gsap.set([...links, ...nodes, ...labels, perim].filter(Boolean), { opacity: 1 });
-      gsap.set([ring, orb, ...signals].filter(Boolean) as Element[], { opacity: 0 });
+      gsap.set([weave, ...stations, ...labels, cross].filter(Boolean) as Element[], { opacity: 1 });
+      if (glowTrail) gsap.set(glowTrail, { opacity: 0 });
+      if (rider && weave) {
+        gsap.set(rider, { motionPath: { path: weave, start: 0.125, end: 0.125, align: weave, alignOrigin: [0.5, 0.5] } });
+      }
       return;
     }
 
+    const DRAW = 2.0;
     const tl = gsap.timeline();
 
-    // 1. you land, with squash
-    tl.from(centre, { scale: 0, transformOrigin: 'center', duration: 0.9, ease: 'bitBounce' });
-
-    // 2 + 3. links draw out; each node pops as its link arrives
-    links.forEach((link, i) => {
-      const at = 0.55 + i * 0.22;
-      tl.fromTo(link, { drawSVG: '0%' }, { drawSVG: '100%', duration: 0.45, ease: 'power2.out' }, at);
-      tl.from(nodes[i], { scale: 0, transformOrigin: 'center', duration: 0.5, ease: 'back.out(2.4)' }, at + 0.3);
+    // the thread draws itself through the whole squad…
+    tl.fromTo(weave, { drawSVG: '0%' }, { drawSVG: '100%', duration: DRAW, ease: 'power1.inOut' }, 0);
+    // …and each role pops the moment the thread reaches them
+    STATION_AT.forEach((t, i) => {
+      tl.from(stations[i], { scale: 0, transformOrigin: 'center', duration: 0.55, ease: 'back.out(2.4)' }, t * DRAW);
     });
+    tl.from(labels, { opacity: 0, y: 6, duration: 0.4, stagger: 0.06, ease: 'power2.out' }, DRAW - 0.3);
 
-    // 4. the squad is a web, not a star: perimeter joins them to each other
-    if (perim) tl.fromTo(perim, { drawSVG: '0%' }, { drawSVG: '100%', duration: 1.1, ease: 'power2.inOut' }, '>-0.1');
-
-    // labels settle
-    tl.from(labels, { opacity: 0, y: 6, duration: 0.4, stagger: 0.06, ease: 'power2.out' }, '<');
-
-    // 5. your role decrypts
-    if (sub) tl.to(sub, { duration: 0.7, scrambleText: { text: 'Tester', chars: '▓▒░/<>', speed: 0.5 }, ease: 'none' }, '>-0.2');
-
-    // 6. the picture stays alive
-    if (ring) {
-      tl.fromTo(ring, { scale: 0.7, opacity: 0.5 }, {
-        scale: 1.7, opacity: 0, transformOrigin: 'center', duration: 2.2, ease: 'power1.out', repeat: -1, repeatDelay: 0.4,
-      }, '>');
+    // the crossing point gets named
+    if (cross) {
+      tl.set(cross, { opacity: 1 }, DRAW + 0.1);
+      tl.to(cross, { duration: 0.9, scrambleText: { text: 'quality lives here', chars: '▓▒░<>/', speed: 0.5 }, ease: 'none' }, DRAW + 0.1);
     }
-    signals.forEach((dot, i) => {
-      gsap.set(dot, { opacity: 0 });
-      gsap.to(dot, {
-        motionPath: { path: links[i], align: links[i], alignOrigin: [0.5, 0.5] },
-        duration: 1.6,
-        ease: 'power1.inOut',
+
+    // You arrive at the crossing with a squash — then ride the weave forever
+    if (rider && weave) {
+      tl.from(rider, { scale: 0, transformOrigin: 'center', duration: 0.9, ease: 'bitBounce' }, DRAW + 0.4);
+      tl.to(rider, {
+        motionPath: { path: weave, align: weave, alignOrigin: [0.5, 0.5] },
+        duration: 12,
+        ease: 'none',
         repeat: -1,
-        repeatDelay: 1.4,
-        delay: 2.4 + i * 0.5,
-        onRepeat() { gsap.set(dot, { opacity: 1 }); },
-        onStart() { gsap.set(dot, { opacity: 1 }); },
+      }, DRAW + 1.4);
+      // a warm comet-trail chases the rider around the weave
+      if (glowTrail) {
+        gsap.set(glowTrail, { opacity: 1 });
+        tl.fromTo(glowTrail,
+          { drawSVG: '0% 10%' },
+          { drawSVG: '90% 100%', duration: 12, ease: 'none', repeat: -1 },
+          DRAW + 1.4);
+      }
+      // stations greet You as you pass: a soft pulse, phase-locked to the lap
+      stations.forEach((s, i) => {
+        gsap.to(s, {
+          scale: 1.08, transformOrigin: 'center', duration: 0.4, yoyo: true, repeat: -1,
+          repeatDelay: 12 - 0.8, delay: DRAW + 1.4 + STATION_AT[i] * 12, ease: 'sine.inOut',
+        });
       });
-    });
-    if (orb && perim) {
-      gsap.to(orb, {
-        motionPath: { path: perim, align: perim, alignOrigin: [0.5, 0.5] },
-        duration: 9, ease: 'none', repeat: -1, delay: 3,
-      });
-      gsap.fromTo(orb, { opacity: 0 }, { opacity: 1, duration: 0.5, delay: 3 });
     }
-    // idle float on the role nodes, slightly out of phase
-    nodes.forEach((n, i) => {
-      if (n === centre) return;
-      gsap.to(n, { y: '-=4', duration: 1.8 + i * 0.2, yoyo: true, repeat: -1, ease: 'sine.inOut', delay: 3 + i * 0.3 });
-    });
   }, { scope: ref });
 
   return (
-    <svg ref={ref} className="qg-squadmap" viewBox="0 0 370 330" role="img" aria-label="Your squad: you, the tester, at the centre — connected to the PM, PO, developers, and users, who are all connected to each other">
-      {/* the squad's own web */}
-      <path className="qg-sm-perim" d={PERIMETER} />
-      <circle className="qg-sm-orb" r="3" />
+    <svg ref={ref} className="qg-squadmap" viewBox="0 0 370 330" role="img" aria-label="Your squad as a woven thread: one loop passes through the PM, the PO, the developers, and the users, crossing in the middle — where you, the tester, travel it continuously.">
+      {/* the weave (faint guide + hot trail chasing the rider) */}
+      <path className="qg-sm-weave" d={WEAVE} />
+      <path className="qg-sm-weave-hot" d={WEAVE} />
 
-      {/* relationship links (curved) */}
-      {around.map((n) => (
-        <path key={`l-${n.id}`} className="qg-sm-linkpath" d={linkPath(n)} />
-      ))}
+      {/* the crossing point */}
+      <text className="qg-sm-crosslabel" x={CX} y={CY + 30} textAnchor="middle">·</text>
 
-      {/* signal dots that ride the links */}
-      {around.map((n) => (
-        <circle key={`s-${n.id}`} className="qg-sm-signal" r="3.2" />
-      ))}
-
-      {/* centre pulse ring */}
-      <circle className="qg-sm-ring" cx={you.x} cy={you.y} r="30" fill="none" />
-
-      {/* nodes */}
-      {NODES.map((n, i) => (
-        <g key={n.id} transform={`translate(${n.x} ${n.y})`}>
-          <g className={`qg-sm-nodepop ${n.center ? 'qg-sm-nodepop--you' : ''}`}>
-            <circle r={n.center ? 30 : 24} fill={n.color} className={`qg-sm-node ${n.center ? 'is-you' : ''}`} />
-            <text className="qg-sm-init" textAnchor="middle" dy={n.center ? 6 : 5}>{n.label.slice(0, 1)}</text>
+      {/* role stations */}
+      {STATIONS.map((s) => (
+        <g key={s.id} transform={`translate(${s.x} ${s.y})`}>
+          <g className="qg-sm-station">
+            <circle r="24" fill={s.color} className="qg-sm-node" />
+            <text className="qg-sm-init" textAnchor="middle" dy="5">{s.label.slice(0, 1)}</text>
             <g className="qg-sm-labels">
-              <text className="qg-sm-label" textAnchor="middle" y={n.center ? 48 : 40}>{n.label}</text>
-              <text className={`qg-sm-sub ${n.center ? 'qg-sm-sub--you' : ''}`} textAnchor="middle" y={n.center ? 62 : 53}>{n.sub}</text>
+              <text className="qg-sm-label" textAnchor="middle" y="40">{s.label}</text>
+              <text className="qg-sm-sub" textAnchor="middle" y="53">{s.sub}</text>
             </g>
           </g>
         </g>
       ))}
+
+      {/* You — the tester, riding the thread */}
+      <g className="qg-sm-rider" aria-hidden="true">
+        <circle className="qg-sm-rider-halo" r="17" />
+        <rect x="-11" y="-11" width="22" height="22" rx="7" className="qg-sm-rider-body" />
+        <circle className="qg-sm-rider-eye" cx="2.5" cy="-2.5" r="4.6" />
+        <circle className="qg-sm-rider-pupil" cx="3.2" cy="-2" r="2.1" />
+        <path className="qg-sm-rider-mouth" d="M-4.5 4.5 Q0 8.5 4.5 4.5" />
+        <text className="qg-sm-rider-tag" textAnchor="middle" y="26">you</text>
+      </g>
     </svg>
   );
 }
