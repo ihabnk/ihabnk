@@ -1,0 +1,26 @@
+---
+import Base from '../../layouts/Base.astro';
+import LabGame from '../../lab/LabGame';
+---
+
+<Base
+  title="The QA Lab"
+  description="Hands-on tool simulators for testers — a working API console, SQL terminal, network tab, log viewer, selector lab, and terminal, each with guided missions."
+>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <div class="flex items-center justify-between flex-wrap gap-3 mb-6">
+      <a
+        href="/guides"
+        class="ghost-btn group inline-flex items-center gap-2 font-mono text-[12px] px-4 h-10 rounded-[4px]"
+      >
+        <span class="transition-transform duration-200 group-hover:-translate-x-0.5">←</span>
+        Guidebook
+      </a>
+      <span class="font-mono text-[11px]" style="color:var(--fg-muted);letter-spacing:0.06em">
+        Tool trainer · Hands-on
+      </span>
+    </div>
+
+    <LabGame client:only="react" />
+  </div>
+</Base>
