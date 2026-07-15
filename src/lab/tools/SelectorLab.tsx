@@ -175,7 +175,10 @@ export default function SelectorLab({ missionId, onComplete }: { missionId: stri
   };
 
   return (
-    <div className="ql-tool">
+    // The preview renders a real <form> with a submit button; without this,
+    // clicking "Pay now" (or pressing Enter in a preview field) navigates and
+    // wipes all lab progress state.
+    <div className="ql-tool" onSubmit={(e) => e.preventDefault()}>
       <div className="ql-sel-stages">
         {cases.map((c, i) => (
           <div key={i} className="ql-sel-stage">

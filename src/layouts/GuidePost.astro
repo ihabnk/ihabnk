@@ -186,10 +186,15 @@ const estLabel = est ?? (readingTimeMin !== undefined ? `${readingTimeMin} min r
     const tagProseReveal = () => {
       const body = document.getElementById('article-body');
       if (!body) return;
-      body.querySelectorAll('p, ul, ol, h2, h3, h4, blockquote, figure, img, hr, pre').forEach((el) => el.classList.add('reveal-soft'));
-      body.querySelectorAll('h2').forEach((el) => el.classList.add('reveal-pop'));
-      body.querySelectorAll('blockquote').forEach((el) => el.classList.add('reveal-tilt'));
-      body.querySelectorAll('figure, img, hr, pre').forEach((el) => el.classList.add('reveal-drift'));
+      // Skip .not-prose islands (e.g. related-post cards): a reveal transform
+      // on a card's h3 hijacks the stretched-link ::after's containing block,
+      // shrinking the card's click target to just the title.
+      const tag = (sel: string, cls: string) =>
+        body.querySelectorAll(sel).forEach((el) => { if (!el.closest('.not-prose')) el.classList.add(cls); });
+      tag('p, ul, ol, h2, h3, h4, blockquote, figure, img, hr, pre', 'reveal-soft');
+      tag('h2', 'reveal-pop');
+      tag('blockquote', 'reveal-tilt');
+      tag('figure, img, hr, pre', 'reveal-drift');
     };
 
     tagProseReveal();

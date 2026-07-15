@@ -38,8 +38,11 @@
 .qg-mapintro { display: flex; gap: 22px; align-items: center; }
 .qg-mapintro > div { min-width: 0; }
 .qg-h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(26px, 4.2vw, 40px); line-height: 1.05; letter-spacing: -0.015em; color: var(--fg); margin: 6px 0 10px; }
-.qg-lead { font-size: 15px; line-height: 1.6; color: var(--fg-mid); margin: 0 0 16px; max-width: 52ch; }
-@media (max-width: 620px) { .qg-mapintro { flex-direction: column; text-align: center; align-items: center; } }
+.qg-lead { font-size: 15px; line-height: 1.6; color: var(--fg-mid); margin: 0 0 14px; max-width: 52ch; }
+.qg-how { list-style: none; margin: 0 0 18px; padding: 0; display: flex; flex-direction: column; gap: 6px; max-width: 56ch; }
+.qg-how li { font-size: 13.5px; line-height: 1.55; color: var(--fg-mid); display: flex; gap: 8px; }
+.qg-how li > span { color: var(--accent-text); font-weight: 700; flex-shrink: 0; }
+@media (max-width: 620px) { .qg-mapintro { flex-direction: column; text-align: center; align-items: center; } .qg-how li { text-align: left; } }
 
 .qg-map { border: 2px solid var(--fg); border-radius: 10px; background: var(--bg-card); box-shadow: 5px 5px 0 var(--fg); padding: 18px; }
 .qg-map-svg { width: 100%; height: auto; display: block; }
@@ -189,7 +192,10 @@
 .qg-dcard.is-picked { border-color: var(--pop-red); }
 .qg-dcard.is-picked .qg-dcard-key { border-color: var(--pop-red); color: var(--pop-red); }
 .qg-dcard.is-picked .qg-dcard-mark { color: var(--pop-red); }
-.qg-dcard.is-dim { opacity: .5; }
+.qg-dcard.is-dim { opacity: .5; cursor: pointer; }
+.qg-dcard.is-dim:hover { opacity: .8; border-color: var(--accent); }
+.qg-dcard.is-explored { opacity: 1; border-color: var(--accent-text); box-shadow: 3px 3px 0 var(--fg); }
+.qg-explore-note { margin: -6px 24px 18px; font-family: var(--font-mono); font-size: 11.5px; line-height: 1.5; color: var(--fg-muted); }
 
 /* Outcome panel */
 .qg-outcome { margin: 0 24px 24px; padding: 16px 18px; border-radius: 9px; border: 2px solid var(--fg); box-shadow: 4px 4px 0 var(--fg); }
