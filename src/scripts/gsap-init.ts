@@ -158,8 +158,14 @@ function setup(): void {
 
       // 6. PROSE — h2 / blockquote / figure individually staggered;
       //    paragraphs scrub up gently as you scroll past.
+      //    Skip .not-prose islands (e.g. related-post cards): a transform on
+      //    a card's h3 becomes the containing block for the stretched-link
+      //    ::after, shrinking the card's click target to just the title.
       document.querySelectorAll<HTMLElement>('[data-anim="prose"]').forEach((prose) => {
-        prose.querySelectorAll<HTMLElement>('h2').forEach((h) => {
+        const pick = (sel: string) =>
+          Array.from(prose.querySelectorAll<HTMLElement>(sel)).filter((el) => !el.closest('.not-prose'));
+
+        pick('h2').forEach((h) => {
           gsap.from(h, {
             scrollTrigger: { trigger: h, start: 'top 88%', toggleActions: SCROLL_OPTS.toggleActions },
             y: 30 * k,
@@ -169,7 +175,7 @@ function setup(): void {
           });
         });
 
-        prose.querySelectorAll<HTMLElement>('h3, h4').forEach((h) => {
+        pick('h3, h4').forEach((h) => {
           gsap.from(h, {
             scrollTrigger: { trigger: h, start: 'top 90%', toggleActions: SCROLL_OPTS.toggleActions },
             y: 18 * k,
@@ -179,7 +185,7 @@ function setup(): void {
           });
         });
 
-        prose.querySelectorAll<HTMLElement>('blockquote').forEach((q) => {
+        pick('blockquote').forEach((q) => {
           gsap.from(q, {
             scrollTrigger: { trigger: q, start: 'top 88%', toggleActions: SCROLL_OPTS.toggleActions },
             x: -28 * k,
@@ -190,7 +196,7 @@ function setup(): void {
           });
         });
 
-        prose.querySelectorAll<HTMLElement>('figure, img, pre, hr').forEach((el) => {
+        pick('figure, img, pre, hr').forEach((el) => {
           gsap.from(el, {
             scrollTrigger: {
               trigger: el,
@@ -206,7 +212,7 @@ function setup(): void {
 
         // Paragraphs: fade-up reveal, individually triggered so reading flow
         // isn't interrupted.
-        prose.querySelectorAll<HTMLElement>('p, ul, ol').forEach((p) => {
+        pick('p, ul, ol').forEach((p) => {
           gsap.from(p, {
             scrollTrigger: { trigger: p, start: 'top 92%', toggleActions: SCROLL_OPTS.toggleActions },
             y: 14 * k,
@@ -216,45 +222,6 @@ function setup(): void {
           });
         });
       });
-
-      // 7. HORIZONTAL STRIP — pinned section, track scrubs sideways.
-      //    On mobile the strip is a native swipe row (CSS), no pin.
-      if (!isMobile) {
-        document.querySelectorAll<HTMLElement>('[data-anim="hscroll"]').forEach((sec) => {
-          const track = sec.querySelector<HTMLElement>('[data-hscroll-track]');
-          if (!track) return;
-          const amount = () => Math.max(0, track.scrollWidth - sec.clientWidth);
-          const scrub = gsap.to(track, {
-            x: () => -amount(),
-            ease: 'none',
-            scrollTrigger: {
-              trigger: sec,
-              start: 'top top',
-              end: () => '+=' + amount(),
-              pin: true,
-              scrub: 0.6,
-              anticipatePin: 1,
-              invalidateOnRefresh: true,
-            },
-          });
-          // Panels pop up as they ride into view inside the moving track.
-          track.querySelectorAll<HTMLElement>('[data-hscroll-panel]').forEach((panel) => {
-            gsap.from(panel, {
-              y: 44,
-              opacity: 0,
-              rotation: 1.2,
-              duration: 0.55,
-              ease: EASE,
-              scrollTrigger: {
-                trigger: panel,
-                containerAnimation: scrub,
-                start: 'left 88%',
-                toggleActions: SCROLL_OPTS.toggleActions,
-              },
-            });
-          });
-        });
-      }
 
       // 7b. CHOREOGRAPHY — a container declares data-choreo ("load" or
       //     "scroll"); descendants join one shared timeline at their own

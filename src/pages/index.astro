@@ -159,15 +159,14 @@ const why = [
   </section>
 
   <!-- ═══════════════════════════════════════════
-       INSIDE THE HOOD — pinned horizontal tour
+       INSIDE THE HOOD — six front doors
        ═══════════════════════════════════════════ -->
-  <section class="hood-strip" data-anim="hscroll" aria-label="What's inside Testerhood">
+  <section class="hood-strip" aria-label="What's inside Testerhood">
     <div class="hood-head">
       <span class="section-label">// inside the hood</span>
       <h2 class="hood-h2">One neighborhood, six front doors.</h2>
-      <span class="hood-hint" aria-hidden="true">scroll →</span>
     </div>
-    <div class="hood-track" data-hscroll-track>
+    <div class="hood-track" data-anim="card-grid">
       {[
         { n: '01', href: '/learn/qa-onboarding', title: 'The Game', desc: 'Play your first 30 days as a QA engineer — mentor included.', glyph: 'bit' },
         { n: '02', href: '/learn/qa-lab', title: 'The QA Lab', desc: 'Six real tools, simulated: API console, SQL, network tab, logs, locators, terminal.', glyph: 'flask' },
@@ -176,7 +175,7 @@ const why = [
         { n: '05', href: '/reviews', title: 'Reviews', desc: 'Independent tool reviews and head-to-heads. No marketing, no affiliate spin.', glyph: 'scale' },
         { n: '06', href: '/community', title: 'The Community', desc: 'People who speak fluent bug report. Quiet, practical, zero gatekeeping.', glyph: 'chat' },
       ].map((c) => (
-        <a class="hood-panel card-brutal" href={c.href} data-hscroll-panel>
+        <a class="hood-panel card-brutal" href={c.href}>
           <span class="hood-n" aria-hidden="true">{c.n}</span>
           <span class="hood-glyph" aria-hidden="true">
             {c.glyph === 'bit' && (
@@ -709,13 +708,12 @@ const why = [
   }
 
   /* ───────────────────────────────────────────────────────────
-     INSIDE THE HOOD — pinned horizontal tour
+     INSIDE THE HOOD — six front doors
      ─────────────────────────────────────────────────────────── */
   .hood-strip {
     position: relative;
     padding: 56px 0 64px;
     background: var(--bg-page);
-    overflow: hidden;
   }
   .hood-head {
     max-width: 64rem;
@@ -734,32 +732,18 @@ const why = [
     color: var(--fg);
     line-height: 1.05;
   }
-  .hood-hint {
-    margin-left: auto;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--fg-muted);
-    animation: hood-hint-nudge 1.6s ease-in-out infinite;
-  }
-  @keyframes hood-hint-nudge {
-    0%, 100% { transform: translateX(0); }
-    50%      { transform: translateX(6px); }
-  }
   .hood-track {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 20px;
-    width: max-content;
-    padding: 6px calc((100vw - min(64rem, 100vw - 3rem)) / 2 + 1.5rem) 14px;
-    will-change: transform;
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: 6px 1.5rem 14px;
   }
   .hood-panel {
     position: relative;
     display: flex;
     flex-direction: column;
-    width: clamp(250px, 26vw, 330px);
     padding: 22px 22px 20px;
     background: var(--bg-card);
     text-decoration: none;
@@ -805,18 +789,11 @@ const why = [
   }
   .hood-panel:hover .hood-cta { transform: translateX(4px); }
 
-  /* Mobile: native swipe row instead of a pin */
-  @media (max-width: 699px) {
-    .hood-strip { overflow: visible; }
-    .hood-strip > .hood-track {
-      overflow-x: auto;
-      width: auto;
-      padding: 6px 1rem 18px;
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-    }
-    .hood-panel { scroll-snap-align: start; flex-shrink: 0; width: 78vw; }
-    .hood-hint { display: none; }
+  @media (max-width: 899px) {
+    .hood-track { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 599px) {
+    .hood-track { grid-template-columns: 1fr; padding: 6px 1rem 18px; }
   }
 
   /* ───────────────────────────────────────────────────────────

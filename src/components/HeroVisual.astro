@@ -42,12 +42,13 @@
       <!-- firm, patriotic mouth (morphs to a grin on hover — MorphSVG) -->
       <path class="hv-mouth" d="M68 116 L92 116" stroke="var(--fg)" stroke-width="4" stroke-linecap="round" fill="none" />
 
-      <!-- the pointing arm: sleeve + big foreshortened hand, aimed at YOU -->
+      <!-- the pointing arm: drawn aiming down-left, at the Join button -->
       <g class="hv-point">
-        <path d="M46 132 Q56 152 74 158" stroke="var(--fg)" stroke-width="13" stroke-linecap="round" />
-        <path d="M46 132 Q56 152 74 158" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" />
-        <circle cx="86" cy="158" r="15" fill="#f3e9d2" stroke="var(--fg)" stroke-width="3.5" />
-        <rect x="94" y="150" width="26" height="13" rx="6.5" fill="#f3e9d2" stroke="var(--fg)" stroke-width="3.5" />
+        <path d="M48 122 Q30 134 22 150" stroke="var(--fg)" stroke-width="13" stroke-linecap="round" />
+        <path d="M48 122 Q30 134 22 150" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" />
+        <circle cx="20" cy="158" r="14" fill="#f3e9d2" stroke="var(--fg)" stroke-width="3.5" />
+        <rect x="14" y="152" width="26" height="13" rx="6.5" fill="#f3e9d2" stroke="var(--fg)" stroke-width="3.5"
+          transform="rotate(122 20 158)" />
       </g>
     </svg>
 
@@ -169,7 +170,7 @@
 }
 /* the point: a slow, insistent jab toward the reader */
 .hv-point {
-  transform-origin: 52px 136px;
+  transform-origin: 48px 122px;
   animation: hv-jab 2.6s ease-in-out infinite;
 }
 @keyframes hv-jab {
@@ -246,8 +247,8 @@
   pointer-events: auto;
   position: absolute;
   z-index: 20;
-  right: calc(5% + 8px);
-  top: calc(50% + 168px);
+  right: calc(5% + min(330px, 34vw) - 92px);
+  top: calc(50% + 172px);
   transform: rotate(-3deg);
   display: inline-flex;
   align-items: center;
@@ -355,28 +356,10 @@
     const float = gsap.to(poster, { y: -8, duration: 4.5, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 1.2 });
     const jab = arm
       ? gsap.to(arm, {
-          scale: 1.09, transformOrigin: '52px 136px', duration: 0.32,
+          scale: 1.09, transformOrigin: '48px 122px', duration: 0.32,
           ease: 'sine.inOut', yoyo: true, repeat: -1, repeatDelay: 2.1,
         })
       : null;
-
-    // The arm's resting aim: pointed straight at the Join button. The
-    // finger's neutral direction (pivot 52,136 -> fingertip ~120,156) is
-    // ~16deg; we rotate by the difference to the button's actual angle.
-    const svg = poster.querySelector<SVGSVGElement>('.hv-bit');
-    let armBase = 0;
-    const aimAtButton = () => {
-      if (!svg || !join) return;
-      const ctm = svg.getScreenCTM();
-      if (!ctm) return;
-      const b = join.getBoundingClientRect();
-      const pt = new DOMPoint(b.left + b.width / 2, b.top + 8).matrixTransform(ctm.inverse());
-      armBase = (Math.atan2(pt.y - 136, pt.x - 52) * 180) / Math.PI - 16.4;
-      armBase = Math.max(-10, Math.min(42, armBase));
-    };
-    aimAtButton();
-    if (arm) gsap.set(arm, { rotation: armBase, transformOrigin: '52px 136px' });
-    window.addEventListener('resize', aimAtButton);
 
     const rotTo = gsap.quickTo(poster, 'rotation', { duration: 0.6, ease: 'power3.out' });
     const posXTo = gsap.quickTo(poster, 'x', { duration: 0.6, ease: 'power3.out' });
@@ -392,7 +375,7 @@
       posXTo(dx * 14);
       pupilX?.(Math.max(-4.5, Math.min(4.5, dx * 26)));
       pupilY?.(Math.max(-3.5, Math.min(3.5, dy * 22)));
-      armRot?.(armBase + Math.max(-6, Math.min(6, dx * 18)));
+      armRot?.(Math.max(-6, Math.min(6, dx * 14)));
     };
 
     // The stamp re-slams if you dare hover it.
@@ -415,7 +398,6 @@
 
     window.__hvCleanup = () => {
       window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('resize', aimAtButton);
       stamp?.removeEventListener('mouseenter', onStamp);
       poster.removeEventListener('mouseenter', onGrin);
       poster.removeEventListener('mouseleave', onStern);

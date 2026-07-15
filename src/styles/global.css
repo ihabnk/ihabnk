@@ -167,12 +167,15 @@ p { text-wrap: pretty; }
   --tw-prose-td-borders:    var(--border);
 }
 
-/* Editorial reading typography */
-.prose p {
+/* Editorial reading typography.
+   :not(.not-prose *) mirrors the typography plugin's own escape hatch —
+   without it these custom rules leak into embedded islands like the
+   related-post cards (19px text + a drop cap inside a 14px card). */
+.prose p:not(:where(.not-prose *)) {
   font-size: 19px;
   line-height: 1.8;
 }
-.prose p:first-of-type::first-letter {
+.prose p:first-of-type:not(:where(.not-prose *))::first-letter {
   font-family: var(--font-display);
   font-weight: 800;
   float: left;
@@ -607,6 +610,9 @@ body::after {
   content: '';
   position: absolute;
   inset: 0;
+  /* Paint above the card's own content so the WHOLE card is clickable,
+     not just the gaps around text. Cards must hold no other links. */
+  z-index: 1;
 }
 
 /* ─────────────────────────────────────────────────────────── */
@@ -1152,8 +1158,8 @@ html[data-theme="dark"] .article-body p.reading-now {
   .article-col { padding: 56px 20px 100px; }
   .pullquote { margin: 36px -20px; padding: 24px 28px; font-size: 26px; }
   .pullquote::before { font-size: 56px; }
-  .prose p { font-size: 17px; line-height: 1.75; }
-  .prose p:first-of-type::first-letter { font-size: 56px; }
+  .prose p:not(:where(.not-prose *)) { font-size: 17px; line-height: 1.75; }
+  .prose p:first-of-type:not(:where(.not-prose *))::first-letter { font-size: 56px; }
   .article-headline { font-size: clamp(28px, 7vw, 44px); }
   .article-dek { font-size: 18px; }
   .article-meta { font-size: 10px; gap: 10px; }

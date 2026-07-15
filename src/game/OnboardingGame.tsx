@@ -113,9 +113,16 @@ export default function OnboardingGame() {
                   <span className="qg-kicker">The First 30 Days</span>
                   <h1 className="qg-h1">Learn to think like a tester — one workday at a time.</h1>
                   <p className="qg-lead">
-                    You’ve just joined Northwind as a junior quality engineer. Over your first 30 days,
-                    Bit will guide you through real onboarding scenarios that build the QA mindset.
+                    This is a story game: you’ve just joined Northwind as a junior quality engineer,
+                    and Bit — your mentor — walks you through your first 30 days on the job.
+                    Your goal is to build the QA mindset one real workplace scenario at a time.
                   </p>
+                  <ul className="qg-how" aria-label="How the game works">
+                    <li><span aria-hidden="true">▸</span> Each day is a short scene (2–4 min): a briefing, then a call only you can make.</li>
+                    <li><span aria-hidden="true">▸</span> There’s no failing — every choice gets honest feedback, and stronger calls earn more Confidence.</li>
+                    <li><span aria-hidden="true">▸</span> Finish a day to unlock the next; each one banks a named QA skill in your journal.</li>
+                    <li><span aria-hidden="true">▸</span> Progress saves in your browser, so you can leave and pick up where you stopped.</li>
+                  </ul>
                   <button className="qg-btn qg-btn-primary" onClick={() => enterDay(current)} disabled={!hydrated}>
                     {progress.completedDays.length === 0
                       ? 'Start Day 1'

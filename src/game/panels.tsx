@@ -172,6 +172,14 @@ export function ChoiceScene({
   const answered = picked !== null;
   const chosen = answered ? options[picked!] : null;
   const tier = chosen ? tierOf(chosen) : null;
+  // After answering, the other options stay tappable in review mode: the
+  // outcome panel shows where THAT call would have led. The score keeps the
+  // original pick — this is curiosity, not a retry.
+  const [explored, setExplored] = useState<number | null>(null);
+  const shownIdx = explored ?? picked;
+  const shown = shownIdx !== null ? options[shownIdx] : null;
+  const shownTier = shown ? tierOf(shown) : null;
+  const exploring = explored !== null && explored !== picked;
   const rootRef = useRef<HTMLDivElement>(null);
 
   // Physical feedback on the verdict: the strong pick lands with a squashy
@@ -213,11 +221,11 @@ export function ChoiceScene({
             <motion.button
               key={i}
               variants={item}
-              whileHover={answered || reduce ? undefined : { y: -2 }}
-              whileTap={answered || reduce ? undefined : { scale: 0.99 }}
-              className={`qg-dcard ${cls}`}
-              disabled={answered}
-              onClick={() => onPick(i)}
+              whileHover={reduce ? undefined : { y: -2 }}
+              whileTap={reduce ? undefined : { scale: 0.99 }}
+              className={`qg-dcard ${cls} ${answered && i === explored && exploring ? 'is-explored' : ''}`}
+              onClick={() => (answered ? setExplored(i === picked ? null : i) : onPick(i))}
+              aria-pressed={answered ? i === shownIdx : undefined}
             >
               <span className="qg-dcard-key">{LETTERS[i]}</span>
               <span className="qg-dcard-text">{o.text}</span>
@@ -230,20 +238,25 @@ export function ChoiceScene({
       </motion.div>
 
       {!answered && hasHint && onHint && <HintRow onHint={onHint} />}
+      {answered && <p className="qg-explore-note">Curious? Tap another option to see where it would have led — your call above stands.</p>}
 
-      <AnimatePresence>
-        {answered && chosen && tier && (
+      <AnimatePresence mode="wait">
+        {answered && shown && shownTier && (
           <motion.div
-            className={`qg-outcome is-${tier}`}
+            key={shownIdx}
+            className={`qg-outcome is-${shownTier}`}
             initial={reduce ? { opacity: 1 } : { opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={reduce ? { opacity: 0 } : { opacity: 0, y: -8 }}
             transition={{ type: 'spring', stiffness: 300, damping: 26 }}
           >
             <div className="qg-outcome-head">
-              <span className="qg-outcome-glyph" aria-hidden="true">{TIER[tier].glyph}</span>
-              <span className="qg-outcome-verdict">{TIER[tier].label}</span>
+              <span className="qg-outcome-glyph" aria-hidden="true">{TIER[shownTier].glyph}</span>
+              <span className="qg-outcome-verdict">
+                {exploring ? `If you’d picked ${LETTERS[shownIdx!]}…` : TIER[shownTier].label}
+              </span>
             </div>
-            <p className="qg-outcome-text">{chosen.feedback}</p>
+            <p className="qg-outcome-text">{shown.feedback}</p>
             <button className="qg-btn qg-btn-primary" onClick={onContinue}>{isLast ? 'Wrap up the day →' : 'Continue →'}</button>
           </motion.div>
         )}
